@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>@ViewData["Title"] - TasteCebu</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="~/css/site.css">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+    <!-- STICKY NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <a href="/">
+                    <i class="fas fa-utensil-spoon"></i>
+                    <span>Taste<span class="logo-highlight">Cebu</span></span>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                @{
+                    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+                    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                }
+                <a href="/" class="nav-link @(controller == "Home" && action == "Index" ? "active" : "")">Home</a>
+                <a href="/Restaurants" class="nav-link @(controller == "Restaurants" ? "active" : "")">Eateries</a>
+                <a href="/Dishes" class="nav-link @(controller == "Dishes" ? "active" : "")">Dishes</a>
+                <a href="/Events" class="nav-link @(controller == "Events" ? "active" : "")">Events</a>
+                <a href="/Stories" class="nav-link @(controller == "Stories" ? "active" : "")">Stories</a>
+                <a href="/About" class="nav-link @(controller == "About" ? "active" : "")">About</a>
+            </div>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="user-menu">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" class="user-avatar" alt="Profile">
+                        <div class="user-dropdown">
+                            <a href="/Account/Profile"><i class="fas fa-user"></i> My Food Journey</a>
+                            <a href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="/Account/Login" class="btn-login">Sign In</a>
+                    <a href="/Account/Register" class="btn-register">Join</a>
+                }
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MOBILE DRAWER -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <div class="drawer-header">
+            <div class="logo">TasteCebu</div>
+            <button class="close-drawer" id="closeDrawer">&times;</button>
+        </div>
+        <div class="drawer-links">
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="/Restaurants"><i class="fas fa-utensils"></i> Eateries</a>
+            <a href="/Dishes"><i class="fas fa-drumstick-bite"></i> Dishes</a>
+            <a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a>
+            <a href="/Stories"><i class="fas fa-book-open"></i> Stories</a>
+            <a href="/About"><i class="fas fa-info-circle"></i> About</a>
+        </div>
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <div class="drawer-auth">
+                <a href="/Account/Login" class="btn-login-mobile">Sign In</a>
+                <a href="/Account/Register" class="btn-register-mobile">Join TasteCebu</a>
+            </div>
+        }
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fas fa-utensil-spoon"></i> TasteCebu</h3>
+                    <p>Savor the Sugbo culinary wave — from lechon to modern gastronomy. Your guide to Cebu's vibrant food scene.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Explore</h4>
+                    <ul>
+                        <li><a href="/Restaurants">Restaurants & Cafes</a></li>
+                        <li><a href="/Dishes">New Dishes</a></li>
+                        <li><a href="/Events">Masterclasses</a></li>
+                        <li><a href="/Stories">Food Stories</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Flavors of Cebu</h4>
+                    <ul>
+                        <li><a href="#">Lechon Cebu</a></li>
+                        <li><a href="#">Sutukil</a></li>
+                        <li><a href="#">Puso</a></li>
+                        <li><a href="#">Ngohiong</a></li>
+                        <li><a href="#">Danggit Lamayo</a></li>
+                    </ul>
+                </div>
+                <div class="footer-newsletter">
+                    <h4>Get Foodie Updates</h4>
+                    <p>New dishes, events, and stories straight to your inbox.</p>
+                    <div class="newsletter-form">
+                        <input type="email" placeholder="Your email">
+                        <button><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TasteCebu — Celebrating Cebu's Gastronomic Heritage</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BACK TO TOP -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            if (themeToggle) {
+                const icon = themeToggle.querySelector('i');
+                if (theme === 'light') {
+                    icon.className = 'fas fa-sun';
+                } else {
+                    icon.className = 'fas fa-moon';
+                }
+            }
+        }
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+
+        // Mobile drawer
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const closeDrawer = document.getElementById('closeDrawer');
+
+        function openDrawer() {
+            if (mobileDrawer) mobileDrawer.classList.add('open');
+            if (drawerOverlay) drawerOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawerFunc() {
+            if (mobileDrawer) mobileDrawer.classList.remove('open');
+            if (drawerOverlay) drawerOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
+        if (closeDrawer) closeDrawer.addEventListener('click', closeDrawerFunc);
+        if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawerFunc);
+
+        // Back to top
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        if (backToTop) {
+            backToTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

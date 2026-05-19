@@ -1,0 +1,222 @@
+﻿@{
+    ViewData["Title"] = "Our Story - TasteCebu";
+}
+
+<section class="about-hero">
+    <div class="about-hero-content" data-aos="fade-up">
+        <h1>Our Flavor Story</h1>
+        <p>Born in Cebu, for the world</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="about-grid">
+        <div class="about-text" data-aos="fade-right">
+            <h2>So, why TasteCebu?</h2>
+            <p>We believe Cebu isn't just a tourist stop — it's a pulsating kitchen of creativity. From the timeless lechon pits in Talisay to innovative third-wave cafes, our goal is simple: <strong>to keep you aware of every delicious thing happening across the region.</strong></p>
+            <p>New dishes, hidden eateries, chef's masterclasses — we've got your food radar. TasteCebu is your daily dose of Cebuano gastronomy, celebrating the flavors that make our island unique.</p>
+            <div class="about-stats">
+                <div><span>2023</span> Founded</div>
+                <div><span>10k+</span> Monthly Readers</div>
+                <div><span>500+</span> Featured Dishes</div>
+            </div>
+        </div>
+        <div class="about-image" data-aos="fade-left">
+            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=500&fit=crop" alt="Cebu Food">
+        </div>
+    </div>
+
+    <div class="mission-section" data-aos="fade-up">
+        <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+        <p>To be the most trusted gastro platform in Cebu, connecting food lovers with authentic culinary experiences while celebrating and preserving our rich food heritage.</p>
+    </div>
+
+    <div class="team-section" data-aos="fade-up">
+        <h2>Meet the Team</h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Maria">
+                <h4>Maria Santos</h4>
+                <p>Founder and Food Writer</p>
+            </div>
+            <div class="team-member">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Miguel">
+                <h4>Miguel Reyes</h4>
+                <p>Chef and Culinary Director</p>
+            </div>
+            <div class="team-member">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Anna">
+                <h4>Anna Cruz</h4>
+                <p>Photographer and Editor</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="culture-section" data-aos="fade-up">
+        <h2>Celebrating Cebuano Food Culture</h2>
+        <div class="culture-grid">
+            <div class="culture-item">
+                <i class="fas fa-fire"></i>
+                <h3>Lechon</h3>
+                <p>The king of Cebuano fiestas</p>
+            </div>
+            <div class="culture-item">
+                <i class="fas fa-fish"></i>
+                <h3>Sutukil</h3>
+                <p>Seafood trinity of Cebu</p>
+            </div>
+            <div class="culture-item">
+                <i class="fas fa-rice"></i>
+                <h3>Puso</h3>
+                <p>Hanging rice tradition</p>
+            </div>
+            <div class="culture-item">
+                <i class="fas fa-mug-hot"></i>
+                <h3>Tsokolate</h3>
+                <p>Native tablea hot chocolate</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .about-hero {
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=2070&auto=format');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+    }
+
+    .about-hero-content h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+        margin-bottom: 4rem;
+    }
+
+    .about-text h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .about-text p {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.8;
+    }
+
+    .about-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+        .about-stats div span {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--burnt-orange);
+        }
+
+    .about-image img {
+        width: 100%;
+        border-radius: 24px;
+    }
+
+    .mission-section {
+        background: var(--gradient-warm);
+        padding: 3rem;
+        border-radius: 24px;
+        text-align: center;
+        color: white;
+        margin-bottom: 4rem;
+    }
+
+        .mission-section h2 {
+            margin-bottom: 1rem;
+        }
+
+    .team-section {
+        margin-bottom: 4rem;
+        text-align: center;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .team-member img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+    }
+
+    .culture-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .culture-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--bg-card);
+        border-radius: 20px;
+    }
+
+        .culture-item i {
+            font-size: 2.5rem;
+            color: var(--burnt-orange);
+            margin-bottom: 1rem;
+        }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .about-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .about-stats {
+            justify-content: center;
+        }
+
+        .about-hero-content h1 {
+            font-size: 2rem;
+        }
+
+        .mission-section {
+            padding: 1.5rem;
+        }
+
+        .team-member img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .culture-grid {
+            gap: 1rem;
+        }
+
+        .culture-item {
+            padding: 1rem;
+        }
+    }
+</style>

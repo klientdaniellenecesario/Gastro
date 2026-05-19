@@ -1,0 +1,359 @@
+﻿@{
+    ViewData["Title"] = "Cebu Food Stories - TasteCebu";
+}
+
+<!-- FEATURED STORY -->
+<section class="featured-story" data-aos="fade-up">
+    <div class="featured-story-image">
+        <img src="https://images.unsplash.com/photo-1569694119452-2b7eae2e4cbc?w=1200&h=600&fit=crop" alt="Lechon Story">
+    </div>
+    <div class="featured-story-content">
+        <span class="featured-badge">FEATURED STORY</span>
+        <h1>Why Cebu Lechon is the Best in the World</h1>
+        <p class="story-meta"><i class="far fa-user"></i> By Maria Santos &nbsp;|&nbsp; <i class="far fa-calendar-alt"></i> May 15, 2025 &nbsp;|&nbsp; <i class="far fa-clock"></i> 8 min read</p>
+        <p>The secrets behind Cebu's most iconic dish, from family recipes to modern interpretations. Discover what makes Cebu lechon truly exceptional.</p>
+        <a href="#" class="read-full">Read Full Story →</a>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-header" data-aos="fade-up">
+        <h2>More Food Stories</h2>
+        <p>Dish histories, chef spotlights, and culinary adventures in Cebu</p>
+    </div>
+
+    <div class="stories-grid">
+        <!-- Story 1 -->
+        <div class="story-card-large" data-aos="fade-up">
+            <div class="story-image">
+                <img src="https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=800&h=500&fit=crop" alt="Sutukil">
+            </div>
+            <div class="story-content">
+                <div class="story-category">Dish History</div>
+                <h3>The Story Behind Sutukil: Cebu's Seafood Trinity</h3>
+                <p class="story-excerpt">How Sugba (grill), Tula (stew), and Kilaw (ceviche) became the heart of Cebu's seafood culture, passed down through generations of fishermen.</p>
+                <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        <!-- Story 2 -->
+        <div class="story-card-large" data-aos="fade-up" data-aos-delay="100">
+            <div class="story-image">
+                <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&h=500&fit=crop" alt="Hidden Cafes">
+            </div>
+            <div class="story-content">
+                <div class="story-category">Chef Spotlight</div>
+                <h3>Hidden Cafes in IT Park: A Local's Guide</h3>
+                <p class="story-excerpt">From secret rooftops to underground coffee spots, discover the best-kept cafe secrets in Cebu's busiest district.</p>
+                <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+
+        <!-- Story 3 -->
+        <div class="story-card-large" data-aos="fade-up" data-aos-delay="200">
+            <div class="story-image">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=500&fit=crop" alt="Puso">
+            </div>
+            <div class="story-content">
+                <div class="story-category">Food Culture</div>
+                <h3>Puso: The Humble Hanging Rice of Cebu</h3>
+                <p class="story-excerpt">Why Cebuanos prefer their rice wrapped in woven coconut leaves, and how this tradition started.</p>
+                <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MINI STORIES GRID -->
+    <div class="mini-stories" data-aos="fade-up">
+        <div class="section-header">
+            <h3>Quick Bites</h3>
+            <p>Short stories and food news</p>
+        </div>
+        <div class="mini-grid">
+            <div class="mini-card">
+                <i class="fas fa-utensils"></i>
+                <h4>New Restaurant Alert</h4>
+                <p>"Kusina ni Manang" opens in Banilad serving traditional Cebuano dishes.</p>
+            </div>
+            <div class="mini-card">
+                <i class="fas fa-award"></i>
+                <h4>Award-Winning Chef</h4>
+                <p>Chef Miguel Santos wins Asia's Best Pastry Chef 2025.</p>
+            </div>
+            <div class="mini-card">
+                <i class="fas fa-truck"></i>
+                <h4>Food Truck Festival</h4>
+                <p>Returning to IT Park this June! 20+ food trucks.</p>
+            </div>
+            <div class="mini-card">
+                <i class="fas fa-leaf"></i>
+                <h4>Sustainable Seafood</h4>
+                <p>New initiative promotes sustainable fishing in Cebu.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .featured-story {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: var(--bg-card);
+        border-radius: 32px;
+        overflow: hidden;
+        margin: 2rem;
+    }
+
+    .featured-story-image {
+        height: 100%;
+    }
+
+        .featured-story-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .featured-story-content {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .featured-badge {
+        display: inline-block;
+        background: var(--burnt-orange);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        width: fit-content;
+        margin-bottom: 1rem;
+    }
+
+    .featured-story-content h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .story-meta {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .read-full {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: var(--burnt-orange);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .read-full:hover {
+            text-decoration: underline;
+        }
+
+    .read-more {
+        color: var(--burnt-orange);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-top: 0.8rem;
+    }
+
+        .read-more:hover {
+            text-decoration: underline;
+        }
+
+    .stories-grid {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .story-card-large {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 1.5rem;
+        background: var(--bg-card);
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+    .story-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .story-content {
+        padding: 1.5rem;
+    }
+
+    .story-category {
+        display: inline-block;
+        background: rgba(231, 111, 81, 0.2);
+        color: var(--burnt-orange);
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .story-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .story-excerpt {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .mini-stories {
+        margin-top: 4rem;
+    }
+
+    .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .mini-card {
+        background: var(--bg-card);
+        padding: 1.5rem;
+        border-radius: 20px;
+        text-align: center;
+        transition: var(--transition);
+    }
+
+        .mini-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .mini-card i {
+            font-size: 2rem;
+            color: var(--burnt-orange);
+            margin-bottom: 1rem;
+        }
+
+        .mini-card h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mini-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .featured-story {
+            grid-template-columns: 1fr;
+            margin: 1rem;
+        }
+
+        .featured-story-content h1 {
+            font-size: 1.8rem;
+        }
+
+        .featured-story-content {
+            padding: 1.5rem;
+        }
+
+        .story-card-large {
+            grid-template-columns: 1fr;
+        }
+
+        .story-image {
+            height: 200px;
+        }
+
+        .story-content h3 {
+            font-size: 1.2rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.4rem;
+        }
+
+        .mini-grid {
+            gap: 1rem;
+        }
+
+        .mini-card {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<style>
+    @@media (max-width: 480px) {
+        .featured-story {
+            margin: 0.5rem;
+        }
+
+        .featured-story-content h1 {
+            font-size: 1.5rem;
+        }
+
+        .story-meta {
+            font-size: 0.7rem;
+        }
+
+        .story-content {
+            padding: 1rem;
+        }
+
+            .story-content h3 {
+                font-size: 1.1rem;
+            }
+
+        .story-excerpt {
+            font-size: 0.85rem;
+        }
+
+        .mini-card i {
+            font-size: 1.5rem;
+        }
+
+        .mini-card h4 {
+            font-size: 1rem;
+        }
+
+        .mini-card p {
+            font-size: 0.8rem;
+        }
+    }
+</style>

@@ -1,0 +1,310 @@
+﻿@{
+    ViewData["Title"] = "Restaurants & Cafes - TasteCebu";
+}
+
+<section class="section">
+    <div class="section-header" data-aos="fade-up">
+        <h2>🍽️ Explore Cebu's Dining Scene</h2>
+        <p>From hole-in-walls to fine dining — find your next favorite spot</p>
+    </div>
+
+    @* SEARCH AND FILTERS *@
+    <div class="filters-bar" data-aos="fade-up">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search restaurants..." id="searchInput" onkeyup="searchRestaurants()">
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterByCategory('all')">All</button>
+            <button class="filter-tab" onclick="filterByCategory('cafe')">Cafes</button>
+            <button class="filter-tab" onclick="filterByCategory('seafood')">Seafood</button>
+            <button class="filter-tab" onclick="filterByCategory('lechon')">Lechon</button>
+            <button class="filter-tab" onclick="filterByCategory('international')">International</button>
+        </div>
+
+        <select class="sort-select" id="sortSelect" onchange="sortRestaurants()">
+            <option value="newest">Newest First</option>
+            <option value="rating">Highest Rated</option>
+            <option value="name">Name A-Z</option>
+        </select>
+    </div>
+
+    @* RESTAURANT GRID *@
+    <div class="card-grid" id="restaurantsGrid">
+        @* Restaurant 1 *@
+        <div class="restaurant-card" data-category="cafe" data-rating="4.8" data-name="Good Cup Coffee" data-date="2025-03-15">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&h=400&fit=crop" alt="Good Cup Coffee">
+                <span class="card-badge">☕ SPECIALTY</span>
+                <span class="card-vibe"><i class="fas fa-coffee"></i> Chill</span>
+            </div>
+            <div class="card-content">
+                <h3>Good Cup Coffee</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> AS Fortuna, Mandaue City</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span>4.8 (234 reviews)</span>
+                </div>
+                <p>Single-origin brews, minimalist industrial vibe, award-winning pastries.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('Good Cup Coffee', 1, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/1" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+
+        @* Restaurant 2 *@
+        <div class="restaurant-card" data-category="lechon" data-rating="4.9" data-name="House of Lechon" data-date="2025-02-10">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop" alt="House of Lechon">
+                <span class="card-badge">🔥 ICONIC</span>
+                <span class="card-vibe"><i class="fas fa-music"></i> Loud & Fun</span>
+            </div>
+            <div class="card-content">
+                <h3>House of Lechon</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Capitol Site, Cebu City</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <span>4.9 (1.2k reviews)</span>
+                </div>
+                <p>Authentic Cebu lechon with crispy skin and signature spicy vinegar.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('House of Lechon', 2, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/2" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+
+        @* Restaurant 3 *@
+        <div class="restaurant-card" data-category="international" data-rating="4.9" data-name="Pig and Palm" data-date="2025-01-20">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop" alt="Pig and Palm">
+                <span class="card-badge">⭐ FINE DINING</span>
+                <span class="card-vibe"><i class="fas fa-heart"></i> Romantic</span>
+            </div>
+            <div class="card-content">
+                <h3>Pig and Palm</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Nivel Hills, Lahug</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <span>4.9 (567 reviews)</span>
+                </div>
+                <p>Modern European with Cebuano soul — craft cocktails, stunning sunset views.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('Pig and Palm', 3, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/3" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+
+        @* Restaurant 4 *@
+        <div class="restaurant-card" data-category="seafood" data-rating="4.7" data-name="Lantaw Native Restaurant" data-date="2025-03-01">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600&h=400&fit=crop" alt="Lantaw">
+                <span class="card-badge">🌊 SEAVIEW</span>
+                <span class="card-vibe"><i class="fas fa-users"></i> Family</span>
+            </div>
+            <div class="card-content">
+                <h3>Lantaw Native Restaurant</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Cordova, Cebu</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span>4.7 (890 reviews)</span>
+                </div>
+                <p>Floating cottages, fresh seafood, and spectacular sunset views.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('Lantaw Native Restaurant', 4, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/4" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+
+        @* Restaurant 5 *@
+        <div class="restaurant-card" data-category="cafe" data-rating="4.6" data-name="Tightrope Coffee" data-date="2025-02-25">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&h=400&fit=crop" alt="Tightrope">
+                <span class="card-badge">☕ AESTHETIC</span>
+                <span class="card-vibe"><i class="fas fa-user"></i> Solo Friendly</span>
+            </div>
+            <div class="card-content">
+                <h3>Tightrope Coffee</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Crossroads, Cebu City</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <span>4.6 (432 reviews)</span>
+                </div>
+                <p>Minimalist interiors, specialty lattes, and delicious brioche toasts.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('Tightrope Coffee', 5, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/5" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+
+        @* Restaurant 6 *@
+        <div class="restaurant-card" data-category="seafood" data-rating="4.5" data-name="STK ta Bay" data-date="2025-02-18">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=400&fit=crop" alt="STK ta Bay">
+                <span class="card-badge">🍤 SUTUKIL</span>
+                <span class="card-vibe"><i class="fas fa-music"></i> Loud & Fun</span>
+            </div>
+            <div class="card-content">
+                <h3>STK ta Bay</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Mactan, Lapu-Lapu</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span>4.5 (678 reviews)</span>
+                </div>
+                <p>Sugba, Tula, Kilaw — fresh seafood the Cebuano way.</p>
+                <div class="card-actions">
+                    <button class="btn-crave" onclick="addToCravings('STK ta Bay', 6, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                    <a href="/Restaurants/Detail/6" class="btn-view">View →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem;">
+        <button class="btn-primary" onclick="loadMore(this)">Load More →</button>
+    </div>
+</section>
+
+@* CEBU MAP SECTION *@
+<section class="section" style="background: var(--bg-elevated);">
+    <div class="section-header" data-aos="fade-up">
+        <h2>🗺️ Find Your Next Meal</h2>
+        <p>Explore restaurants across Cebu</p>
+    </div>
+
+    <div class="map-container" data-aos="fade-up">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d250694.5277624654!2d123.78480462785445!3d10.315699251624145!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33a999a2a0b6f1a1%3A0x6b7b4f8e2b5c9a4!2sCebu%20City%2C%20Cebu!5e0!3m2!1sen!2sph!4v1700000000000!5m2!1sen!2sph"
+                width="100%"
+                height="400"
+                style="border:0; border-radius: 24px;"
+                allowfullscreen=""
+                loading="lazy">
+        </iframe>
+    </div>
+</section>
+
+<style>
+    .card-actions {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+
+    .btn-crave, .btn-view {
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+        flex: 1;
+    }
+
+    .btn-crave {
+        background: transparent;
+        border: 1px solid var(--burnt-orange);
+        color: var(--burnt-orange);
+    }
+
+        .btn-crave:hover {
+            background: var(--burnt-orange);
+            color: white;
+        }
+
+    .btn-view {
+        background: var(--gradient-warm);
+        color: white;
+        border: none;
+    }
+
+        .btn-view:hover {
+            transform: translateX(3px);
+        }
+
+    .sort-select {
+        background: var(--bg-elevated);
+        border: 1px solid var(--text-muted);
+        color: var(--text-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+    }
+
+    .map-container {
+        border-radius: 24px;
+        overflow: hidden;
+    }
+</style>
+
+<script>
+    function searchRestaurants() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const cards = document.querySelectorAll('.restaurant-card');
+
+        cards.forEach(card => {
+            const name = card.querySelector('h3').innerText.toLowerCase();
+            const location = card.querySelector('.card-location').innerText.toLowerCase();
+            if (name.includes(filter) || location.includes(filter)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function filterByCategory(category) {
+        const cards = document.querySelectorAll('.restaurant-card');
+        const buttons = document.querySelectorAll('.filter-tab');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        cards.forEach(card => {
+            if (category === 'all' || card.dataset.category === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function sortRestaurants() {
+        const sortBy = document.getElementById('sortSelect').value;
+        const grid = document.getElementById('restaurantsGrid');
+        const cards = Array.from(document.querySelectorAll('.restaurant-card'));
+
+        cards.sort((a, b) => {
+            if (sortBy === 'name') {
+                return a.dataset.name.localeCompare(b.dataset.name);
+            } else if (sortBy === 'rating') {
+                return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+            } else if (sortBy === 'newest') {
+                return new Date(b.dataset.date) - new Date(a.dataset.date);
+            }
+            return 0;
+        });
+
+        cards.forEach(card => grid.appendChild(card));
+        showToast('Sorted! 🍽️');
+    }
+</script>

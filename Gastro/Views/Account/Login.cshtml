@@ -1,0 +1,402 @@
+﻿@{
+    ViewData["Title"] = "Sign In - TasteCebu";
+}
+
+<section class="auth-section">
+    <div class="auth-container">
+        <div class="auth-image">
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=1000&fit=crop" alt="Delicious food spread">
+            <div class="auth-image-overlay">
+                <h2>Welcome Back, Foodie!</h2>
+                <p>Sign in to continue your gastro journey</p>
+            </div>
+        </div>
+
+        <div class="auth-form-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="toggleAuthTab('login')">Sign In</button>
+                <button class="auth-tab" onclick="toggleAuthTab('register')">Join TasteCebu</button>
+            </div>
+
+            <form id="loginForm" class="auth-form active" method="post" action="/Account/Login">
+                <h2>Sign In</h2>
+                <p class="auth-subtitle">Access your food journey</p>
+
+                <div class="input-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="loginPassword" placeholder="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="auth-options">
+                    <label class="checkbox">
+                        <input type="checkbox" name="rememberMe"> Remember me
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-auth">Sign In</button>
+
+                <div class="social-login">
+                    <p>Or continue with</p>
+                    <div class="social-buttons">
+                        <button type="button" class="social-btn google"><i class="fab fa-google"></i> Google</button>
+                        <button type="button" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    </div>
+                </div>
+            </form>
+
+            <form id="registerForm" class="auth-form" method="post" action="/Account/Register">
+                <h2>Join TasteCebu</h2>
+                <p class="auth-subtitle">Start your food journey today</p>
+
+                <div class="input-group">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" name="fullName" placeholder="Juan Dela Cruz" required>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" name="email" placeholder="your@email.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="regPassword" placeholder="Create a password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label><i class="fas fa-check-circle"></i> Confirm Password</label>
+                    <input type="password" name="confirmPassword" placeholder="Confirm password" required>
+                </div>
+
+                <div class="auth-terms">
+                    <label class="checkbox">
+                        <input type="checkbox" required> I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-auth">Create Account →</button>
+
+                <div class="social-login">
+                    <p>Or sign up with</p>
+                    <div class="social-buttons">
+                        <button type="button" class="social-btn google"><i class="fab fa-google"></i> Google</button>
+                        <button type="button" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<style>
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-container {
+        max-width: 1100px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: var(--bg-card);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .auth-image {
+        position: relative;
+        overflow: hidden;
+    }
+
+        .auth-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .auth-image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        padding: 2rem;
+        color: white;
+    }
+
+        .auth-image-overlay h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+    .auth-form-container {
+        padding: 2.5rem;
+    }
+
+    .auth-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--text-muted);
+    }
+
+    .auth-tab {
+        background: none;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        position: relative;
+    }
+
+        .auth-tab.active {
+            color: var(--burnt-orange);
+        }
+
+            .auth-tab.active::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: var(--burnt-orange);
+            }
+
+    .auth-form {
+        display: none;
+    }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+    .auth-subtitle {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+        margin-bottom: 1rem;
+    }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+            .input-group label i {
+                color: var(--burnt-orange);
+                margin-right: 0.5rem;
+            }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--text-muted);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+            .input-group input:focus {
+                outline: none;
+                border-color: var(--burnt-orange);
+            }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+        .password-wrapper input {
+            padding-right: 3rem;
+        }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+    }
+
+    .auth-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1rem 0;
+        font-size: 0.85rem;
+    }
+
+    .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .forgot-password {
+        color: var(--burnt-orange);
+        text-decoration: none;
+    }
+
+    .btn-auth {
+        width: 100%;
+        padding: 0.8rem;
+        background: var(--gradient-warm);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin: 1rem 0;
+    }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+        }
+
+    .social-login {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+
+        .social-login p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+            .social-login p::before,
+            .social-login p::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                width: 30%;
+                height: 1px;
+                background: var(--text-muted);
+            }
+
+            .social-login p::before {
+                left: 0;
+            }
+
+            .social-login p::after {
+                right: 0;
+            }
+
+    .social-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-btn {
+        flex: 1;
+        padding: 0.7rem;
+        border-radius: 40px;
+        border: 1px solid var(--text-muted);
+        background: transparent;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .social-btn:hover {
+            border-color: var(--burnt-orange);
+            color: var(--burnt-orange);
+        }
+
+    .auth-terms {
+        margin: 1rem 0;
+        font-size: 0.8rem;
+    }
+
+        .auth-terms a {
+            color: var(--burnt-orange);
+        }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .auth-container {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-image {
+            display: none;
+        }
+
+        .auth-form-container {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    function toggleAuthTab(tab) {
+        var loginForm = document.getElementById('loginForm');
+        var registerForm = document.getElementById('registerForm');
+        var tabs = document.querySelectorAll('.auth-tab');
+
+        tabs.forEach(function(btn) {
+            btn.classList.remove('active');
+        });
+
+        if (tab === 'login') {
+            loginForm.classList.add('active');
+            registerForm.classList.remove('active');
+            tabs[0].classList.add('active');
+        } else {
+            registerForm.classList.add('active');
+            loginForm.classList.remove('active');
+            tabs[1].classList.add('active');
+        }
+    }
+
+    function togglePassword(inputId) {
+        var input = document.getElementById(inputId);
+        var icon = input.nextElementSibling.querySelector('i');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    }
+</script>

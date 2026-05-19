@@ -1,0 +1,507 @@
+﻿@{
+    ViewData["Title"] = "Events and Masterclasses - TasteCebu";
+}
+
+<!-- HERO SECTION WITH COUNTDOWN -->
+<section class="events-hero">
+    <div class="events-hero-content" data-aos="fade-up">
+        <h1>Upcoming Culinary Events</h1>
+        <p>Masterclasses, food festivals, and food crawls in Cebu</p>
+        <div class="next-event-countdown">
+            <span>Next event in:</span>
+            <div class="countdown-timer" id="countdownTimer"></div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <!-- VIEW TOGGLE -->
+    <div class="view-toggle" data-aos="fade-up">
+        <button class="view-btn active" onclick="toggleView('grid')"><i class="fas fa-th-large"></i> Grid View</button>
+        <button class="view-btn" onclick="toggleView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar View</button>
+    </div>
+
+    <!-- GRID VIEW -->
+    <div id="gridView" class="card-grid">
+        <!-- Event 1 -->
+        <div class="event-card" data-date="2025-06-15" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop" alt="Lechon Masterclass">
+                <div class="date-badge">
+                    <span class="date-month">JUN</span>
+                    <span class="date-day">15</span>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3>Lechon Masterclass at Carbon</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Carbon Market, Cebu City</p>
+                <p class="event-time"><i class="far fa-clock"></i> 9:00 AM - 1:00 PM</p>
+                <p>Learn the secrets of Cebu's famous lechon from master roasters. Hands-on experience!</p>
+                <div class="seats-info">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 85%"></div>
+                    </div>
+                    <p>Only 15 seats left out of 100</p>
+                </div>
+                <button class="btn-register" onclick="registerEvent('Lechon Masterclass')">Register Now →</button>
+            </div>
+        </div>
+
+        <!-- Event 2 -->
+        <div class="event-card" data-date="2025-06-22" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=600&h=400&fit=crop" alt="Street Food Crawl">
+                <div class="date-badge">
+                    <span class="date-month">JUN</span>
+                    <span class="date-day">22</span>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3>Cebu Street Food Crawl</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Colon Street and Carbon</p>
+                <p class="event-time"><i class="far fa-clock"></i> 6:00 PM - 10:00 PM</p>
+                <p>Explore the best street eats in Cebu's oldest street. 10+ food stops!</p>
+                <div class="seats-info">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 60%"></div>
+                    </div>
+                    <p>32 spots left out of 80</p>
+                </div>
+                <button class="btn-register" onclick="registerEvent('Street Food Crawl')">Register Now →</button>
+            </div>
+        </div>
+
+        <!-- Event 3 -->
+        <div class="event-card" data-date="2025-06-30" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1534087298023-017580581d8d?w=600&h=400&fit=crop" alt="Coffee Cupping">
+                <div class="date-badge">
+                    <span class="date-month">JUN</span>
+                    <span class="date-day">30</span>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3>Coffee Cupping and Latte Art Workshop</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Current Coffee Roasters, Mandaue</p>
+                <p class="event-time"><i class="far fa-clock"></i> 2:00 PM - 5:00 PM</p>
+                <p>Hands-on espresso training, sensory evaluation, and latte art basics.</p>
+                <div class="seats-info">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 40%"></div>
+                    </div>
+                    <p>20 spots left out of 50</p>
+                </div>
+                <button class="btn-register" onclick="registerEvent('Coffee Cupping Workshop')">Register Now →</button>
+            </div>
+        </div>
+
+        <!-- Event 4 -->
+        <div class="event-card" data-date="2025-07-04" data-aos="fade-up" data-aos-delay="300">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?w=600&h=400&fit=crop" alt="Food Expo">
+                <div class="date-badge">
+                    <span class="date-month">JUL</span>
+                    <span class="date-day">4</span>
+                </div>
+            </div>
+            <div class="card-content">
+                <h3>Sugbo Food Expo 2025</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> SM Seaside City Cebu</p>
+                <p class="event-time"><i class="far fa-clock"></i> 10:00 AM - 9:00 PM (3 days)</p>
+                <p>100+ vendors, lechon showdown, live cook-offs, and artisanal market.</p>
+                <div class="seats-info">
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 20%"></div>
+                    </div>
+                    <p>Early bird tickets available!</p>
+                </div>
+                <button class="btn-register" onclick="registerEvent('Sugbo Food Expo')">Get Tickets →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDAR VIEW (Hidden by default) -->
+    <div id="calendarView" class="calendar-view" style="display: none;">
+        <div class="calendar-header">
+            <button class="calendar-nav" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <h3 id="currentMonthYear">June 2025</h3>
+            <button class="calendar-nav" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <!-- PAST EVENTS GALLERY -->
+    <div class="past-events" data-aos="fade-up">
+        <div class="section-header">
+            <h2>Past Events Gallery</h2>
+            <p>Relive the flavors from our previous gatherings</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=200&fit=crop" alt="Event 1"></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544148103-0773bf10d330?w=300&h=200&fit=crop" alt="Event 2"></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=200&fit=crop" alt="Event 3"></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=300&h=200&fit=crop" alt="Event 4"></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?w=300&h=200&fit=crop" alt="Event 5"></div>
+            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1534087298023-017580581d8d?w=300&h=200&fit=crop" alt="Event 6"></div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .events-hero {
+        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?q=80&w=2070&auto=format');
+        background-size: cover;
+        background-position: center;
+        padding: 4rem 2rem;
+        text-align: center;
+        color: white;
+    }
+
+    .events-hero-content h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .next-event-countdown {
+        margin-top: 2rem;
+        font-size: 1.2rem;
+    }
+
+    .countdown-timer {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--burnt-orange);
+        margin-top: 0.5rem;
+    }
+
+    .view-toggle {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .view-btn {
+        background: var(--bg-elevated);
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 30px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .view-btn.active {
+            background: var(--gradient-warm);
+        }
+
+    .date-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--bg-dark);
+        border-radius: 12px;
+        text-align: center;
+        padding: 0.3rem 0.6rem;
+        min-width: 50px;
+    }
+
+    .date-month {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--burnt-orange);
+        text-transform: uppercase;
+    }
+
+    .date-day {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .event-time {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin: 0.3rem 0;
+    }
+
+    .btn-register {
+        background: var(--gradient-warm);
+        color: white;
+        border: none;
+        padding: 0.7rem 1.2rem;
+        border-radius: 30px;
+        width: 100%;
+        margin-top: 1rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+        }
+
+    .calendar-view {
+        background: var(--bg-card);
+        border-radius: 24px;
+        padding: 2rem;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-nav {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        padding: 0.5rem;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    .calendar-day-header {
+        font-weight: 600;
+        padding: 0.5rem;
+        color: var(--burnt-orange);
+    }
+
+    .calendar-date {
+        padding: 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .calendar-date:hover {
+            background: var(--burnt-orange);
+        }
+
+        .calendar-date.has-event {
+            background: var(--burnt-orange);
+            color: white;
+        }
+
+    .past-events {
+        margin-top: 4rem;
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .gallery-item {
+        border-radius: 16px;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+    .progress-bar {
+        background: var(--bg-elevated);
+        border-radius: 10px;
+        height: 6px;
+        margin: 0.8rem 0 0.5rem;
+        overflow: hidden;
+    }
+
+    .progress {
+        background: var(--gradient-warm);
+        height: 100%;
+        border-radius: 10px;
+    }
+
+    .seats-info p {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .events-hero-content h1 {
+            font-size: 2rem;
+        }
+
+        .countdown-timer {
+            font-size: 1.5rem;
+        }
+
+        .calendar-grid {
+            font-size: 0.8rem;
+        }
+
+        .calendar-date {
+            padding: 0.5rem;
+        }
+    }
+</style>
+
+<script>
+    function startEventCountdown() {
+        var targetDate = new Date(2025, 5, 15, 9, 0, 0).getTime();
+        var countdownElement = document.getElementById('countdownTimer');
+
+        if (!countdownElement) return;
+
+        function updateCountdown() {
+            var now = new Date().getTime();
+            var distance = targetDate - now;
+
+            if (distance < 0) {
+                countdownElement.innerHTML = "Event Started!";
+                return;
+            }
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    }
+
+    startEventCountdown();
+
+    var currentMonth = 5;
+    var currentYear = 2025;
+
+    function toggleView(view) {
+        var gridView = document.getElementById('gridView');
+        var calendarView = document.getElementById('calendarView');
+        var buttons = document.querySelectorAll('.view-btn');
+
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('active');
+        }
+
+        if (event && event.target) {
+            event.target.closest('.view-btn').classList.add('active');
+        }
+
+        if (view === 'grid') {
+            gridView.style.display = 'grid';
+            calendarView.style.display = 'none';
+        } else {
+            gridView.style.display = 'none';
+            calendarView.style.display = 'block';
+            renderCalendar();
+        }
+    }
+
+    function renderCalendar() {
+        var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        var monthYearElement = document.getElementById('currentMonthYear');
+        if (monthYearElement) {
+            monthYearElement.innerText = monthNames[currentMonth] + ' ' + currentYear;
+        }
+
+        var firstDay = new Date(currentYear, currentMonth, 1);
+        var lastDay = new Date(currentYear, currentMonth + 1, 0);
+        var startingDay = firstDay.getDay();
+        var totalDays = lastDay.getDate();
+
+        var calendarHTML = '';
+        var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        for (var i = 0; i < days.length; i++) {
+            calendarHTML += '<div class="calendar-day-header">' + days[i] + '</div>';
+        }
+
+        for (var i = 0; i < startingDay; i++) {
+            calendarHTML += '<div class="calendar-date"></div>';
+        }
+
+        var eventDates = [15, 22, 30];
+
+        for (var date = 1; date <= totalDays; date++) {
+            var hasEvent = false;
+            for (var j = 0; j < eventDates.length; j++) {
+                if (eventDates[j] === date) {
+                    hasEvent = true;
+                    break;
+                }
+            }
+            var eventClass = hasEvent ? 'has-event' : '';
+            calendarHTML += '<div class="calendar-date ' + eventClass + '" onclick="showEventForDate(' + date + ')">' + date + '</div>';
+        }
+
+        var calendarGrid = document.getElementById('calendarGrid');
+        if (calendarGrid) {
+            calendarGrid.innerHTML = calendarHTML;
+        }
+    }
+
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    }
+
+    function showEventForDate(date) {
+        showToast('Events on ' + date + ': Check the grid view for details!');
+    }
+
+    function registerEvent(eventName) {
+        Swal.fire({
+            title: 'Register for ' + eventName,
+            text: 'Please log in to register for this event',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Login',
+            confirmButtonColor: '#E76F51'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                window.location.href = '/Account/Login';
+            }
+        });
+    }
+
+    function showToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+</script>

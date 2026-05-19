@@ -1,0 +1,419 @@
+﻿@{
+    ViewData["Title"] = "Discover Cebu's Food Scene - TasteCebu";
+}
+
+@* HERO SECTION *@
+<section class="hero">
+    <div class="hero-content" data-aos="fade-up">
+        <div class="hero-badge">
+            <i class="fas fa-utensil-spoon"></i> SUGBA • SIKAT • SABOR
+        </div>
+        <h1>Discover Cebu's<br><span class="hero-highlight">Boldest Bites</span></h1>
+        <p>From legendary lechon to hidden cafes — your gastro journey starts here</p>
+        <div class="hero-buttons">
+            <a href="/Restaurants" class="btn-primary">Explore Eateries →</a>
+            <a href="/Dishes" class="btn-secondary">Discover Dishes →</a>
+        </div>
+    </div>
+</section>
+
+@* STATS STRIP *@
+<div class="stats-strip" data-aos="fade-up">
+    <div class="stat-item">
+        <div class="stat-number">200+</div>
+        <div class="stat-label">Restaurants</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Dishes</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">50+</div>
+        <div class="stat-label">Events</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">10k+</div>
+        <div class="stat-label">Foodies</div>
+    </div>
+</div>
+
+@* WHAT'S YOUR VIBE? *@
+<section class="section">
+    <div class="section-header" data-aos="fade-up">
+        <h2>What's Your Vibe Today? ✨</h2>
+        <p>Find restaurants that match your mood</p>
+    </div>
+
+    <div class="vibe-selector" data-aos="fade-up" data-aos-delay="100">
+        <button class="vibe-btn active" onclick="filterByVibe('all')"><i class="fas fa-heart"></i> All</button>
+        <button class="vibe-btn" onclick="filterByVibe('chill')"><i class="fas fa-coffee"></i> Chill</button>
+        <button class="vibe-btn" onclick="filterByVibe('romantic')"><i class="fas fa-heart"></i> Romantic</button>
+        <button class="vibe-btn" onclick="filterByVibe('fun')"><i class="fas fa-music"></i> Loud & Fun</button>
+        <button class="vibe-btn" onclick="filterByVibe('solo')"><i class="fas fa-user"></i> Solo Friendly</button>
+        <button class="vibe-btn" onclick="filterByVibe('family')"><i class="fas fa-users"></i> Family</button>
+    </div>
+
+    <div class="card-grid" id="restaurantGrid">
+        @* Featured Restaurant 1 *@
+        <div class="restaurant-card" data-vibe="chill" data-aos="fade-up" data-aos-delay="150">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&h=400&fit=crop" alt="Good Cup Coffee">
+                <span class="card-badge new-badge">✨ NEW</span>
+                <span class="card-vibe"><i class="fas fa-coffee"></i> Chill</span>
+            </div>
+            <div class="card-content">
+                <h3>Good Cup Coffee</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> AS Fortuna, Mandaue</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span>4.8 (234 reviews)</span>
+                </div>
+                <p>Single-origin brews, minimalist industrial vibe, and award-winning pastries.</p>
+            </div>
+        </div>
+
+        @* Featured Restaurant 2 *@
+        <div class="restaurant-card" data-vibe="fun" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop" alt="House of Lechon">
+                <span class="card-badge">🔥 HOT</span>
+                <span class="card-vibe"><i class="fas fa-music"></i> Loud & Fun</span>
+            </div>
+            <div class="card-content">
+                <h3>House of Lechon</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Capitol Site, Cebu City</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <span>4.9 (1.2k reviews)</span>
+                </div>
+                <p>Authentic Cebu lechon with crispy skin and signature spicy vinegar.</p>
+            </div>
+        </div>
+
+        @* Featured Restaurant 3 *@
+        <div class="restaurant-card" data-vibe="romantic" data-aos="fade-up" data-aos-delay="250">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop" alt="Pig and Palm">
+                <span class="card-badge">⭐ RECOMMENDED</span>
+                <span class="card-vibe"><i class="fas fa-heart"></i> Romantic</span>
+            </div>
+            <div class="card-content">
+                <h3>Pig and Palm</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Nivel Hills, Lahug</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <span>4.9 (567 reviews)</span>
+                </div>
+                <p>Modern European with Cebuano soul — craft cocktails, stunning sunset views.</p>
+            </div>
+        </div>
+
+        @* Featured Restaurant 4 *@
+        <div class="restaurant-card" data-vibe="family" data-aos="fade-up" data-aos-delay="300">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600&h=400&fit=crop" alt="Lantaw Native Restaurant">
+                <span class="card-badge">👪 FAMILY</span>
+                <span class="card-vibe"><i class="fas fa-users"></i> Family</span>
+            </div>
+            <div class="card-content">
+                <h3>Lantaw Native Restaurant</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Cordova, Cebu</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span>4.7 (890 reviews)</span>
+                </div>
+                <p>Floating cottages, fresh seafood, and spectacular sunset views.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* TRENDING DISHES - HORIZONTAL SCROLL *@
+<section class="section" style="background: var(--bg-elevated);">
+    <div class="section-header" data-aos="fade-up">
+        <h2>🍜 Trending Right Now</h2>
+        <p>Cebu's most talked-about dishes this week</p>
+    </div>
+
+    <div class="horizontal-scroll" data-aos="fade-up">
+        @* Dish 1 *@
+        <div class="dish-card" onclick="location.href='/Dishes/Detail/1'">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=400&h=300&fit=crop" alt="Lechon Ramen">
+                <span class="card-badge new-badge">🌶️ VIRAL</span>
+            </div>
+            <div class="card-content">
+                <h3>Lechon Ramen</h3>
+                <p class="card-location">at Ramen Sage, Crossroads</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <button class="btn-tried" onclick="event.stopPropagation(); triedDish('Lechon Ramen', 1)">
+                    <i class="fas fa-check-circle"></i> I Tried This
+                </button>
+            </div>
+        </div>
+
+        @* Dish 2 *@
+        <div class="dish-card" onclick="location.href='/Dishes/Detail/2'">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=400&h=300&fit=crop" alt="Kinilaw Tacos">
+                <span class="card-badge">✨ NEW</span>
+            </div>
+            <div class="card-content">
+                <h3>Kinilaw Tacos</h3>
+                <p class="card-location">at Tales & Feelings</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                <button class="btn-tried" onclick="event.stopPropagation(); triedDish('Kinilaw Tacos', 2)">
+                    <i class="fas fa-check-circle"></i> I Tried This
+                </button>
+            </div>
+        </div>
+
+        @* Dish 3 *@
+        <div class="dish-card" onclick="location.href='/Dishes/Detail/3'">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop" alt="Ube Champorado">
+                <span class="card-badge">🍠 DESSERT</span>
+            </div>
+            <div class="card-content">
+                <h3>Ube Champorado</h3>
+                <p class="card-location">at Phat Monday</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <button class="btn-tried" onclick="event.stopPropagation(); triedDish('Ube Champorado', 3)">
+                    <i class="fas fa-check-circle"></i> I Tried This
+                </button>
+            </div>
+        </div>
+
+        @* Dish 4 *@
+        <div class="dish-card" onclick="location.href='/Dishes/Detail/4'">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?w=400&h=300&fit=crop" alt="Biscoff Mango Brazo">
+                <span class="card-badge new-badge">🍰 VIRAL</span>
+            </div>
+            <div class="card-content">
+                <h3>Biscoff Mango Brazo</h3>
+                <p class="card-location">at Dessert Factory, Mactan</p>
+                <div class="rating">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <button class="btn-tried" onclick="event.stopPropagation(); triedDish('Biscoff Mango Brazo', 4)">
+                    <i class="fas fa-check-circle"></i> I Tried This
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* NEW THIS WEEK SECTION *@
+<section class="section">
+    <div class="section-header" data-aos="fade-up">
+        <h2>🆕 New This Week</h2>
+        <p>Freshly added restaurants and dishes</p>
+    </div>
+
+    <div class="card-grid">
+        <div class="restaurant-card" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop" alt="5G Coffee and Khai">
+                <span class="card-badge new-badge">🆕 NEW</span>
+            </div>
+            <div class="card-content">
+                <h3>5G Coffee and Khai</h3>
+                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Mandaue City</p>
+                <p>Artisanal bakery serving croissant donuts and pandan lattes.</p>
+            </div>
+        </div>
+
+        <div class="dish-card" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1559847844-5315695dadae?w=600&h=400&fit=crop" alt="Sizzling Pochero">
+                <span class="card-badge new-badge">🆕 NEW</span>
+            </div>
+            <div class="card-content">
+                <h3>Sizzling Pochero</h3>
+                <p class="card-location">at Pochero House, Banilad</p>
+                <button class="btn-tried" onclick="triedDish('Sizzling Pochero', 5)">
+                    <i class="fas fa-check-circle"></i> I Tried This
+                </button>
+            </div>
+        </div>
+
+        <div class="event-card" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?w=600&h=400&fit=crop" alt="Cafe Hop">
+                <span class="card-badge new-badge">🆕 EVENT</span>
+            </div>
+            <div class="card-content">
+                <h3>Cebu Cafe Hop: Lahug Edition</h3>
+                <p class="card-location"><i class="far fa-calendar-alt"></i> May 28, 2025</p>
+                <p>Visit 5 specialty cafes in one day!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* UPCOMING EVENTS *@
+<section class="section" style="background: var(--bg-elevated);">
+    <div class="section-header" data-aos="fade-up">
+        <h2>📅 Upcoming Masterclasses & Events</h2>
+        <p>Cook, learn, and celebrate with Cebu's culinary community</p>
+    </div>
+
+    <div class="card-grid">
+        <div class="event-card" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop" alt="Lechon Masterclass">
+                <span class="card-badge">🔥 SOLD OUT?</span>
+            </div>
+            <div class="card-content">
+                <h3>Lechon Masterclass at Carbon</h3>
+                <p class="card-location"><i class="far fa-calendar-alt"></i> June 15, 2025 · 9AM</p>
+                <p>Learn the secrets of Cebu's famous lechon from master roasters.</p>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 85%"></div>
+                </div>
+                <p class="seats-left">Only 15 seats left!</p>
+            </div>
+        </div>
+
+        <div class="event-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=600&h=400&fit=crop" alt="Street Food Crawl">
+                <span class="card-badge">🍢 FOOD TOUR</span>
+            </div>
+            <div class="card-content">
+                <h3>Cebu Street Food Crawl</h3>
+                <p class="card-location"><i class="far fa-calendar-alt"></i> June 22, 2025 · 6PM</p>
+                <p>Explore the best street eats in Colon and Carbon Market.</p>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 60%"></div>
+                </div>
+                <p class="seats-left">32 spots remaining</p>
+            </div>
+        </div>
+
+        <div class="event-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1534087298023-017580581d8d?w=600&h=400&fit=crop" alt="Coffee Cupping">
+                <span class="card-badge">☕ WORKSHOP</span>
+            </div>
+            <div class="card-content">
+                <h3>Coffee Cupping & Latte Art</h3>
+                <p class="card-location"><i class="far fa-calendar-alt"></i> June 30, 2025 · 2PM</p>
+                <p>Hands-on espresso training with local roasters.</p>
+                <div class="progress-bar">
+                    <div class="progress" style="width: 40%"></div>
+                </div>
+                <p class="seats-left">20 spots left</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/Events" class="btn-secondary">View All Events →</a>
+    </div>
+</section>
+
+@* CEBU FOOD STORIES *@
+<section class="section">
+    <div class="section-header" data-aos="fade-up">
+        <h2>📖 Cebu Food Stories</h2>
+        <p>Stories from our vibrant food culture</p>
+    </div>
+
+    <div class="card-grid">
+        <div class="story-card" data-aos="fade-up">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1569694119452-2b7eae2e4cbc?w=600&h=400&fit=crop" alt="Lechon History">
+            </div>
+            <div class="card-content">
+                <h3>Why Cebu Lechon is the Best in the World</h3>
+                <p class="card-location">By Maria Santos · 5 min read</p>
+                <p>The secrets behind Cebu's most iconic dish, from family recipes to modern interpretations.</p>
+                <a href="#" class="read-more">Read Story →</a>
+            </div>
+        </div>
+
+        <div class="story-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600&h=400&fit=crop" alt="Sutukil Story">
+            </div>
+            <div class="card-content">
+                <h3>The Story Behind Sutukil</h3>
+                <p class="card-location">By Chef Miguel · 4 min read</p>
+                <p>How Sugba, Tula, Kilaw became the heart of Cebu's seafood culture.</p>
+                <a href="#" class="read-more">Read Story →</a>
+            </div>
+        </div>
+
+        <div class="story-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&h=400&fit=crop" alt="Hidden Cafes">
+            </div>
+            <div class="card-content">
+                <h3>Hidden Cafes in IT Park You Need to Try</h3>
+                <p class="card-location">By Alex Reyes · 6 min read</p>
+                <p>From secret rooftops to underground coffee spots.</p>
+                <a href="#" class="read-more">Read Story →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .btn-tried {
+        background: none;
+        border: 1px solid var(--burnt-orange);
+        color: var(--burnt-orange);
+        padding: 0.5rem 1rem;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-top: 0.8rem;
+        transition: var(--transition);
+        width: 100%;
+    }
+
+        .btn-tried:hover {
+            background: var(--burnt-orange);
+            color: white;
+        }
+
+    .progress-bar {
+        background: var(--bg-elevated);
+        border-radius: 10px;
+        height: 6px;
+        margin: 0.8rem 0 0.5rem;
+        overflow: hidden;
+    }
+
+    .progress {
+        background: var(--gradient-warm);
+        height: 100%;
+        border-radius: 10px;
+    }
+
+    .seats-left {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .read-more {
+        color: var(--burnt-orange);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-top: 0.8rem;
+    }
+
+        .read-more:hover {
+            text-decoration: underline;
+        }
+</style>

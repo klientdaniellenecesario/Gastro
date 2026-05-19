@@ -1,0 +1,30 @@
+﻿## Ignore Visual Studio temporary files
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+
+## Ignore user-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+
+## Ignore IDE files
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

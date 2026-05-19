@@ -1,0 +1,570 @@
+﻿@{
+    ViewData["Title"] = "My Food Journey - TasteCebu";
+}
+
+<section class="profile-section">
+    <div class="profile-header">
+        <div class="profile-cover">
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&h=300&fit=crop" alt="Cover">
+        </div>
+        <div class="profile-info">
+            <div class="profile-avatar">
+                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Avatar">
+                <button class="edit-avatar"><i class="fas fa-camera"></i></button>
+            </div>
+            <div class="profile-details">
+                <h1>Maria Santos</h1>
+                <p class="profile-location"><i class="fas fa-map-marker-alt"></i> Cebu City, Philippines</p>
+                <div class="foodie-level">
+                    <span class="level-badge">Foodie Level 7</span>
+                    <div class="level-progress">
+                        <div class="level-bar" style="width: 70%"></div>
+                    </div>
+                    <span class="next-level">85 points to Level 8</span>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="stat-number">47</div>
+                    <div class="stat-label">Dishes Tried</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number">23</div>
+                    <div class="stat-label">Restaurants</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Reviews</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Events Joined</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-tabs">
+        <button class="profile-tab active" onclick="showProfileTab('reviews')">My Reviews</button>
+        <button class="profile-tab" onclick="showProfileTab('cravings')">Cravings List</button>
+        <button class="profile-tab" onclick="showProfileTab('tried')">Tried Dishes</button>
+        <button class="profile-tab" onclick="showProfileTab('events')">My Events</button>
+        <button class="profile-tab" onclick="showProfileTab('activity')">Activity Feed</button>
+    </div>
+
+    <!-- MY REVIEWS TAB -->
+    <div id="reviewsTab" class="profile-tab-content active">
+        <div class="reviews-list">
+            <div class="review-item">
+                <div class="review-restaurant">
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="House of Lechon">
+                    <div>
+                        <h4>House of Lechon</h4>
+                        <div class="review-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <p class="review-date">May 10, 2025</p>
+                    </div>
+                </div>
+                <p class="review-text">Best lechon in Cebu! The skin was incredibly crispy and the meat was so juicy. Their spicy vinegar dip is to die for.</p>
+            </div>
+
+            <div class="review-item">
+                <div class="review-restaurant">
+                    <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=100&h=100&fit=crop" alt="Good Cup Coffee">
+                    <div>
+                        <h4>Good Cup Coffee</h4>
+                        <div class="review-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <p class="review-date">April 28, 2025</p>
+                    </div>
+                </div>
+                <p class="review-text">Amazing specialty coffee! Their pour-over is perfection. The pastries are also great.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRAVINGS LIST TAB -->
+    <div id="cravingsTab" class="profile-tab-content">
+        <div class="cravings-list">
+            <div class="craving-item">
+                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=100&h=100&fit=crop" alt="Lechon">
+                <div class="craving-info">
+                    <h4>Cebu Lechon</h4>
+                    <p>House of Lechon - $450</p>
+                </div>
+                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
+            </div>
+            <div class="craving-item">
+                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=100&h=100&fit=crop" alt="Kinilaw">
+                <div class="craving-info">
+                    <h4>Kinilaw Tacos</h4>
+                    <p>Tales and Feelings - $320</p>
+                </div>
+                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
+            </div>
+            <div class="craving-item">
+                <img src="https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=100&h=100&fit=crop" alt="Lechon Ramen">
+                <div class="craving-info">
+                    <h4>Lechon Ramen</h4>
+                    <p>Ramen Sage - $390</p>
+                </div>
+                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
+            </div>
+        </div>
+        <button class="btn-explore-more" onclick="location.href='/Dishes'">+ Add More Cravings</button>
+    </div>
+
+    <!-- TRIED DISHES TAB -->
+    <div id="triedTab" class="profile-tab-content">
+        <div class="tried-grid">
+            <div class="tried-item">
+                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt="Lechon">
+                <div class="tried-overlay">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Tried on May 10, 2025</span>
+                </div>
+                <h4>Cebu Lechon</h4>
+                <p>House of Lechon</p>
+            </div>
+            <div class="tried-item">
+                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=200&h=150&fit=crop" alt="Kinilaw">
+                <div class="tried-overlay">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Tried on Apr 28, 2025</span>
+                </div>
+                <h4>Kinilaw Tacos</h4>
+                <p>Tales and Feelings</p>
+            </div>
+            <div class="tried-item">
+                <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&h=150&fit=crop" alt="Ube Champorado">
+                <div class="tried-overlay">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Tried on Apr 15, 2025</span>
+                </div>
+                <h4>Ube Champorado</h4>
+                <p>Phat Monday</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MY EVENTS TAB -->
+    <div id="eventsTab" class="profile-tab-content">
+        <div class="events-list">
+            <div class="event-item">
+                <div class="event-date-badge">
+                    <span class="event-date-month">JUN</span>
+                    <span class="event-date-day">15</span>
+                </div>
+                <div class="event-info">
+                    <h4>Lechon Masterclass at Carbon</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Carbon Market, Cebu City</p>
+                    <p><i class="far fa-clock"></i> 9:00 AM - 1:00 PM</p>
+                </div>
+                <span class="event-status confirmed">Confirmed</span>
+            </div>
+            <div class="event-item">
+                <div class="event-date-badge">
+                    <span class="event-date-month">JUN</span>
+                    <span class="event-date-day">22</span>
+                </div>
+                <div class="event-info">
+                    <h4>Cebu Street Food Crawl</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Colon Street and Carbon</p>
+                    <p><i class="far fa-clock"></i> 6:00 PM - 10:00 PM</p>
+                </div>
+                <span class="event-status pending">Pending</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVITY FEED TAB -->
+    <div id="activityTab" class="profile-tab-content">
+        <div class="activity-feed">
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-utensils"></i></div>
+                <div class="activity-content">
+                    <p>You tried <strong>Cebu Lechon</strong> at <strong>House of Lechon</strong></p>
+                    <span class="activity-time">2 days ago</span>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-star"></i></div>
+                <div class="activity-content">
+                    <p>You reviewed <strong>Good Cup Coffee</strong> (5 stars)</p>
+                    <span class="activity-time">5 days ago</span>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-heart"></i></div>
+                <div class="activity-content">
+                    <p>You added <strong>Kinilaw Tacos</strong> to your Cravings List</p>
+                    <span class="activity-time">1 week ago</span>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-ticket-alt"></i></div>
+                <div class="activity-content">
+                    <p>You registered for <strong>Lechon Masterclass at Carbon</strong></p>
+                    <span class="activity-time">2 weeks ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .profile-section {
+        max-width: var(--container-width);
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .profile-header {
+        background: var(--bg-card);
+        border-radius: 24px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .profile-cover {
+        height: 150px;
+    }
+
+        .profile-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .profile-info {
+        padding: 0 2rem 2rem;
+        position: relative;
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .profile-avatar {
+        position: relative;
+        margin-top: -50px;
+    }
+
+        .profile-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--burnt-orange);
+            background: var(--bg-card);
+        }
+
+    .edit-avatar {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--burnt-orange);
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+    }
+
+    .profile-details h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .foodie-level {
+        margin-top: 0.8rem;
+    }
+
+    .level-badge {
+        display: inline-block;
+        background: var(--gradient-warm);
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+
+    .level-progress {
+        width: 200px;
+        height: 6px;
+        background: var(--bg-elevated);
+        border-radius: 3px;
+        margin: 0.5rem 0 0.3rem;
+        overflow: hidden;
+    }
+
+    .level-bar {
+        height: 100%;
+        background: var(--gradient-warm);
+        border-radius: 3px;
+    }
+
+    .next-level {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 2rem;
+        margin-left: auto;
+    }
+
+    .profile-stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--burnt-orange);
+    }
+
+    .profile-tabs {
+        display: flex;
+        gap: 1rem;
+        border-bottom: 1px solid var(--text-muted);
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-tab {
+        background: none;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .profile-tab.active {
+            color: var(--burnt-orange);
+            border-bottom: 2px solid var(--burnt-orange);
+        }
+
+    .profile-tab-content {
+        display: none;
+    }
+
+        .profile-tab-content.active {
+            display: block;
+        }
+
+    .craving-item, .event-item, .activity-item, .review-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--bg-card);
+        padding: 1rem;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+    }
+
+        .craving-item img, .review-restaurant img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+    .craving-info {
+        flex: 1;
+    }
+
+    .btn-remove-craving {
+        background: none;
+        border: 1px solid #e74c3c;
+        color: #e74c3c;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .btn-explore-more {
+        background: var(--gradient-warm);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 40px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .tried-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .tried-item {
+        position: relative;
+        background: var(--bg-card);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .tried-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+    .tried-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));
+        padding: 0.5rem;
+        color: white;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .tried-item h4, .tried-item p {
+        padding: 0.3rem 0.8rem;
+    }
+
+    .tried-item p {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        padding-bottom: 0.8rem;
+    }
+
+    .event-date-badge {
+        background: var(--burnt-orange);
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 12px;
+        min-width: 60px;
+    }
+
+    .event-date-month {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .event-date-day {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    .event-info {
+        flex: 1;
+    }
+
+    .event-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+        .event-status.confirmed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .event-status.pending {
+            background: #f39c12;
+            color: white;
+        }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-elevated);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--burnt-orange);
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-time {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+</style>
+
+<style>
+    @@media (max-width: 768px) {
+        .profile-info {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-stats {
+            margin-left: 0;
+            justify-content: center;
+        }
+
+        .profile-tabs {
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    function showProfileTab(tab) {
+        var tabs = ['reviews', 'cravings', 'tried', 'events', 'activity'];
+        var tabButtons = document.querySelectorAll('.profile-tab');
+
+        for (var i = 0; i < tabs.length; i++) {
+            var content = document.getElementById(tabs[i] + 'Tab');
+            if (content) {
+                content.classList.remove('active');
+            }
+        }
+
+        var activeTab = document.getElementById(tab + 'Tab');
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove('active');
+        }
+
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+    }
+
+    function removeCraving(btn) {
+        var item = btn.closest('.craving-item');
+        if (item) {
+            item.remove();
+        }
+        showToast('Removed from Cravings List');
+    }
+
+    function showToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            setTimeout(function() {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+</script>

@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Page Not Found - TasteCebu";
+}
+
+<div class="error-page">
+    <div class="error-content" data-aos="fade-up">
+        <i class="fas fa-utensils error-icon"></i>
+        <h1>404</h1>
+        <h2>Oops, this dish doesn't exist 🍽️</h2>
+        <p>The page you're looking for might have been eaten, or moved to another kitchen.</p>
+        <div class="error-actions">
+            <a href="/" class="btn-primary">Go Home</a>
+            <a href="/Restaurants" class="btn-secondary">Find Food</a>
+        </div>
+        <div class="error-suggestion">
+            <p>Hungry? Try searching for:</p>
+            <div class="suggestion-tags">
+                <span>Lechon</span>
+                <span>Sutukil</span>
+                <span>Coffee</span>
+                <span>Masterclass</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-page {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .error-icon {
+        font-size: 5rem;
+        color: var(--burnt-orange);
+        margin-bottom: 1rem;
+    }
+
+    .error-content h1 {
+        font-size: 6rem;
+        font-weight: 800;
+        color: var(--burnt-orange);
+        margin-bottom: 0.5rem;
+    }
+
+    .error-content h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-content p {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .error-suggestion {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--text-muted);
+    }
+
+    .suggestion-tags {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+        .suggestion-tags span {
+            background: var(--bg-elevated);
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+            .suggestion-tags span:hover {
+                background: var(--burnt-orange);
+                color: white;
+            }
+</style>
