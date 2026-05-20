@@ -1,5 +1,10 @@
 ﻿@{
     ViewData["Title"] = "My Food Journey - TasteCebu";
+    var profileUser = ViewData["ProfileUser"] as GastroCebu.Models.AppUser;
+    var bookmarks = ViewData["Bookmarks"] as List<GastroCebu.Models.BookmarkEntry> ?? new();
+    var registrations = ViewData["Registrations"] as List<GastroCebu.Models.EventRegistration> ?? new();
+    var reviews = ViewData["Reviews"] as List<GastroCebu.Models.ReviewEntry> ?? new();
+    var activities = ViewData["Activities"] as List<GastroCebu.Models.ActivityEntry> ?? new();
 }
 
 <section class="profile-section">
@@ -13,8 +18,8 @@
                 <button class="edit-avatar"><i class="fas fa-camera"></i></button>
             </div>
             <div class="profile-details">
-                <h1>Maria Santos</h1>
-                <p class="profile-location"><i class="fas fa-map-marker-alt"></i> Cebu City, Philippines</p>
+                <h1 id="profileName">@(profileUser?.FullName ?? User.Identity?.Name ?? "Maria Santos")</h1>
+                <p class="profile-location"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">@(profileUser?.Location ?? "Cebu City, Philippines")</span></p>
                 <div class="foodie-level">
                     <span class="level-badge">Foodie Level 7</span>
                     <div class="level-progress">
@@ -41,6 +46,10 @@
                     <div class="stat-label">Events Joined</div>
                 </div>
             </div>
+            <div class="profile-actions">
+                <button class="profile-action-btn" onclick="openProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
+                <button class="profile-action-btn" onclick="openPasswordModal()"><i class="fas fa-key"></i> Change Password</button>
+            </div>
         </div>
     </div>
 
@@ -55,6 +64,29 @@
     <!-- MY REVIEWS TAB -->
     <div id="reviewsTab" class="profile-tab-content active">
         <div class="reviews-list">
+            @foreach (var review in reviews)
+            {
+                <div class="review-item" data-review-id="@review.Id">
+                    <div class="review-restaurant">
+                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="Review">
+                        <div>
+                            <h4>@review.TargetType #@review.TargetId</h4>
+                            <div class="review-stars">
+                                @for (var i = 0; i < review.Rating; i++)
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+                            </div>
+                            <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                        </div>
+                    </div>
+                    <p class="review-text">@review.Text</p>
+                    <div class="inline-actions">
+                        <button onclick="editReview(this)">Edit</button>
+                        <button onclick="deleteReview(this)">Delete</button>
+                    </div>
+                </div>
+            }
             <div class="review-item">
                 <div class="review-restaurant">
                     <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="House of Lechon">
@@ -67,6 +99,10 @@
                     </div>
                 </div>
                 <p class="review-text">Best lechon in Cebu! The skin was incredibly crispy and the meat was so juicy. Their spicy vinegar dip is to die for.</p>
+                <div class="inline-actions">
+                    <button onclick="editReview(this)">Edit</button>
+                    <button onclick="deleteReview(this)">Delete</button>
+                </div>
             </div>
 
             <div class="review-item">
@@ -81,13 +117,28 @@
                     </div>
                 </div>
                 <p class="review-text">Amazing specialty coffee! Their pour-over is perfection. The pastries are also great.</p>
+                <div class="inline-actions">
+                    <button onclick="editReview(this)">Edit</button>
+                    <button onclick="deleteReview(this)">Delete</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- CRAVINGS LIST TAB -->
     <div id="cravingsTab" class="profile-tab-content">
-        <div class="cravings-list">
+        <div class="cravings-list" id="cravingsList">
+            @foreach (var bookmark in bookmarks)
+            {
+                <div class="craving-item">
+                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
+                    <div class="craving-info">
+                        <h4>@bookmark.ItemName</h4>
+                        <p>@bookmark.ItemType saved on @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                    </div>
+                    <button class="btn-remove-craving" onclick="removeCraving(this, '@bookmark.ItemType', @bookmark.ItemId, '@bookmark.ItemName')">Remove</button>
+                </div>
+            }
             <div class="craving-item">
                 <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=100&h=100&fit=crop" alt="Lechon">
                 <div class="craving-info">
@@ -118,7 +169,7 @@
 
     <!-- TRIED DISHES TAB -->
     <div id="triedTab" class="profile-tab-content">
-        <div class="tried-grid">
+        <div class="tried-grid" id="triedGrid">
             <div class="tried-item">
                 <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt="Lechon">
                 <div class="tried-overlay">
@@ -151,7 +202,23 @@
 
     <!-- MY EVENTS TAB -->
     <div id="eventsTab" class="profile-tab-content">
-        <div class="events-list">
+        <div class="events-list" id="registeredEventsList">
+            @foreach (var registration in registrations)
+            {
+                <div class="event-item" data-event-id="@registration.EventId">
+                    <div class="event-date-badge">
+                        <span class="event-date-month">EVT</span>
+                        <span class="event-date-day">@registration.EventId</span>
+                    </div>
+                    <div class="event-info">
+                        <h4>@registration.EventTitle</h4>
+                        <p><i class="fas fa-map-marker-alt"></i> Cebu</p>
+                        <p><i class="far fa-clock"></i> Registered @registration.RegisteredAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                    </div>
+                    <span class="event-status confirmed">Confirmed</span>
+                    <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
+                </div>
+            }
             <div class="event-item">
                 <div class="event-date-badge">
                     <span class="event-date-month">JUN</span>
@@ -163,6 +230,7 @@
                     <p><i class="far fa-clock"></i> 9:00 AM - 1:00 PM</p>
                 </div>
                 <span class="event-status confirmed">Confirmed</span>
+                <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
             </div>
             <div class="event-item">
                 <div class="event-date-badge">
@@ -175,6 +243,7 @@
                     <p><i class="far fa-clock"></i> 6:00 PM - 10:00 PM</p>
                 </div>
                 <span class="event-status pending">Pending</span>
+                <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
             </div>
         </div>
     </div>
@@ -182,6 +251,16 @@
     <!-- ACTIVITY FEED TAB -->
     <div id="activityTab" class="profile-tab-content">
         <div class="activity-feed">
+            @foreach (var activity in activities)
+            {
+                <div class="activity-item">
+                    <div class="activity-icon"><i class="fas fa-circle"></i></div>
+                    <div class="activity-content">
+                        <p>@activity.Message</p>
+                        <span class="activity-time">@activity.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                    </div>
+                </div>
+            }
             <div class="activity-item">
                 <div class="activity-icon"><i class="fas fa-utensils"></i></div>
                 <div class="activity-content">
@@ -213,6 +292,30 @@
         </div>
     </div>
 </section>
+
+<div class="profile-modal" id="profileModal">
+    <div class="profile-modal-content">
+        <button class="modal-x" onclick="closeProfileModals()">&times;</button>
+        <h2>Edit Profile</h2>
+        <label>Name</label>
+        <input id="editProfileName" type="text">
+        <label>Location</label>
+        <input id="editProfileLocation" type="text">
+        <button class="btn-explore-more" onclick="saveProfile()">Save Profile</button>
+    </div>
+</div>
+
+<div class="profile-modal" id="passwordModal">
+    <div class="profile-modal-content">
+        <button class="modal-x" onclick="closeProfileModals()">&times;</button>
+        <h2>Change Password</h2>
+        <label>Current Password</label>
+        <input type="password" id="currentPassword">
+        <label>New Password</label>
+        <input type="password" id="newPassword">
+        <button class="btn-explore-more" onclick="changePassword()">Update Password</button>
+    </div>
+</div>
 
 <style>
     .profile-section {
@@ -313,6 +416,28 @@
     .profile-stats {
         display: flex;
         gap: 2rem;
+        margin-left: auto;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 0.8rem;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .profile-action-btn, .inline-actions button {
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--text-muted);
+        border-radius: 30px;
+        padding: 0.45rem 0.9rem;
+        cursor: pointer;
+    }
+
+    .inline-actions {
+        display: flex;
+        gap: 0.5rem;
         margin-left: auto;
     }
 
@@ -499,6 +624,56 @@
         font-size: 0.7rem;
         color: var(--text-secondary);
     }
+
+    .profile-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 1rem;
+    }
+
+        .profile-modal.open {
+            display: flex;
+        }
+
+    .profile-modal-content {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 1.5rem;
+        max-width: 420px;
+        width: 100%;
+        position: relative;
+    }
+
+        .profile-modal-content label {
+            display: block;
+            margin-top: 1rem;
+        }
+
+        .profile-modal-content input {
+            width: 100%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--text-muted);
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-top: 0.4rem;
+        }
+
+    .modal-x {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.8rem;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
 </style>
 
 <style>
@@ -515,6 +690,10 @@
         }
 
         .profile-tabs {
+            justify-content: center;
+        }
+
+        .profile-actions {
             justify-content: center;
         }
     }
@@ -546,13 +725,191 @@
         }
     }
 
-    function removeCraving(btn) {
+    async function removeCraving(btn, itemType, itemId, itemName) {
+        if (itemType && itemId && window.addToCravings) {
+            await window.addToCravings(itemName, itemId, itemType);
+        }
         var item = btn.closest('.craving-item');
         if (item) {
+            var name = item.querySelector('h4') ? item.querySelector('h4').innerText : '';
             item.remove();
+            var cravings = JSON.parse(localStorage.getItem('cravings') || '[]').filter(function(craving) {
+                return craving.name !== name;
+            });
+            localStorage.setItem('cravings', JSON.stringify(cravings));
         }
         showToast('Removed from Cravings List');
     }
+
+    async function cancelEvent(btn) {
+        var item = btn.closest('.event-item');
+        var title = item.querySelector('h4').innerText;
+        var eventId = item.dataset.eventId || '1';
+        await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+        item.remove();
+        var events = JSON.parse(localStorage.getItem('registeredEvents') || '[]').filter(function(eventItem) {
+            return eventItem.title !== title;
+        });
+        localStorage.setItem('registeredEvents', JSON.stringify(events));
+        showToast('Event registration cancelled');
+    }
+
+    function editReview(btn) {
+        var item = btn.closest('.review-item');
+        var reviewId = item.dataset.reviewId;
+        var textEl = item.querySelector('.review-text');
+        var starsEl = item.querySelector('.review-stars');
+        var currentRating = starsEl ? starsEl.querySelectorAll('i.fas').length : 5;
+
+        // Build an inline edit form inside the card
+        var existing = item.querySelector('.inline-edit-form');
+        if (existing) { existing.remove(); return; }
+
+        var form = document.createElement('div');
+        form.className = 'inline-edit-form';
+        form.innerHTML =
+            '<div style="margin-top:0.8rem">' +
+            '<label style="display:block;margin-bottom:0.3rem">Rating (1–5)</label>' +
+            '<input type="number" min="1" max="5" value="' + currentRating + '" class="edit-rating-input" style="width:60px;padding:0.4rem;border-radius:8px;border:1px solid var(--text-muted);background:var(--bg-elevated);color:var(--text-primary)">' +
+            '</div>' +
+            '<div style="margin-top:0.6rem">' +
+            '<label style="display:block;margin-bottom:0.3rem">Review</label>' +
+            '<textarea class="edit-text-input" rows="3" style="width:100%;padding:0.6rem;border-radius:8px;border:1px solid var(--text-muted);background:var(--bg-elevated);color:var(--text-primary)">' + textEl.innerText + '</textarea>' +
+            '</div>' +
+            '<div style="margin-top:0.6rem;display:flex;gap:0.5rem">' +
+            '<button onclick="saveReviewEdit(this,' + reviewId + ')" style="background:var(--burnt-orange);color:#fff;border:none;padding:0.4rem 1rem;border-radius:20px;cursor:pointer">Save</button>' +
+            '<button onclick="this.closest(\'.inline-edit-form\').remove()" style="background:var(--bg-elevated);border:1px solid var(--text-muted);padding:0.4rem 1rem;border-radius:20px;cursor:pointer;color:var(--text-primary)">Cancel</button>' +
+            '</div>';
+        item.appendChild(form);
+    }
+
+    async function saveReviewEdit(btn, reviewId) {
+        var form = btn.closest('.inline-edit-form');
+        var item = form.closest('.review-item');
+        var rating = parseInt(form.querySelector('.edit-rating-input').value);
+        var text = form.querySelector('.edit-text-input').value.trim();
+
+        if (!text || rating < 1 || rating > 5) {
+            showToast('Please enter a rating (1–5) and review text.');
+            return;
+        }
+
+        if (reviewId) {
+            var res = await fetch('/api/reviews/' + reviewId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rating: rating, text: text })
+            });
+            if (!res.ok) { showToast('Could not update review.'); return; }
+        }
+
+        // Update the displayed text and stars
+        var textEl = item.querySelector('.review-text');
+        if (textEl) textEl.innerText = text;
+
+        var starsEl = item.querySelector('.review-stars');
+        if (starsEl) {
+            starsEl.innerHTML = '';
+            for (var i = 0; i < 5; i++) {
+                var star = document.createElement('i');
+                star.className = i < rating ? 'fas fa-star' : 'far fa-star';
+                starsEl.appendChild(star);
+            }
+        }
+
+        form.remove();
+        showToast('Review updated!');
+    }
+
+    async function deleteReview(btn) {
+        var item = btn.closest('.review-item');
+        if (item.dataset.reviewId) {
+            await fetch('/api/reviews/' + item.dataset.reviewId, { method: 'DELETE' });
+        }
+        item.remove();
+        showToast('Review deleted');
+    }
+
+    function openProfileModal() {
+        document.getElementById('editProfileName').value = document.getElementById('profileName').innerText;
+        document.getElementById('editProfileLocation').value = document.getElementById('profileLocation').innerText;
+        document.getElementById('profileModal').classList.add('open');
+    }
+
+    function openPasswordModal() {
+        document.getElementById('passwordModal').classList.add('open');
+    }
+
+    function closeProfileModals() {
+        document.getElementById('profileModal').classList.remove('open');
+        document.getElementById('passwordModal').classList.remove('open');
+    }
+
+    async function saveProfile() {
+        var name = document.getElementById('editProfileName').value.trim();
+        var location = document.getElementById('editProfileLocation').value.trim();
+        if (!name || !location) {
+            showToast('Please complete the profile fields');
+            return;
+        }
+        await fetch('/Account/UpdateProfile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ fullName: name, location: location })
+        });
+        document.getElementById('profileName').innerText = name;
+        document.getElementById('profileLocation').innerText = location;
+        closeProfileModals();
+        showToast('Profile updated');
+    }
+
+    async function changePassword() {
+        var current = document.getElementById('currentPassword').value.trim();
+        var next = document.getElementById('newPassword').value.trim();
+        if (!current || next.length < 6) {
+            showToast('New password must be at least 6 characters');
+            return;
+        }
+        await fetch('/Account/ChangePassword', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ currentPassword: current, newPassword: next })
+        });
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        closeProfileModals();
+        showToast('Password changed');
+    }
+
+    function renderStoredProfileData() {
+        var profile = JSON.parse(localStorage.getItem('profile') || 'null');
+        if (profile) {
+            document.getElementById('profileName').innerText = profile.name;
+            document.getElementById('profileLocation').innerText = profile.location;
+        }
+
+        var cravings = JSON.parse(localStorage.getItem('cravings') || '[]');
+        var cravingsList = document.getElementById('cravingsList');
+        cravings.forEach(function(craving) {
+            if ([].some.call(cravingsList.querySelectorAll('h4'), function(h) { return h.innerText === craving.name; })) return;
+            cravingsList.insertAdjacentHTML('afterbegin', '<div class="craving-item"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt=""><div class="craving-info"><h4>' + craving.name + '</h4><p>' + craving.type + ' saved from browsing</p></div><button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button></div>');
+        });
+
+        var tried = JSON.parse(localStorage.getItem('triedDishes') || '[]');
+        var triedGrid = document.getElementById('triedGrid');
+        tried.forEach(function(id) {
+            triedGrid.insertAdjacentHTML('beforeend', '<div class="tried-item"><img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt=""><div class="tried-overlay"><i class="fas fa-check-circle"></i><span>Tried recently</span></div><h4>Saved Dish #' + id + '</h4><p>From browsing</p></div>');
+        });
+
+        var storedEvents = JSON.parse(localStorage.getItem('registeredEvents') || '[]');
+        var eventList = document.getElementById('registeredEventsList');
+        storedEvents.forEach(function(eventItem) {
+            if ([].some.call(eventList.querySelectorAll('h4'), function(h) { return h.innerText === eventItem.title; })) return;
+            eventList.insertAdjacentHTML('afterbegin', '<div class="event-item"><div class="event-date-badge"><span class="event-date-month">JUN</span><span class="event-date-day">--</span></div><div class="event-info"><h4>' + eventItem.title + '</h4><p><i class="fas fa-map-marker-alt"></i> ' + (eventItem.location || 'Cebu') + '</p><p><i class="far fa-clock"></i> Upcoming</p></div><span class="event-status confirmed">Confirmed</span><button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button></div>');
+        });
+    }
+
+    renderStoredProfileData();
 
     function showToast(message) {
         var toast = document.createElement('div');

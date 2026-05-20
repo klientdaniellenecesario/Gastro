@@ -1,5 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Events and Masterclasses - TasteCebu";
+    var events = ViewData["DatabaseEvents"] as List<GastroCebu.Models.FoodEvent> ?? new();
+    var nextEvent = events.Where(e => e.Date >= DateTime.UtcNow).OrderBy(e => e.Date).FirstOrDefault();
 }
 
 <!-- HERO SECTION WITH COUNTDOWN -->
@@ -7,10 +9,14 @@
     <div class="events-hero-content" data-aos="fade-up">
         <h1>Upcoming Culinary Events</h1>
         <p>Masterclasses, food festivals, and food crawls in Cebu</p>
-        <div class="next-event-countdown">
-            <span>Next event in:</span>
-            <div class="countdown-timer" id="countdownTimer"></div>
-        </div>
+        @if (nextEvent != null)
+        {
+            <div class="next-event-countdown">
+                <span>Next event in:</span>
+                <div class="countdown-timer" id="countdownTimer"
+                     data-target="@nextEvent.Date.ToString("yyyy-MM-ddTHH:mm:ss")Z"></div>
+            </div>
+        }
     </div>
 </section>
 
@@ -23,131 +29,103 @@
 
     <!-- GRID VIEW -->
     <div id="gridView" class="card-grid">
-        <!-- Event 1 -->
-        <div class="event-card" data-date="2025-06-15" data-aos="fade-up">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop" alt="Lechon Masterclass">
-                <div class="date-badge">
-                    <span class="date-month">JUN</span>
-                    <span class="date-day">15</span>
-                </div>
+        @if (!events.Any())
+        {
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <div class="empty-state-icon">📅</div>
+                <h3>No events scheduled yet</h3>
+                <p>The admin hasn't posted any events or masterclasses yet. Check back soon!</p>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Admin/Dashboard" class="btn-primary">Add an Event →</a>
+                }
             </div>
-            <div class="card-content">
-                <h3>Lechon Masterclass at Carbon</h3>
-                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Carbon Market, Cebu City</p>
-                <p class="event-time"><i class="far fa-clock"></i> 9:00 AM - 1:00 PM</p>
-                <p>Learn the secrets of Cebu's famous lechon from master roasters. Hands-on experience!</p>
-                <div class="seats-info">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 85%"></div>
+        }
+        else
+        {
+            @foreach (var foodEvent in events.OrderBy(e => e.Date))
+            {
+                <div class="event-card" data-date="@foodEvent.Date.ToString("yyyy-MM-dd")" data-aos="fade-up"
+                     onclick="location.href='/Events/Detail/@foodEvent.Id'">
+                    <div class="card-image">
+                        <img src="@foodEvent.PhotoUrl" alt="@foodEvent.Title">
+                        <div class="date-badge">
+                            <span class="date-month">@foodEvent.Date.ToString("MMM").ToUpperInvariant()</span>
+                            <span class="date-day">@foodEvent.Date.Day</span>
+                        </div>
                     </div>
-                    <p>Only 15 seats left out of 100</p>
-                </div>
-                <button class="btn-register" onclick="registerEvent('Lechon Masterclass')">Register Now →</button>
-            </div>
-        </div>
-
-        <!-- Event 2 -->
-        <div class="event-card" data-date="2025-06-22" data-aos="fade-up" data-aos-delay="100">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=600&h=400&fit=crop" alt="Street Food Crawl">
-                <div class="date-badge">
-                    <span class="date-month">JUN</span>
-                    <span class="date-day">22</span>
-                </div>
-            </div>
-            <div class="card-content">
-                <h3>Cebu Street Food Crawl</h3>
-                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Colon Street and Carbon</p>
-                <p class="event-time"><i class="far fa-clock"></i> 6:00 PM - 10:00 PM</p>
-                <p>Explore the best street eats in Cebu's oldest street. 10+ food stops!</p>
-                <div class="seats-info">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 60%"></div>
+                    <div class="card-content">
+                        <h3>@foodEvent.Title</h3>
+                        <p class="card-location"><i class="fas fa-map-marker-alt"></i> @foodEvent.Location</p>
+                        <p class="event-time"><i class="far fa-clock"></i> @foodEvent.Date.ToString("h:mm tt")</p>
+                        <p>@foodEvent.Description</p>
+                        <div class="seats-info">
+                            <div class="progress-bar"><div class="progress" style="width: 45%"></div></div>
+                            <p>@foodEvent.AvailableSlots seats available</p>
+                        </div>
+                        <button class="btn-register" onclick="event.stopPropagation(); registerEvent(@foodEvent.Id)">Register Now →</button>
                     </div>
-                    <p>32 spots left out of 80</p>
                 </div>
-                <button class="btn-register" onclick="registerEvent('Street Food Crawl')">Register Now →</button>
-            </div>
-        </div>
-
-        <!-- Event 3 -->
-        <div class="event-card" data-date="2025-06-30" data-aos="fade-up" data-aos-delay="200">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1534087298023-017580581d8d?w=600&h=400&fit=crop" alt="Coffee Cupping">
-                <div class="date-badge">
-                    <span class="date-month">JUN</span>
-                    <span class="date-day">30</span>
-                </div>
-            </div>
-            <div class="card-content">
-                <h3>Coffee Cupping and Latte Art Workshop</h3>
-                <p class="card-location"><i class="fas fa-map-marker-alt"></i> Current Coffee Roasters, Mandaue</p>
-                <p class="event-time"><i class="far fa-clock"></i> 2:00 PM - 5:00 PM</p>
-                <p>Hands-on espresso training, sensory evaluation, and latte art basics.</p>
-                <div class="seats-info">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 40%"></div>
-                    </div>
-                    <p>20 spots left out of 50</p>
-                </div>
-                <button class="btn-register" onclick="registerEvent('Coffee Cupping Workshop')">Register Now →</button>
-            </div>
-        </div>
-
-        <!-- Event 4 -->
-        <div class="event-card" data-date="2025-07-04" data-aos="fade-up" data-aos-delay="300">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?w=600&h=400&fit=crop" alt="Food Expo">
-                <div class="date-badge">
-                    <span class="date-month">JUL</span>
-                    <span class="date-day">4</span>
-                </div>
-            </div>
-            <div class="card-content">
-                <h3>Sugbo Food Expo 2025</h3>
-                <p class="card-location"><i class="fas fa-map-marker-alt"></i> SM Seaside City Cebu</p>
-                <p class="event-time"><i class="far fa-clock"></i> 10:00 AM - 9:00 PM (3 days)</p>
-                <p>100+ vendors, lechon showdown, live cook-offs, and artisanal market.</p>
-                <div class="seats-info">
-                    <div class="progress-bar">
-                        <div class="progress" style="width: 20%"></div>
-                    </div>
-                    <p>Early bird tickets available!</p>
-                </div>
-                <button class="btn-register" onclick="registerEvent('Sugbo Food Expo')">Get Tickets →</button>
-            </div>
-        </div>
+            }
+        }
     </div>
 
-    <!-- CALENDAR VIEW (Hidden by default) -->
+    <!-- CALENDAR VIEW (hidden by default) -->
     <div id="calendarView" class="calendar-view" style="display: none;">
         <div class="calendar-header">
             <button class="calendar-nav" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-            <h3 id="currentMonthYear">June 2025</h3>
+            <h3 id="currentMonthYear"></h3>
             <button class="calendar-nav" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
-    <!-- PAST EVENTS GALLERY -->
-    <div class="past-events" data-aos="fade-up">
-        <div class="section-header">
-            <h2>Past Events Gallery</h2>
-            <p>Relive the flavors from our previous gatherings</p>
+    @if (events.Any())
+    {
+        <!-- PAST EVENTS GALLERY -->
+        <div class="past-events" data-aos="fade-up">
+            <div class="section-header">
+                <h2>Past Events Gallery</h2>
+                <p>Relive the flavors from our previous gatherings</p>
+            </div>
+            <div class="gallery-grid">
+                @foreach (var pastEvent in events.Where(e => e.Date < DateTime.UtcNow).Take(6))
+                {
+                    <div class="gallery-item">
+                        <img src="@pastEvent.PhotoUrl" alt="@pastEvent.Title">
+                    </div>
+                }
+                @if (!events.Any(e => e.Date < DateTime.UtcNow))
+                {
+                    <p style="color: var(--text-secondary); padding: 1rem;">No past events yet.</p>
+                }
+            </div>
         </div>
-        <div class="gallery-grid">
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=200&fit=crop" alt="Event 1"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1544148103-0773bf10d330?w=300&h=200&fit=crop" alt="Event 2"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=200&fit=crop" alt="Event 3"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=300&h=200&fit=crop" alt="Event 4"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?w=300&h=200&fit=crop" alt="Event 5"></div>
-            <div class="gallery-item"><img src="https://images.unsplash.com/photo-1534087298023-017580581d8d?w=300&h=200&fit=crop" alt="Event 6"></div>
-        </div>
-    </div>
+    }
 </section>
 
 <style>
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        margin-bottom: 1.5rem;
+    }
+
     .events-hero {
         background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?q=80&w=2070&auto=format');
         background-size: cover;
@@ -285,11 +263,7 @@
         transition: var(--transition);
     }
 
-        .calendar-date:hover {
-            background: var(--burnt-orange);
-        }
-
-        .calendar-date.has-event {
+        .calendar-date:hover, .calendar-date.has-event {
             background: var(--burnt-orange);
             color: white;
         }
@@ -339,9 +313,7 @@
         font-size: 0.75rem;
         color: var(--text-secondary);
     }
-</style>
 
-<style>
     @@media (max-width: 768px) {
         .events-hero-content h1 {
             font-size: 2rem;
@@ -351,10 +323,6 @@
             font-size: 1.5rem;
         }
 
-        .calendar-grid {
-            font-size: 0.8rem;
-        }
-
         .calendar-date {
             padding: 0.5rem;
         }
@@ -362,133 +330,71 @@
 </style>
 
 <script>
-    function startEventCountdown() {
-        var targetDate = new Date(2025, 5, 15, 9, 0, 0).getTime();
-        var countdownElement = document.getElementById('countdownTimer');
+    // Dynamic countdown from the next event's date
+    (function () {
+        var el = document.getElementById('countdownTimer');
+        if (!el) return;
+        var target = new Date(el.dataset.target).getTime();
 
-        if (!countdownElement) return;
-
-        function updateCountdown() {
-            var now = new Date().getTime();
-            var distance = targetDate - now;
-
-            if (distance < 0) {
-                countdownElement.innerHTML = "Event Started!";
-                return;
-            }
-
-            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            countdownElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+        function update() {
+            var dist = target - Date.now();
+            if (dist < 0) { el.innerHTML = "Event Started!"; return; }
+            var d = Math.floor(dist / 86400000);
+            var h = Math.floor((dist % 86400000) / 3600000);
+            var m = Math.floor((dist % 3600000) / 60000);
+            var s = Math.floor((dist % 60000) / 1000);
+            el.innerHTML = d + "d " + h + "h " + m + "m " + s + "s";
         }
+        update();
+        setInterval(update, 1000);
+    })();
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    }
-
-    startEventCountdown();
-
-    var currentMonth = 5;
-    var currentYear = 2025;
+    var currentMonth = new Date().getMonth();
+    var currentYear = new Date().getFullYear();
 
     function toggleView(view) {
-        var gridView = document.getElementById('gridView');
-        var calendarView = document.getElementById('calendarView');
-        var buttons = document.querySelectorAll('.view-btn');
-
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].classList.remove('active');
-        }
-
-        if (event && event.target) {
-            event.target.closest('.view-btn').classList.add('active');
-        }
-
-        if (view === 'grid') {
-            gridView.style.display = 'grid';
-            calendarView.style.display = 'none';
-        } else {
-            gridView.style.display = 'none';
-            calendarView.style.display = 'block';
-            renderCalendar();
-        }
+        document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
+        document.getElementById('calendarView').style.display = view === 'grid' ? 'none' : 'block';
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        if (event && event.target) event.target.closest('.view-btn').classList.add('active');
+        if (view === 'calendar') renderCalendar();
     }
 
     function renderCalendar() {
-        var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        var monthYearElement = document.getElementById('currentMonthYear');
-        if (monthYearElement) {
-            monthYearElement.innerText = monthNames[currentMonth] + ' ' + currentYear;
-        }
+        var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('currentMonthYear').innerText = monthNames[currentMonth] + ' ' + currentYear;
 
-        var firstDay = new Date(currentYear, currentMonth, 1);
-        var lastDay = new Date(currentYear, currentMonth + 1, 0);
-        var startingDay = firstDay.getDay();
-        var totalDays = lastDay.getDate();
+        var firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        var totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-        var calendarHTML = '';
-        var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        // collect event dates from rendered cards
+        var eventDates = Array.from(document.querySelectorAll('.event-card[data-date]'))
+            .map(c => new Date(c.dataset.date))
+            .filter(d => d.getFullYear() === currentYear && d.getMonth() === currentMonth)
+            .map(d => d.getDate());
 
-        for (var i = 0; i < days.length; i++) {
-            calendarHTML += '<div class="calendar-day-header">' + days[i] + '</div>';
-        }
-
-        for (var i = 0; i < startingDay; i++) {
-            calendarHTML += '<div class="calendar-date"></div>';
-        }
-
-        var eventDates = [15, 22, 30];
-
+        var html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => '<div class="calendar-day-header">' + d + '</div>').join('');
+        for (var i = 0; i < firstDay; i++) html += '<div class="calendar-date"></div>';
         for (var date = 1; date <= totalDays; date++) {
-            var hasEvent = false;
-            for (var j = 0; j < eventDates.length; j++) {
-                if (eventDates[j] === date) {
-                    hasEvent = true;
-                    break;
-                }
-            }
-            var eventClass = hasEvent ? 'has-event' : '';
-            calendarHTML += '<div class="calendar-date ' + eventClass + '" onclick="showEventForDate(' + date + ')">' + date + '</div>';
+            var cls = eventDates.includes(date) ? 'has-event' : '';
+            html += '<div class="calendar-date ' + cls + '" onclick="showEventForDate(' + date + ')">' + date + '</div>';
         }
-
-        var calendarGrid = document.getElementById('calendarGrid');
-        if (calendarGrid) {
-            calendarGrid.innerHTML = calendarHTML;
-        }
+        document.getElementById('calendarGrid').innerHTML = html;
     }
 
     function changeMonth(delta) {
         currentMonth += delta;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        } else if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        else if (currentMonth > 11) { currentMonth = 0; currentYear++; }
         renderCalendar();
     }
 
     function showEventForDate(date) {
-        showToast('Events on ' + date + ': Check the grid view for details!');
+        showToast('Check grid view for events on day ' + date);
     }
 
-    function registerEvent(eventName) {
-        Swal.fire({
-            title: 'Register for ' + eventName,
-            text: 'Please log in to register for this event',
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Login',
-            confirmButtonColor: '#E76F51'
-        }).then(function(result) {
-            if (result.isConfirmed) {
-                window.location.href = '/Account/Login';
-            }
-        });
+    function registerEvent(eventId) {
+        if (window.registerForEvent) window.registerForEvent(eventId);
     }
 
     function showToast(message) {
@@ -496,12 +402,6 @@
         toast.className = 'toast-notification';
         toast.innerHTML = message;
         document.body.appendChild(toast);
-
-        setTimeout(function() {
-            toast.style.opacity = '0';
-            setTimeout(function() {
-                toast.remove();
-            }, 300);
-        }, 3000);
+        setTimeout(function () { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 </script>

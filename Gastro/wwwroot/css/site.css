@@ -39,11 +39,11 @@
     --transition-slow: 0.5s ease;
 }
 
-/* Light theme - FIX 1: Navbar visibility in light mode */
+/* Light theme */
 [data-theme="light"] {
     --bg-dark: #faf9f7;
     --bg-card: #ffffff;
-    --bg-elevated: #f5f3f0;
+    --bg-elevated: #f0ede8;
     --text-primary: #1a1a1a;
     --text-secondary: #4a4a4a;
     --text-muted: #8a8a8a;
@@ -51,6 +51,65 @@
     --navbar-text: #4a4a4a;
     --navbar-text-hover: #E76F51;
     --navbar-border: rgba(0, 0, 0, 0.1);
+    /* Override dark-specific shadows to be lighter */
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.16);
+    --shadow-glow: 0 0 30px rgba(231, 111, 81, 0.15);
+    --gradient-dark: linear-gradient(135deg, #f0ede8 0%, #faf9f7 100%);
+}
+
+/* Light mode: section/page backgrounds that were hardcoded dark */
+[data-theme="light"] .stories-page,
+[data-theme="light"] .about-page,
+[data-theme="light"] .auth-page,
+[data-theme="light"] .admin-page,
+[data-theme="light"] .profile-page,
+[data-theme="light"] .dishes-page,
+[data-theme="light"] .restaurants-page,
+[data-theme="light"] .events-page {
+    background-color: var(--bg-dark);
+}
+
+/* Light mode: section strips / alternating bg */
+[data-theme="light"] .section-alt,
+[data-theme="light"] .specialties-section,
+[data-theme="light"] .stats-strip {
+    background: var(--bg-elevated);
+}
+
+/* Light mode: footer */
+[data-theme="light"] .footer {
+    background: #1a1a1a;
+    color: #f0f0f0;
+}
+
+/* Light mode: skeleton shimmer adapts */
+[data-theme="light"] .skeleton {
+    background: linear-gradient(90deg, #e8e5e0 25%, #f0ede8 50%, #e8e5e0 75%);
+    background-size: 200% 100%;
+}
+
+/* Light mode: form inputs */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-color: #d0ccc6;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+    color: #9a9a9a;
+}
+
+/* Light mode: tag / badge backgrounds */
+[data-theme="light"] .dish-tag,
+[data-theme="light"] .food-tag,
+[data-theme="light"] .category-badge {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
 }
 
 * {
@@ -367,7 +426,7 @@ h1, h2, h3, h4, .logo, .hero-title {
     justify-content: center;
     text-align: center;
     position: relative;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1565557623262-b51f2513a5f5?q=80&w=1974&auto=format');
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/cebu.jpg');
     background-size: cover;
     background-position: center;
     color: white;

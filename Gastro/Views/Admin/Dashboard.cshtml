@@ -1,183 +1,405 @@
 ﻿@{
     ViewData["Title"] = "Admin Dashboard - TasteCebu";
+    var restaurants = ViewData["Restaurants"] as List<GastroCebu.Models.RestaurantListing> ?? new();
+    var dishes = ViewData["Dishes"] as List<GastroCebu.Models.DishListing> ?? new();
+    var events = ViewData["Events"] as List<GastroCebu.Models.FoodEvent> ?? new();
+    var users = ViewData["Users"] as List<GastroCebu.Models.AppUser> ?? new();
+    var reviews = ViewData["Reviews"] as List<GastroCebu.Models.ReviewEntry> ?? new();
 }
 
-@if (User.IsInRole("Admin"))
-{
-    <section class="admin-dashboard">
-        <div class="admin-header">
-            <h1><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
-            <p>Manage your gastro platform content</p>
+<section class="admin-dashboard">
+    <div class="admin-header">
+        <h1><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
+        <p>Manage your gastro platform content</p>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid-admin">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+            <div class="stat-number">@(ViewData["RestaurantCount"] ?? 0)</div>
+            <div class="stat-label">Restaurants</div>
         </div>
-
-        <!-- STATS CARDS -->
-        <div class="stats-grid-admin">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-utensils"></i></div>
-                <div class="stat-number">127</div>
-                <div class="stat-label">Restaurants</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-drumstick-bite"></i></div>
-                <div class="stat-number">342</div>
-                <div class="stat-label">Dishes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                <div class="stat-number">23</div>
-                <div class="stat-label">Events</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-number">1847</div>
-                <div class="stat-label">Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-star"></i></div>
-                <div class="stat-number">892</div>
-                <div class="stat-label">Reviews</div>
-            </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-drumstick-bite"></i></div>
+            <div class="stat-number">@(ViewData["DishCount"] ?? 0)</div>
+            <div class="stat-label">Dishes</div>
         </div>
-
-        <!-- ADMIN SIDEBAR + CONTENT -->
-        <div class="admin-layout">
-            <div class="admin-sidebar">
-                <button class="admin-nav-btn active" onclick="showAdminPanel('restaurants')">
-                    <i class="fas fa-utensils"></i> Restaurants
-                </button>
-                <button class="admin-nav-btn" onclick="showAdminPanel('dishes')">
-                    <i class="fas fa-drumstick-bite"></i> Dishes
-                </button>
-                <button class="admin-nav-btn" onclick="showAdminPanel('events')">
-                    <i class="fas fa-calendar-alt"></i> Events
-                </button>
-                <button class="admin-nav-btn" onclick="showAdminPanel('users')">
-                    <i class="fas fa-users"></i> Users
-                </button>
-                <button class="admin-nav-btn" onclick="showAdminPanel('reviews')">
-                    <i class="fas fa-star"></i> Reviews
-                </button>
-            </div>
-
-            <div class="admin-content">
-                <!-- RESTAURANTS PANEL -->
-                <div id="restaurantsPanel" class="admin-panel active">
-                    <div class="panel-header">
-                        <h3>Manage Restaurants</h3>
-                        <button class="btn-add" onclick="openAddModal('restaurant')"><i class="fas fa-plus"></i> Add Restaurant</button>
-                    </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr><th>ID</th><th>Name</th><th>Location</th><th>Rating</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>House of Lechon</td><td>Capitol Site</td><td>4.9</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                            <tr><td>2</td><td>Good Cup Coffee</td><td>Mandaue</td><td>4.8</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                            <tr><td>3</td><td>Pig and Palm</td><td>Lahug</td><td>4.9</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- DISHES PANEL -->
-                <div id="dishesPanel" class="admin-panel">
-                    <div class="panel-header">
-                        <h3>Manage Dishes</h3>
-                        <button class="btn-add" onclick="openAddModal('dish')"><i class="fas fa-plus"></i> Add Dish</button>
-                    </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr><th>ID</th><th>Name</th><th>Restaurant</th><th>Price</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>Cebu Lechon</td><td>House of Lechon</td><td>$450</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                            <tr><td>2</td><td>Kinilaw Tacos</td><td>Tales and Feelings</td><td>$320</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- EVENTS PANEL -->
-                <div id="eventsPanel" class="admin-panel">
-                    <div class="panel-header">
-                        <h3>Manage Events</h3>
-                        <button class="btn-add" onclick="openAddModal('event')"><i class="fas fa-plus"></i> Add Event</button>
-                    </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr><th>ID</th><th>Title</th><th>Date</th><th>Seats</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>Lechon Masterclass</td><td>Jun 15, 2025</td><td>15 left</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- USERS PANEL -->
-                <div id="usersPanel" class="admin-panel">
-                    <div class="panel-header">
-                        <h3>Manage Users</h3>
-                        <button class="btn-add" onclick="openAddModal('user')"><i class="fas fa-plus"></i> Add User</button>
-                    </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>Maria Santos</td><td>maria@email.com</td><td>Admin</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                            <tr><td>2</td><td>Juan Dela Cruz</td><td>juan@email.com</td><td>User</td><td><button class="btn-edit">Edit</button> <button class="btn-delete">Delete</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- REVIEWS PANEL -->
-                <div id="reviewsPanel" class="admin-panel">
-                    <div class="panel-header">
-                        <h3>Manage Reviews</h3>
-                    </div>
-                    <table class="admin-table">
-                        <thead>
-                            <tr><th>ID</th><th>User</th><th>Restaurant</th><th>Rating</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>1</td><td>Maria Santos</td><td>House of Lechon</td><td>5 stars</td><td><button class="btn-delete">Delete</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="stat-number">@(ViewData["EventCount"] ?? 0)</div>
+            <div class="stat-label">Events</div>
         </div>
-    </section>
-
-    <!-- ADD MODAL -->
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Add New</h2>
-            <form id="addForm">
-                <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" required>
-                </div>
-                <div class="form-group">
-                    <label>Image URL</label>
-                    <input type="url">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Save</button>
-            </form>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-number">@(ViewData["UserCount"] ?? 0)</div>
+            <div class="stat-label">Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-star"></i></div>
+            <div class="stat-number">@(ViewData["ReviewCount"] ?? 0)</div>
+            <div class="stat-label">Reviews</div>
         </div>
     </div>
-}
-else
-{
-    <div class="access-denied">
-        <i class="fas fa-lock"></i>
-        <h1>Access Denied</h1>
-        <p>You do not have permission to view this page.</p>
-        <a href="/" class="btn-primary">Return Home</a>
+
+    <!-- ADMIN SIDEBAR + CONTENT -->
+    <div class="admin-layout">
+        <div class="admin-sidebar">
+            <button class="admin-nav-btn active" onclick="showAdminPanel('restaurants')">
+                <i class="fas fa-utensils"></i> Restaurants
+            </button>
+            <button class="admin-nav-btn" onclick="showAdminPanel('dishes')">
+                <i class="fas fa-drumstick-bite"></i> Dishes
+            </button>
+            <button class="admin-nav-btn" onclick="showAdminPanel('events')">
+                <i class="fas fa-calendar-alt"></i> Events
+            </button>
+            <button class="admin-nav-btn" onclick="showAdminPanel('users')">
+                <i class="fas fa-users"></i> Users
+            </button>
+            <button class="admin-nav-btn" onclick="showAdminPanel('reviews')">
+                <i class="fas fa-star"></i> Reviews
+            </button>
+        </div>
+
+        <div class="admin-content">
+
+            <!-- RESTAURANTS PANEL -->
+            <div id="restaurantsPanel" class="admin-panel active">
+                <div class="panel-header">
+                    <h3>Manage Restaurants</h3>
+                    <button class="btn-add" onclick="openAddModal('restaurant')"><i class="fas fa-plus"></i> Add Restaurant</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Location</th><th>Rating</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var restaurant in restaurants)
+                        {
+                            var rName = restaurant.Name.Replace("'", "\\'").Replace("\"", "&quot;");
+                            var rPhoto = restaurant.PhotoUrl.Replace("'", "\\'");
+                            var rDesc = restaurant.Description.Replace("'", "\\'");
+                            var rAddr = restaurant.Address.Replace("'", "\\'");
+                            <tr>
+                                <td>@restaurant.Id</td>
+                                <td>@restaurant.Name</td>
+                                <td>@restaurant.Address</td>
+                                <td>@restaurant.Rating.ToString("0.0")</td>
+                                <td>
+                                    <button class="btn-edit" onclick="openEditModal('restaurant',@restaurant.Id,'@rName','@rPhoto','@rDesc','@rAddr','@restaurant.Category','0','','false','false','0','')">Edit</button>
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                        <input type="hidden" name="type" value="restaurant">
+                                        <input type="hidden" name="id" value="@restaurant.Id">
+                                        <button class="btn-delete">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DISHES PANEL -->
+            <div id="dishesPanel" class="admin-panel">
+                <div class="panel-header">
+                    <h3>Manage Dishes</h3>
+                    <button class="btn-add" onclick="openAddModal('dish')"><i class="fas fa-plus"></i> Add Dish</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Restaurant</th><th>Price</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dish in dishes)
+                        {
+                            var dName = dish.Name.Replace("'", "\\'");
+                            var dPhoto = dish.PhotoUrl.Replace("'", "\\'");
+                            var dTags = dish.Tags.Replace("'", "\\'");
+                            var dIsNew = dish.IsNewThisMonth ? "true" : "false";
+                            var dTrending = dish.IsTrending ? "true" : "false";
+                            <tr>
+                                <td>@dish.Id</td>
+                                <td>@dish.Name</td>
+                                <td>#@dish.RestaurantId</td>
+                                <td>PHP @dish.Price.ToString("0.##")</td>
+                                <td>
+                                    <button class="btn-edit" onclick="openEditModal('dish',@dish.Id,'@dName','@dPhoto','@dTags','','','@dish.Price','@dTags','@dIsNew','@dTrending','0','')">Edit</button>
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                        <input type="hidden" name="type" value="dish">
+                                        <input type="hidden" name="id" value="@dish.Id">
+                                        <button class="btn-delete">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- EVENTS PANEL -->
+            <div id="eventsPanel" class="admin-panel">
+                <div class="panel-header">
+                    <h3>Manage Events</h3>
+                    <button class="btn-add" onclick="openAddModal('event')"><i class="fas fa-plus"></i> Add Event</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>ID</th><th>Title</th><th>Date</th><th>Seats</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var foodEvent in events)
+                        {
+                            var eTitle = foodEvent.Title.Replace("'", "\\'");
+                            var ePhoto = foodEvent.PhotoUrl.Replace("'", "\\'");
+                            var eDesc = foodEvent.Description.Replace("'", "\\'");
+                            var eLoc = foodEvent.Location.Replace("'", "\\'");
+                            var eDate = foodEvent.Date.ToString("yyyy-MM-ddTHH:mm");
+                            <tr>
+                                <td>@foodEvent.Id</td>
+                                <td>@foodEvent.Title</td>
+                                <td>@foodEvent.Date.ToString("MMM d, yyyy")</td>
+                                <td>@foodEvent.AvailableSlots left</td>
+                                <td>
+                                    <button class="btn-edit" onclick="openEditModal('event',@foodEvent.Id,'@eTitle','@ePhoto','@eDesc','@eLoc','','0','','false','false','@foodEvent.AvailableSlots','@eDate')">Edit</button>
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                        <input type="hidden" name="type" value="event">
+                                        <input type="hidden" name="id" value="@foodEvent.Id">
+                                        <button class="btn-delete">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- USERS PANEL -->
+            <div id="usersPanel" class="admin-panel">
+                <div class="panel-header">
+                    <h3>Manage Users</h3>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appUser in users)
+                        {
+                            <tr>
+                                <td>@appUser.Id</td>
+                                <td>@appUser.FullName</td>
+                                <td>@appUser.Email</td>
+                                <td>@appUser.Role</td>
+                                <td>
+                                    <form method="post" action="/Admin/SetAdmin" class="inline-form">
+                                        <input type="hidden" name="id" value="@appUser.Id">
+                                        <input type="hidden" name="isAdmin" value="@(appUser.Role == "Admin" ? "false" : "true")">
+                                        <button class="btn-edit">@(appUser.Role == "Admin" ? "Remove Admin" : "Make Admin")</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- REVIEWS PANEL -->
+            <div id="reviewsPanel" class="admin-panel">
+                <div class="panel-header">
+                    <h3>Manage Reviews</h3>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr><th>ID</th><th>User</th><th>Target</th><th>Rating</th><th>Review</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var review in reviews)
+                        {
+                            <tr>
+                                <td>@review.Id</td>
+                                <td>User #@review.UserId</td>
+                                <td>@review.TargetType #@review.TargetId</td>
+                                <td>@review.Rating stars</td>
+                                <td>@review.Text</td>
+                                <td>
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                        <input type="hidden" name="type" value="review">
+                                        <input type="hidden" name="id" value="@review.Id">
+                                        <button class="btn-delete">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="recent-activity-panel">
+                <h3>Recent Activity</h3>
+                <div class="activity-item"><i class="fas fa-star"></i> Maria reviewed House of Lechon</div>
+                <div class="activity-item"><i class="fas fa-heart"></i> Juan saved Good Cup Coffee</div>
+                <div class="activity-item"><i class="fas fa-ticket-alt"></i> Ana registered for Coffee Cupping</div>
+            </div>
+
+        </div>
     </div>
-}
+</section>
+
+<!-- ADD MODAL -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('addModal')">&times;</span>
+        <h2 id="modalTitle">Add New</h2>
+        <form id="addForm" method="post" action="/Admin/AddItem" enctype="multipart/form-data">
+            <input type="hidden" name="type" id="adminItemType" value="restaurant">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Photo Upload</label>
+                <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'addPreview')">
+                <img id="addPreview" class="photo-preview" style="display:none">
+            </div>
+            <div class="form-group">
+                <label>— or — Image URL</label>
+                <input type="url" name="imageUrl" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea rows="3" name="description"></textarea>
+            </div>
+            <!-- Restaurant-only fields -->
+            <div id="addRestaurantFields">
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="address" placeholder="e.g. AS Fortuna, Mandaue City">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category">
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Street Food">Street Food</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Dish-only fields -->
+            <div id="addDishFields" style="display:none">
+                <div class="form-group">
+                    <label>Price (PHP)</label>
+                    <input type="number" name="price" step="0.01" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" name="tags" placeholder="e.g. Seafood, Spicy, Grilled">
+                </div>
+                <div class="form-group" style="display:flex; gap:1rem;">
+                    <label style="display:flex; align-items:center; gap:0.4rem;">
+                        <input type="checkbox" name="isNew" value="true"> New This Month
+                    </label>
+                    <label style="display:flex; align-items:center; gap:0.4rem;">
+                        <input type="checkbox" name="isTrending" value="true"> Trending
+                    </label>
+                </div>
+            </div>
+            <!-- Event-only fields -->
+            <div id="addEventFields" style="display:none">
+                <div class="form-group">
+                    <label>Event Date & Time</label>
+                    <input type="datetime-local" name="eventDate">
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" placeholder="e.g. Carbon Market, Cebu City">
+                </div>
+                <div class="form-group">
+                    <label>Available Slots</label>
+                    <input type="number" name="availableSlots" min="1" value="20">
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Save</button>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('editModal')">&times;</span>
+        <h2 id="editModalTitle">Edit</h2>
+        <form id="editForm" method="post" action="/Admin/EditItem" enctype="multipart/form-data">
+            <input type="hidden" name="type" id="editItemType">
+            <input type="hidden" name="id" id="editItemId">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" id="editName" required>
+            </div>
+            <div class="form-group">
+                <label>Photo Upload</label>
+                <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'editPreview')">
+                <img id="editPreview" class="photo-preview" style="display:none">
+            </div>
+            <div class="form-group">
+                <label>— or — Image URL</label>
+                <input type="url" name="imageUrl" id="editImageUrl" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea rows="3" name="description" id="editDescription"></textarea>
+            </div>
+            <!-- Restaurant-only fields -->
+            <div id="editRestaurantFields" style="display:none">
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="address" id="editAddress">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" id="editCategory">
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Bar">Bar</option>
+                        <option value="Street Food">Street Food</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Dish-only fields -->
+            <div id="editDishFields" style="display:none">
+                <div class="form-group">
+                    <label>Price (PHP)</label>
+                    <input type="number" name="price" id="editPrice" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" name="tags" id="editTags">
+                </div>
+                <div class="form-group" style="display:flex;gap:1rem">
+                    <label><input type="checkbox" name="isNew" id="editIsNew" value="true"> New This Month</label>
+                    <label><input type="checkbox" name="isTrending" id="editIsTrending" value="true"> Trending</label>
+                </div>
+            </div>
+            <!-- Event-only fields -->
+            <div id="editEventFields" style="display:none">
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" id="editLocation">
+                </div>
+                <div class="form-group">
+                    <label>Date &amp; Time</label>
+                    <input type="datetime-local" name="eventDate" id="editEventDate">
+                </div>
+                <div class="form-group">
+                    <label>Available Slots</label>
+                    <input type="number" name="availableSlots" id="editAvailableSlots" min="0">
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Update</button>
+        </form>
+    </div>
+</div>
 
 <style>
     .admin-dashboard {
@@ -313,6 +535,10 @@ else
         color: white;
     }
 
+    .inline-form {
+        display: inline;
+    }
+
     .modal {
         display: none;
         position: fixed;
@@ -332,6 +558,8 @@ else
         border-radius: 24px;
         width: 90%;
         max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .close-modal {
@@ -349,7 +577,7 @@ else
             margin-bottom: 0.3rem;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 0.8rem;
             background: var(--bg-elevated);
@@ -357,6 +585,14 @@ else
             border-radius: 12px;
             color: var(--text-primary);
         }
+
+    .photo-preview {
+        width: 100%;
+        max-height: 160px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-top: 0.5rem;
+    }
 
     .btn-submit {
         background: var(--gradient-warm);
@@ -368,19 +604,20 @@ else
         cursor: pointer;
     }
 
-    .access-denied {
-        text-align: center;
-        padding: 4rem;
+    .recent-activity-panel {
+        background: var(--bg-card);
+        border-radius: 16px;
+        margin-top: 1.5rem;
+        padding: 1.5rem;
     }
 
-        .access-denied i {
-            font-size: 4rem;
-            color: var(--burnt-orange);
-            margin-bottom: 1rem;
+        .recent-activity-panel .activity-item {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            margin-top: 0.8rem;
+            padding: 0.8rem 1rem;
         }
-</style>
 
-<style>
     @@media (max-width: 768px) {
         .admin-layout {
             grid-template-columns: 1fr;
@@ -412,82 +649,82 @@ else
     function showAdminPanel(panel) {
         var panels = ['restaurants', 'dishes', 'events', 'users', 'reviews'];
         var buttons = document.querySelectorAll('.admin-nav-btn');
-
         for (var i = 0; i < panels.length; i++) {
-            var panelElement = document.getElementById(panels[i] + 'Panel');
-            if (panelElement) {
-                panelElement.classList.remove('active');
-            }
+            var el = document.getElementById(panels[i] + 'Panel');
+            if (el) el.classList.remove('active');
         }
-
-        var activePanel = document.getElementById(panel + 'Panel');
-        if (activePanel) {
-            activePanel.classList.add('active');
-        }
-
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].classList.remove('active');
-        }
-
+        var active = document.getElementById(panel + 'Panel');
+        if (active) active.classList.add('active');
+        for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
         if (event && event.target) {
-            var targetBtn = event.target.closest('.admin-nav-btn');
-            if (targetBtn) {
-                targetBtn.classList.add('active');
-            }
+            var btn = event.target.closest('.admin-nav-btn');
+            if (btn) btn.classList.add('active');
         }
     }
 
     function openAddModal(type) {
-        var modal = document.getElementById('addModal');
-        var title = document.getElementById('modalTitle');
-        if (title) {
-            var typeName = type.charAt(0).toUpperCase() + type.slice(1);
-            title.textContent = 'Add New ' + typeName;
+        document.getElementById('modalTitle').textContent = 'Add New ' + type.charAt(0).toUpperCase() + type.slice(1);
+        document.getElementById('adminItemType').value = type;
+        document.getElementById('addRestaurantFields').style.display = type === 'restaurant' ? 'block' : 'none';
+        document.getElementById('addDishFields').style.display = type === 'dish' ? 'block' : 'none';
+        document.getElementById('addEventFields').style.display = type === 'event' ? 'block' : 'none';
+        document.getElementById('addModal').style.display = 'flex';
+    }
+
+    function openEditModal(type, id, name, photoUrl, description, address, category, price, tags, isNew, isTrending, slots, eventDate) {
+        document.getElementById('editItemType').value = type;
+        document.getElementById('editItemId').value = id;
+        document.getElementById('editName').value = name || '';
+        document.getElementById('editImageUrl').value = photoUrl || '';
+        document.getElementById('editDescription').value = description || '';
+
+        var preview = document.getElementById('editPreview');
+        if (photoUrl) { preview.src = photoUrl; preview.style.display = 'block'; }
+        else preview.style.display = 'none';
+
+        document.getElementById('editRestaurantFields').style.display = 'none';
+        document.getElementById('editDishFields').style.display = 'none';
+        document.getElementById('editEventFields').style.display = 'none';
+
+        if (type === 'restaurant') {
+            document.getElementById('editRestaurantFields').style.display = 'block';
+            document.getElementById('editAddress').value = address || '';
+            document.getElementById('editCategory').value = category || 'Restaurant';
+        } else if (type === 'dish') {
+            document.getElementById('editDishFields').style.display = 'block';
+            document.getElementById('editPrice').value = price || 0;
+            document.getElementById('editTags').value = tags || '';
+            document.getElementById('editIsNew').checked = isNew === 'true';
+            document.getElementById('editIsTrending').checked = isTrending === 'true';
+        } else if (type === 'event') {
+            document.getElementById('editEventFields').style.display = 'block';
+            document.getElementById('editLocation').value = address || '';
+            document.getElementById('editAvailableSlots').value = slots || 0;
+            document.getElementById('editEventDate').value = eventDate || '';
         }
-        if (modal) {
-            modal.style.display = 'flex';
+
+        document.getElementById('editModalTitle').textContent = 'Edit ' + type.charAt(0).toUpperCase() + type.slice(1);
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        var modal = document.getElementById(id || 'addModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function previewPhoto(input, previewId) {
+        var preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function closeModal() {
-        var modal = document.getElementById('addModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    }
-
-    var addForm = document.getElementById('addForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showToast('Item added successfully!');
-            closeModal();
-        });
-    }
-
-    function showToast(message) {
-        var toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-
-        setTimeout(function() {
-            toast.style.opacity = '0';
-            setTimeout(function() {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
-
-    var closeModalBtn = document.querySelector('.close-modal');
-    if (closeModalBtn) {
-        closeModalBtn.onclick = closeModal;
-    }
-
-    window.onclick = function(event) {
-        var modal = document.getElementById('addModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
+    window.onclick = function(e) {
+        var addModal = document.getElementById('addModal');
+        var editModal = document.getElementById('editModal');
+        if (e.target == addModal) addModal.style.display = 'none';
+        if (e.target == editModal) editModal.style.display = 'none';
     }
 </script>

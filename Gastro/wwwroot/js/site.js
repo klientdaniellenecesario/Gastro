@@ -1,86 +1,76 @@
 ﻿// TASTECEBU - Main JavaScript
 
-// Initialize AOS
-AOS.init({
-    duration: 800,
-    once: true,
-    offset: 100
-});
+// ===== AOS ANIMATION =====
+if (window.AOS) {
+    AOS.init({ duration: 800, once: true, offset: 100 });
+}
 
 // ===== NAVBAR SCROLL EFFECT =====
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 100) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
+    if (!navbar) return;
+    navbar.classList.toggle('scrolled', window.scrollY > 100);
 });
 
 // ===== BACK TO TOP =====
 const backToTop = document.getElementById('backToTop');
 window.addEventListener('scroll', () => {
-    if (window.scrollY > 500) {
-        backToTop.classList.add('visible');
-    } else {
-        backToTop.classList.remove('visible');
-    }
+    if (!backToTop) return;
+    backToTop.classList.toggle('visible', window.scrollY > 500);
 });
-
-backToTop.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
+if (backToTop) {
+    backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
 
 // ===== MOBILE DRAWER =====
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const mobileDrawer = document.getElementById('mobileDrawer');
 const drawerOverlay = document.getElementById('drawerOverlay');
-const closeDrawer = document.getElementById('closeDrawer');
+const closeDrawerBtn = document.getElementById('closeDrawer');
 
 function openDrawer() {
+    if (!mobileDrawer || !drawerOverlay) return;
     mobileDrawer.classList.add('open');
     drawerOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
 function closeDrawerFunc() {
+    if (!mobileDrawer || !drawerOverlay) return;
     mobileDrawer.classList.remove('open');
     drawerOverlay.classList.remove('open');
     document.body.style.overflow = '';
 }
 
 if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
-if (closeDrawer) closeDrawer.addEventListener('click', closeDrawerFunc);
+if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeDrawerFunc);
 if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawerFunc);
 
-// ===== DARK MODE TOGGLE =====
+// ===== DARK / LIGHT MODE TOGGLE =====
+// NOTE: The theme is applied before paint by an inline script in _Layout.cshtml
+// so there is no flash. Here we just wire up the toggle button.
 const themeToggle = document.getElementById('themeToggle');
-const htmlElement = document.documentElement;
-
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-    htmlElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
-
-themeToggle.addEventListener('click', () => {
-    const currentTheme = htmlElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    htmlElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-
-    // Show toast notification
-    showToast(`${newTheme === 'dark' ? '🌙' : '☀️'} ${newTheme === 'dark' ? 'Dark' : 'Light'} mode activated`);
-});
+const htmlEl = document.documentElement;
 
 function updateThemeIcon(theme) {
+    if (!themeToggle) return;
     const icon = themeToggle.querySelector('i');
-    if (theme === 'light') {
-        icon.className = 'fas fa-sun';
-    } else {
-        icon.className = 'fas fa-moon';
-    }
+    if (!icon) return;
+    icon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// Sync icon with whatever theme the pre-paint script already applied
+updateThemeIcon(htmlEl.getAttribute('data-theme') || 'dark');
+
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+        const current = htmlEl.getAttribute('data-theme') || 'dark';
+        const next = current === 'light' ? 'dark' : 'light';
+        htmlEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateThemeIcon(next);
+        showToast(`${next === 'dark' ? '🌙 Dark' : '☀️ Light'} mode activated`);
+    });
 }
 
 // ===== TOAST NOTIFICATION =====
@@ -89,7 +79,6 @@ function showToast(message, duration = 3000) {
     toast.className = 'toast-notification';
     toast.innerHTML = message;
     document.body.appendChild(toast);
-
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
@@ -97,21 +86,18 @@ function showToast(message, duration = 3000) {
 }
 
 // ===== VIBE FILTER =====
-window.filterByVibe = function (vibe) {
+window.filterByVibe = function (vibe, btn) {
     const cards = document.querySelectorAll('.restaurant-card');
     const buttons = document.querySelectorAll('.vibe-btn');
-
-    buttons.forEach(btn => btn.classList.remove('active'));
-    event.target.closest('.vibe-btn').classList.add('active');
+    buttons.forEach(b => b.classList.remove('active'));
+    // support both filterByVibe('x', this) and filterByVibe('x') via onclick
+    const activeBtn = btn || (typeof event !== 'undefined' && event.target ? event.target.closest('.vibe-btn') : null);
+    if (activeBtn) activeBtn.classList.add('active');
 
     cards.forEach(card => {
-        const cardVibe = card.dataset.vibe;
-        if (vibe === 'all' || cardVibe === vibe) {
-            card.style.display = 'block';
-            card.style.animation = 'fadeIn 0.3s ease';
-        } else {
-            card.style.display = 'none';
-        }
+        const show = vibe === 'all' || card.dataset.vibe === vibe;
+        card.style.display = show ? 'block' : 'none';
+        if (show) card.style.animation = 'fadeIn 0.3s ease';
     });
 
     showToast(`Showing ${vibe} places 🍽️`);
@@ -119,18 +105,20 @@ window.filterByVibe = function (vibe) {
 
 // ===== I TRIED THIS BUTTON =====
 window.triedDish = function (dishName, dishId) {
-    Swal.fire({
-        title: '🍜 Yum!',
-        text: `You tried ${dishName}! Added to your food journey.`,
-        icon: 'success',
-        background: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
-        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
-        confirmButtonColor: '#E76F51',
-        timer: 2000,
-        showConfirmButton: false
-    });
-
-    // Update local storage or API call would go here
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Yum!',
+            text: `You tried ${dishName}! Added to your food journey.`,
+            icon: 'success',
+            background: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
+            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+            confirmButtonColor: '#E76F51',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    } else {
+        showToast(`You tried ${dishName}!`);
+    }
     let triedDishes = JSON.parse(localStorage.getItem('triedDishes') || '[]');
     if (!triedDishes.includes(dishId)) {
         triedDishes.push(dishId);
@@ -138,15 +126,59 @@ window.triedDish = function (dishName, dishId) {
     }
 };
 
-// ===== ADD TO CRAVINGS LIST =====
-window.addToCravings = function (itemName, itemId, type) {
-    let cravings = JSON.parse(localStorage.getItem('cravings') || '[]');
-    if (!cravings.some(c => c.id === itemId)) {
-        cravings.push({ id: itemId, name: itemName, type: type, date: new Date().toISOString() });
-        localStorage.setItem('cravings', JSON.stringify(cravings));
-        showToast(`✨ ${itemName} added to your Cravings List!`);
-    } else {
-        showToast(`⚠️ ${itemName} is already in your Cravings List`);
+// ===== ADD TO CRAVINGS / BOOKMARKS =====
+window.addToCravings = async function (itemName, itemId, type) {
+    const numericId = Number.parseInt(itemId, 10) || 1;
+    try {
+        const response = await fetch('/api/bookmarks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemType: type, itemId: numericId, itemName })
+        });
+        if (response.status === 401) {
+            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        const result = await response.json();
+        showToast(result.message || `${itemName} bookmark updated.`);
+    } catch {
+        showToast('Could not update bookmark.');
+    }
+};
+
+// ===== SUBMIT REVIEW =====
+window.submitServerReview = async function (targetType, targetId, rating, text) {
+    try {
+        const response = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetType, targetId, rating, text })
+        });
+        if (response.status === 401) {
+            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            return false;
+        }
+        const result = await response.json();
+        showToast(result.message || 'Review submitted.');
+        return response.ok;
+    } catch {
+        showToast('Could not submit review.');
+        return false;
+    }
+};
+
+// ===== REGISTER FOR EVENT =====
+window.registerForEvent = async function (eventId) {
+    try {
+        const response = await fetch(`/api/events/${eventId}/register`, { method: 'POST' });
+        if (response.status === 401) {
+            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        const result = await response.json();
+        showToast(result.message || 'Registered for event.');
+    } catch {
+        showToast('Could not register for event.');
     }
 };
 
@@ -162,10 +194,11 @@ window.setRating = function (rating) {
             star.style.color = '';
         }
     });
-    document.getElementById('ratingValue').value = rating;
+    const rv = document.getElementById('ratingValue');
+    if (rv) rv.value = rating;
 };
 
-// ===== LOAD MORE ANIMATION =====
+// ===== LOAD MORE =====
 window.loadMore = function (button) {
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     setTimeout(() => {
@@ -176,56 +209,42 @@ window.loadMore = function (button) {
 
 // ===== COUNTDOWN TIMER =====
 function startCountdown(targetDate, elementId) {
-    const countdownElement = document.getElementById(elementId);
-    if (!countdownElement) return;
-
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const distance = targetDate - now;
-
-        if (distance < 0) {
-            countdownElement.innerHTML = "Event Started!";
-            return;
-        }
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    function tick() {
+        const dist = targetDate - Date.now();
+        if (dist < 0) { el.innerHTML = 'Event Started!'; return; }
+        const d = Math.floor(dist / 86400000);
+        const h = Math.floor((dist % 86400000) / 3600000);
+        const m = Math.floor((dist % 3600000) / 60000);
+        const s = Math.floor((dist % 60000) / 1000);
+        el.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
     }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    tick();
+    setInterval(tick, 1000);
 }
 
 // ===== SKELETON LOADING =====
 function showSkeleton(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
-    const skeletonHTML = `
+    container.innerHTML = `
         <div class="skeleton-card">
-            <div class="skeleton skeleton-image" style="height: 200px; border-radius: 20px;"></div>
-            <div class="skeleton skeleton-text" style="height: 20px; width: 80%; margin: 1rem;"></div>
-            <div class="skeleton skeleton-text" style="height: 15px; width: 60%; margin: 0 1rem 1rem;"></div>
+            <div class="skeleton skeleton-image" style="height:200px;border-radius:20px;"></div>
+            <div class="skeleton skeleton-text" style="height:20px;width:80%;margin:1rem;"></div>
+            <div class="skeleton skeleton-text" style="height:15px;width:60%;margin:0 1rem 1rem;"></div>
         </div>
     `.repeat(6);
-
-    container.innerHTML = skeletonHTML;
 }
 
 // ===== SMOOTH SCROLL FOR ANCHOR LINKS =====
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const href = this.getAttribute('href');
-        if (href !== "#") {
+        if (href !== '#') {
             e.preventDefault();
             const target = document.querySelector(href);
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth' });
-            }
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
         }
     });
 });
@@ -237,10 +256,5 @@ document.querySelectorAll('.new-badge').forEach(badge => {
     }, 1000);
 });
 
-// Export functions for use in console (debugging)
-window.TasteCebu = {
-    showToast,
-    addToCravings,
-    triedDish,
-    startCountdown
-};
+// Public API
+window.TasteCebu = { showToast, addToCravings, triedDish, startCountdown };

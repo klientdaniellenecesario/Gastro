@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Dish Details - TasteCebu";
+}
+
+<section class="detail-shell">
+    <nav class="breadcrumb-trail">
+        <a href="/">Home</a><span>/</span><a href="/Dishes">Dishes</a><span>/</span><strong id="dishCrumb">Dish</strong>
+    </nav>
+
+    <div class="detail-hero-card">
+        <img id="dishImage" src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop" alt="Dish">
+        <div class="detail-hero-copy">
+            <span class="detail-kicker" id="dishTag">Cebu Specialty</span>
+            <h1 id="dishName">Lechon Cebu</h1>
+            <p id="dishDescription">Crispy-skinned roasted pork served with puso and spiced vinegar.</p>
+            <div class="detail-meta">
+                <span><i class="fas fa-store"></i> <span id="dishRestaurant">House of Lechon</span></span>
+                <span><i class="fas fa-tag"></i> <span id="dishPrice">PHP 450</span></span>
+                <span><i class="fas fa-star"></i> 4.9</span>
+            </div>
+            <div class="detail-actions">
+                <button class="btn-primary" onclick="addToCravings(document.getElementById('dishName').innerText, 'dish-detail', 'dish')"><i class="fas fa-heart"></i> Save Dish</button>
+                <button class="btn-secondary outline-dark" onclick="triedDish(document.getElementById('dishName').innerText, 'dish-detail')"><i class="fas fa-check"></i> I Tried This</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-panel">
+            <h2>Food Tags</h2>
+            <div class="vibe-tags" id="dishTags"></div>
+        </div>
+        <div class="detail-panel">
+            <h2>Review This Dish</h2>
+            <div class="star-rating-selector">
+                <i class="far fa-star" onclick="setDishRating(1)"></i>
+                <i class="far fa-star" onclick="setDishRating(2)"></i>
+                <i class="far fa-star" onclick="setDishRating(3)"></i>
+                <i class="far fa-star" onclick="setDishRating(4)"></i>
+                <i class="far fa-star" onclick="setDishRating(5)"></i>
+            </div>
+            <textarea id="dishReviewText" rows="4" placeholder="What did you think?"></textarea>
+            <button class="btn-primary" onclick="submitDishReview()">Submit Dish Review</button>
+        </div>
+    </div>
+</section>
+
+<style>
+    .detail-shell { max-width: var(--container-width); margin: 0 auto; padding: 2rem; }
+    .breadcrumb-trail { display: flex; gap: 0.5rem; flex-wrap: wrap; color: var(--text-secondary); margin-bottom: 1rem; }
+    .breadcrumb-trail a { color: var(--burnt-orange); text-decoration: none; }
+    .detail-hero-card { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; background: var(--bg-card); border-radius: 20px; padding: 1.5rem; }
+    .detail-hero-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; }
+    .detail-kicker { color: var(--burnt-orange); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; }
+    .detail-hero-copy h1 { font-size: 2.8rem; margin: 0.5rem 0; }
+    .detail-meta, .detail-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.2rem; }
+    .detail-meta span { color: var(--text-secondary); }
+    .outline-dark { border-color: var(--burnt-orange); color: var(--burnt-orange); }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+    .detail-panel { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; }
+    .detail-panel textarea { width: 100%; margin: 1rem 0; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--text-muted); border-radius: 12px; padding: 0.8rem; }
+    .star-rating-selector i { color: var(--golden-yellow); cursor: pointer; font-size: 1.4rem; margin-right: 0.2rem; }
+    @@media (max-width: 768px) { .detail-hero-card, .detail-grid { grid-template-columns: 1fr; } .detail-hero-copy h1 { font-size: 2rem; } }
+</style>
+
+<script>
+    var dishes = [
+        { name: 'Lechon Cebu', restaurant: 'House of Lechon', price: 'PHP 450', tag: 'Cebu Specialty', description: 'Crispy-skinned roasted pork served with puso and spiced vinegar.', image: 'https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop', tags: ['Roasted', 'Crispy', 'Signature'] },
+        { name: 'Kinilaw Tacos', restaurant: 'Tales and Feelings', price: 'PHP 320', tag: 'Seafood', description: 'Fresh kinilaw served taco-style with herbs, chili, and citrus.', image: 'https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=1000&h=650&fit=crop', tags: ['Seafood', 'Citrus', 'Fresh'] },
+        { name: 'Lechon Ramen', restaurant: 'Ramen Sage', price: 'PHP 390', tag: 'Trending', description: 'Rich ramen broth topped with Cebu lechon and chili oil.', image: 'https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=1000&h=650&fit=crop', tags: ['Spicy', 'Fusion', 'Trending'] }
+    ];
+    var index = Math.max(0, Math.min(dishes.length - 1, (@ViewData["ItemId"] ?? 1) - 1));
+    var dish = dishes[index];
+    document.getElementById('dishName').innerText = dish.name;
+    document.getElementById('dishCrumb').innerText = dish.name;
+    document.getElementById('dishRestaurant').innerText = dish.restaurant;
+    document.getElementById('dishPrice').innerText = dish.price;
+    document.getElementById('dishTag').innerText = dish.tag;
+    document.getElementById('dishDescription').innerText = dish.description;
+    document.getElementById('dishImage').src = dish.image;
+    document.getElementById('dishTags').innerHTML = dish.tags.map(function(tag) { return '<span class="vibe-tag">' + tag + '</span>'; }).join('');
+    var dishRating = 0;
+    function setDishRating(rating) { dishRating = rating; document.querySelectorAll('.star-rating-selector i').forEach(function(star, i) { star.className = i < rating ? 'fas fa-star' : 'far fa-star'; }); }
+    async function submitDishReview() {
+        var text = document.getElementById('dishReviewText').value.trim();
+        if (!dishRating || !text) { showToast('Add a rating and review first.'); return; }
+        var ok = await window.submitServerReview('dish', index + 1, dishRating, text);
+        if (ok) { document.getElementById('dishReviewText').value = ''; setDishRating(0); }
+    }
+</script>

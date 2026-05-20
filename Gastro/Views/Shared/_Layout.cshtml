@@ -1,9 +1,17 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>@ViewData["Title"] - TasteCebu</title>
+
+    <!-- Apply saved theme BEFORE paint to prevent flash -->
+    <script>
+            (function () {
+                var t = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+            })();
+    </script>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -36,11 +44,15 @@
                 <a href="/Dishes" class="nav-link @(controller == "Dishes" ? "active" : "")">Dishes</a>
                 <a href="/Events" class="nav-link @(controller == "Events" ? "active" : "")">Events</a>
                 <a href="/Stories" class="nav-link @(controller == "Stories" ? "active" : "")">Stories</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Admin/Dashboard" class="nav-link @(controller == "Admin" ? "active" : "")">Admin</a>
+                }
                 <a href="/About" class="nav-link @(controller == "About" ? "active" : "")">About</a>
             </div>
 
             <div class="nav-actions">
-                <button class="theme-toggle" id="themeToggle" aria-label="Dark mode">
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
                     <i class="fas fa-moon"></i>
                 </button>
 
@@ -79,6 +91,14 @@
             <a href="/Dishes"><i class="fas fa-drumstick-bite"></i> Dishes</a>
             <a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a>
             <a href="/Stories"><i class="fas fa-book-open"></i> Stories</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Admin/Dashboard"><i class="fas fa-chart-line"></i> Admin</a>
+            }
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a href="/Account/Profile"><i class="fas fa-user"></i> Profile</a>
+            }
             <a href="/About"><i class="fas fa-info-circle"></i> About</a>
         </div>
         @if (User.Identity?.IsAuthenticated != true)
@@ -158,94 +178,6 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js"></script>
-
-    <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
-        });
-
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
-
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            htmlElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            if (themeToggle) {
-                const icon = themeToggle.querySelector('i');
-                if (theme === 'light') {
-                    icon.className = 'fas fa-sun';
-                } else {
-                    icon.className = 'fas fa-moon';
-                }
-            }
-        }
-
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = htmlElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-            });
-        }
-
-        // Mobile drawer
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileDrawer = document.getElementById('mobileDrawer');
-        const drawerOverlay = document.getElementById('drawerOverlay');
-        const closeDrawer = document.getElementById('closeDrawer');
-
-        function openDrawer() {
-            if (mobileDrawer) mobileDrawer.classList.add('open');
-            if (drawerOverlay) drawerOverlay.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDrawerFunc() {
-            if (mobileDrawer) mobileDrawer.classList.remove('open');
-            if (drawerOverlay) drawerOverlay.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
-        if (closeDrawer) closeDrawer.addEventListener('click', closeDrawerFunc);
-        if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawerFunc);
-
-        // Back to top
-        const backToTop = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 500) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
-        });
-
-        if (backToTop) {
-            backToTop.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-
-        // Navbar scroll effect
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 100) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

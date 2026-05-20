@@ -571,13 +571,19 @@
         }
     }
 
-    function submitReview() {
+    async function submitReview() {
         if (currentRating === 0) {
             showToast('Please select a rating first!');
             return;
         }
-        showToast('Review submitted! Thank you for sharing.');
         var textarea = document.querySelector('.leave-review textarea');
+        var text = textarea ? textarea.value.trim() : '';
+        if (!text) {
+            showToast('Please write your review first!');
+            return;
+        }
+        var ok = await window.submitServerReview('restaurant', 2, currentRating, text);
+        if (!ok) return;
         if (textarea) {
             textarea.value = '';
         }
@@ -599,10 +605,6 @@
 
     function openLightbox(index) {
         showToast('Lightbox gallery would open here');
-    }
-
-    function addToCravings(name, id, type) {
-        showToast(name + ' added to your Cravings List!');
     }
 
     function triedDish(dishName, dishId) {

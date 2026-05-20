@@ -1,54 +1,137 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using GastroCebu.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace GastroCebu.Controllers
+namespace GastroCebu.Controllers;
+
+public class AccountController : Controller
 {
-    public class AccountController : Controller
+    private readonly SqliteDataStore _store;
+
+    public AccountController(SqliteDataStore store)
     {
-        // GET: /Account/Login
-        [HttpGet]
-        public IActionResult Login()
+        _store = store;
+    }
+
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
+    {
+        var user = _store.FindUserByEmail(email);
+        if (user is null || !SqliteDataStore.VerifyPassword(password, user.PasswordHash))
         {
-            return View();
+            TempData["Error"] = "Invalid email or password.";
+            return RedirectToAction("Login", new { returnUrl });
         }
 
-        // POST: /Account/Login
-        [HttpPost]
-        public IActionResult Login(string email, string password, bool rememberMe)
+        await SignInUser(user.Id, user.FullName, user.Email, user.Role, rememberMe);
+        TempData["Success"] = "Welcome back!";
+        return LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/Account/Profile" : returnUrl);
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register(string fullName, string email, string password, string confirmPassword)
+    {
+        if (password != confirmPassword || password.Length < 6)
         {
-            // TODO: Add actual authentication logic here
-            // For now, just redirect to profile
-            return RedirectToAction("Profile", "Account");
+            TempData["Error"] = "Passwords must match and be at least 6 characters.";
+            return RedirectToAction("Register");
         }
 
-        // GET: /Account/Register
-        [HttpGet]
-        public IActionResult Register()
+        if (_store.FindUserByEmail(email) is not null)
         {
-            return View();
+            TempData["Error"] = "An account with that email already exists.";
+            return RedirectToAction("Register");
         }
 
-        // POST: /Account/Register
-        [HttpPost]
-        public IActionResult Register(string fullName, string email, string password, string confirmPassword)
+        var user = _store.CreateUser(fullName.Trim(), email.Trim(), password);
+        await SignInUser(user.Id, user.FullName, user.Email, user.Role, false);
+        TempData["Success"] = "Account created.";
+        return RedirectToAction("Profile");
+    }
+
+    [Authorize]
+    [HttpGet]
+    public IActionResult Profile()
+    {
+        var userId = GetUserId();
+        ViewData["ProfileUser"] = _store.FindUserById(userId);
+        ViewData["Bookmarks"] = _store.GetBookmarks(userId);
+        ViewData["Registrations"] = _store.GetRegistrations(userId);
+        ViewData["Reviews"] = _store.GetUserReviews(userId);
+        ViewData["Activities"] = _store.GetActivities(userId);
+        return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public IActionResult UpdateProfile(string fullName, string location)
+    {
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(location))
         {
-            // TODO: Add actual registration logic here
-            // For now, just redirect to profile
-            return RedirectToAction("Profile", "Account");
+            TempData["Error"] = "Profile fields are required.";
+            return RedirectToAction("Profile");
         }
 
-        // GET: /Account/Profile
-        [HttpGet]
-        public IActionResult Profile()
+        _store.UpdateUser(GetUserId(), fullName.Trim(), location.Trim());
+        TempData["Success"] = "Profile updated.";
+        return RedirectToAction("Profile");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public IActionResult ChangePassword(string currentPassword, string newPassword)
+    {
+        var user = _store.FindUserById(GetUserId());
+        if (user is null || !SqliteDataStore.VerifyPassword(currentPassword, user.PasswordHash) || newPassword.Length < 6)
         {
-            return View();
+            TempData["Error"] = "Password change failed.";
+            return RedirectToAction("Profile");
         }
 
-        // GET: /Account/Logout
-        [HttpGet]
-        public IActionResult Logout()
+        _store.ChangePassword(user.Id, newPassword);
+        TempData["Success"] = "Password changed.";
+        return RedirectToAction("Profile");
+    }
+
+    private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private async Task SignInUser(int id, string fullName, string email, string role, bool rememberMe)
+    {
+        var claims = new List<Claim>
         {
-            // TODO: Add actual logout logic here
-            return RedirectToAction("Index", "Home");
-        }
+            new(ClaimTypes.NameIdentifier, id.ToString()),
+            new(ClaimTypes.Name, fullName),
+            new(ClaimTypes.Email, email),
+            new(ClaimTypes.Role, role)
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties { IsPersistent = rememberMe });
     }
 }

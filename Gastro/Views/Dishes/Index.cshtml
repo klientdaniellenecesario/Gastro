@@ -1,28 +1,40 @@
 ﻿@{
     ViewData["Title"] = "Dish Discovery - TasteCebu";
+    var dishes = ViewData["DatabaseDishes"] as List<GastroCebu.Models.DishListing> ?? new();
+    var featuredDish = dishes.FirstOrDefault(d => d.IsTrending) ?? dishes.FirstOrDefault();
 }
 
-<!-- DISH OF THE DAY HERO -->
-<section class="dish-of-day" style="background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);">
-    <div class="dish-of-day-container">
-        <div class="dish-of-day-content" data-aos="fade-right">
-            <span class="dish-of-day-badge">DISH OF THE DAY</span>
-            <h2>Cebu Lechon</h2>
-            <p>The Philippines' most famous roasted pig - crispy skin, juicy meat, and signature spicy vinegar. A must-try when in Cebu!</p>
-            <div class="dish-meta">
-                <span><i class="fas fa-utensils"></i> At House of Lechon</span>
-                <span><i class="fas fa-tag"></i> $450 / serving</span>
+@* DISH OF THE DAY HERO — only shown when there is at least one dish *@
+@if (featuredDish != null)
+{
+    <section class="dish-of-day" style="background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);">
+        <div class="dish-of-day-container">
+            <div class="dish-of-day-content" data-aos="fade-right">
+                <span class="dish-of-day-badge">DISH OF THE DAY</span>
+                <h2>@featuredDish.Name</h2>
+                <p>@(string.IsNullOrWhiteSpace(featuredDish.Tags) ? "A must-try dish in Cebu!" : string.Join(" · ", featuredDish.Tags.Split(',').Select(t => t.Trim())))</p>
+                <div class="dish-meta">
+                    <span><i class="fas fa-tag"></i> PHP @featuredDish.Price.ToString("0.##")</span>
+                    @if (featuredDish.IsTrending)
+                    {
+                        <span><i class="fas fa-fire"></i> Trending</span>
+                    }
+                    @if (featuredDish.IsNewThisMonth)
+                    {
+                        <span><i class="fas fa-certificate"></i> New This Month</span>
+                    }
+                </div>
+                <div class="dish-actions">
+                    <button class="btn-tried" onclick="triedDish('@featuredDish.Name', @featuredDish.Id)"><i class="fas fa-check-circle"></i> I Tried This</button>
+                    <button class="btn-crave" onclick="addToCravings('@featuredDish.Name', @featuredDish.Id, 'dish')"><i class="fas fa-heart"></i> Add to Cravings</button>
+                </div>
             </div>
-            <div class="dish-actions">
-                <button class="btn-tried" onclick="triedDish('Cebu Lechon', 1)"><i class="fas fa-check-circle"></i> I Tried This</button>
-                <button class="btn-crave" onclick="addToCravings('Cebu Lechon', 1, 'dish')"><i class="fas fa-heart"></i> Add to Cravings</button>
+            <div class="dish-of-day-image" data-aos="fade-left">
+                <img src="@featuredDish.PhotoUrl" alt="@featuredDish.Name">
             </div>
         </div>
-        <div class="dish-of-day-image" data-aos="fade-left">
-            <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=600&h=500&fit=crop" alt="Cebu Lechon">
-        </div>
-    </div>
-</section>
+    </section>
+}
 
 <section class="section">
     <div class="section-header" data-aos="fade-up">
@@ -30,7 +42,7 @@
         <p>Discover trending, classic, and hidden gem dishes around Cebu</p>
     </div>
 
-    <!-- FILTERS -->
+    @* FILTERS *@
     <div class="filters-bar" data-aos="fade-up">
         <div class="search-bar">
             <i class="fas fa-search"></i>
@@ -39,174 +51,142 @@
 
         <div class="filter-tabs">
             <button class="filter-tab active" onclick="filterDishCategory('all')">All</button>
-            <button class="filter-tab" onclick="filterDishCategory('cebu-specialty')">Cebu Specialties</button>
+            <button class="filter-tab" onclick="filterDishCategory('trending')">Trending</button>
+            <button class="filter-tab" onclick="filterDishCategory('new')">New This Month</button>
             <button class="filter-tab" onclick="filterDishCategory('seafood')">Seafood</button>
             <button class="filter-tab" onclick="filterDishCategory('spicy')">Spicy</button>
             <button class="filter-tab" onclick="filterDishCategory('vegetarian')">Vegetarian</button>
-            <button class="filter-tab" onclick="filterDishCategory('street-food')">Street Food</button>
         </div>
     </div>
 
-    <!-- MASONRY DISH GRID -->
-    <div class="masonry-grid" id="dishesGrid">
-        <!-- Cebu Specialties Section -->
-        <div class="section-label" data-category="cebu-specialty">
-            <h3><i class="fas fa-crown"></i> Cebu Specialties</h3>
+    @if (!dishes.Any())
+    {
+        <div class="empty-state" data-aos="fade-up">
+            <div class="empty-state-icon">🥘</div>
+            <h3>No dishes added yet</h3>
+            <p>The admin hasn't added any dishes yet. Check back soon!</p>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Admin/Dashboard" class="btn-primary">Add a Dish →</a>
+            }
         </div>
-
-        <div class="dish-card" data-category="cebu-specialty" data-name="Lechon">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=600&h=400&fit=crop" alt="Lechon">
-                <span class="card-badge">ICONIC</span>
-            </div>
-            <div class="card-content">
-                <h3>Lechon Cebu</h3>
-                <p class="card-location">at House of Lechon</p>
-                <p class="dish-price">$450 - $1,200</p>
-                <div class="dish-tags">
-                    <span class="tag">Roasted</span>
-                    <span class="tag">Crispy</span>
-                    <span class="tag">Signature</span>
+    }
+    else
+    {
+        <div class="masonry-grid" id="dishesGrid">
+            @if (dishes.Any(d => d.IsTrending))
+            {
+                <div class="section-label">
+                    <h3><i class="fas fa-fire"></i> Trending Now</h3>
                 </div>
-                <button class="btn-tried" onclick="triedDish('Lechon Cebu', 1)">I Tried This</button>
-            </div>
-        </div>
+                @foreach (var dish in dishes.Where(d => d.IsTrending))
+                {
+                    <div class="dish-card" data-category="trending" data-name="@dish.Name">
+                        <div class="card-image">
+                            <img src="@dish.PhotoUrl" alt="@dish.Name">
+                            <span class="card-badge">TRENDING</span>
+                        </div>
+                        <div class="card-content">
+                            <h3>@dish.Name</h3>
+                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                            <div class="dish-tags">
+                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="tag">@tag.Trim()</span>
+                                }
+                            </div>
+                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                        </div>
+                    </div>
+                }
+            }
 
-        <div class="dish-card" data-category="cebu-specialty" data-name="Sutukil">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&h=400&fit=crop" alt="Sutukil">
-                <span class="card-badge">SEAFOOD</span>
-            </div>
-            <div class="card-content">
-                <h3>Sutukil (Sugba, Tula, Kilaw)</h3>
-                <p class="card-location">at STK ta Bay, Mactan</p>
-                <p class="dish-price">$350 - $800</p>
-                <div class="dish-tags">
-                    <span class="tag">Grilled</span>
-                    <span class="tag">Soup</span>
-                    <span class="tag">Raw</span>
+            @if (dishes.Any(d => d.IsNewThisMonth))
+            {
+                <div class="section-label">
+                    <h3><i class="fas fa-certificate"></i> New This Month</h3>
                 </div>
-                <button class="btn-tried" onclick="triedDish('Sutukil', 2)">I Tried This</button>
-            </div>
-        </div>
+                @foreach (var dish in dishes.Where(d => d.IsNewThisMonth))
+                {
+                    <div class="dish-card" data-category="new" data-name="@dish.Name">
+                        <div class="card-image">
+                            <img src="@dish.PhotoUrl" alt="@dish.Name">
+                            <span class="card-badge new-badge">NEW</span>
+                        </div>
+                        <div class="card-content">
+                            <h3>@dish.Name</h3>
+                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                            <div class="dish-tags">
+                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="tag">@tag.Trim()</span>
+                                }
+                            </div>
+                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                        </div>
+                    </div>
+                }
+            }
 
-        <div class="dish-card" data-category="cebu-specialty" data-name="Ngohiong">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&h=400&fit=crop" alt="Ngohiong">
-                <span class="card-badge">STREET FOOD</span>
-            </div>
-            <div class="card-content">
-                <h3>Ngohiong</h3>
-                <p class="card-location">at Colon Street</p>
-                <p class="dish-price">$15 - $30</p>
-                <div class="dish-tags">
-                    <span class="tag">Street Food</span>
-                    <span class="tag">Spring Roll</span>
-                    <span class="tag">Savory</span>
+            @{
+                var otherDishes = dishes.Where(d => !d.IsTrending && !d.IsNewThisMonth).ToList();
+            }
+            @if (otherDishes.Any())
+            {
+                <div class="section-label">
+                    <h3><i class="fas fa-utensils"></i> All Dishes</h3>
                 </div>
-                <button class="btn-tried" onclick="triedDish('Ngohiong', 3)">I Tried This</button>
-            </div>
+                @foreach (var dish in otherDishes)
+                {
+                    var firstTag = (dish.Tags ?? "dish").Split(',').FirstOrDefault()?.Trim().ToLowerInvariant().Replace(" ", "-") ?? "dish";
+                    <div class="dish-card" data-category="@firstTag" data-name="@dish.Name">
+                        <div class="card-image">
+                            <img src="@dish.PhotoUrl" alt="@dish.Name">
+                            <span class="card-badge">@(dish.Tags?.Split(',').FirstOrDefault()?.Trim().ToUpperInvariant() ?? "DISH")</span>
+                        </div>
+                        <div class="card-content">
+                            <h3>@dish.Name</h3>
+                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                            <div class="dish-tags">
+                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="tag">@tag.Trim()</span>
+                                }
+                            </div>
+                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                        </div>
+                    </div>
+                }
+            }
         </div>
-
-        <div class="dish-card" data-category="cebu-specialty" data-name="Puso">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1591267990532-e5bdb1b0f664?w=600&h=400&fit=crop" alt="Puso">
-                <span class="card-badge">SIDES</span>
-            </div>
-            <div class="card-content">
-                <h3>Puso (Hanging Rice)</h3>
-                <p class="card-location">Available everywhere</p>
-                <p class="dish-price">$5 - $10</p>
-                <div class="dish-tags">
-                    <span class="tag">Rice</span>
-                    <span class="tag">Traditional</span>
-                </div>
-                <button class="btn-tried" onclick="triedDish('Puso', 4)">I Tried This</button>
-            </div>
-        </div>
-
-        <!-- Seafood Dishes -->
-        <div class="section-label" data-category="seafood">
-            <h3><i class="fas fa-fish"></i> Fresh Seafood</h3>
-        </div>
-
-        <div class="dish-card" data-category="seafood" data-name="Kinilaw">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=600&h=400&fit=crop" alt="Kinilaw">
-                <span class="card-badge">CEVICHE</span>
-            </div>
-            <div class="card-content">
-                <h3>Kinilaw</h3>
-                <p class="card-location">at Lantaw, Cordova</p>
-                <p class="dish-price">$280 - $450</p>
-                <div class="dish-tags">
-                    <span class="tag">Raw</span>
-                    <span class="tag">Citrus</span>
-                    <span class="tag">Fresh</span>
-                </div>
-                <button class="btn-tried" onclick="triedDish('Kinilaw', 5)">I Tried This</button>
-            </div>
-        </div>
-
-        <div class="dish-card" data-category="seafood" data-name="Grilled Scallops">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1589763472885-46dd5b282f52?w=600&h=400&fit=crop" alt="Scallops">
-                <span class="card-badge">GRILLED</span>
-            </div>
-            <div class="card-content">
-                <h3>Grilled Scallops with Kinilaw Sauce</h3>
-                <p class="card-location">at STK ta Bay</p>
-                <p class="dish-price">$220</p>
-                <div class="dish-tags">
-                    <span class="tag">Grilled</span>
-                    <span class="tag">Seafood</span>
-                </div>
-                <button class="btn-tried" onclick="triedDish('Grilled Scallops', 6)">I Tried This</button>
-            </div>
-        </div>
-
-        <!-- Trending / New Dishes -->
-        <div class="section-label">
-            <h3><i class="fas fa-fire"></i> Trending Now</h3>
-        </div>
-
-        <div class="dish-card" data-category="spicy" data-name="Lechon Ramen">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=600&h=400&fit=crop" alt="Lechon Ramen">
-                <span class="card-badge new-badge">VIRAL</span>
-            </div>
-            <div class="card-content">
-                <h3>Lechon Ramen</h3>
-                <p class="card-location">at Ramen Sage, Crossroads</p>
-                <p class="dish-price">$390</p>
-                <div class="dish-tags">
-                    <span class="tag">Fusion</span>
-                    <span class="tag">Spicy</span>
-                </div>
-                <button class="btn-tried" onclick="triedDish('Lechon Ramen', 7)">I Tried This</button>
-            </div>
-        </div>
-
-        <div class="dish-card" data-category="street-food" data-name="Danggit">
-            <div class="card-image">
-                <img src="https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=600&h=400&fit=crop" alt="Danggit">
-                <span class="card-badge">BREAKFAST</span>
-            </div>
-            <div class="card-content">
-                <h3>Danggit Lamayo</h3>
-                <p class="card-location">at Any Local Eatery</p>
-                <p class="dish-price">$120 - $250</p>
-                <div class="dish-tags">
-                    <span class="tag">Dried Fish</span>
-                    <span class="tag">Breakfast</span>
-                </div>
-                <button class="btn-tried" onclick="triedDish('Danggit Lamayo', 8)">I Tried This</button>
-            </div>
-        </div>
-    </div>
+    }
 </section>
 
 <style>
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        margin-bottom: 1.5rem;
+    }
+
     .dish-of-day {
         padding: 4rem 2rem;
         min-height: 70vh;
@@ -299,7 +279,7 @@
         color: var(--text-secondary);
     }
 
-    .btn-tried {
+    .btn-tried, .btn-crave {
         background: none;
         border: 1px solid var(--burnt-orange);
         color: var(--burnt-orange);
@@ -312,39 +292,17 @@
         width: 100%;
     }
 
-        .btn-tried:hover {
+        .btn-tried:hover, .btn-crave:hover {
             background: var(--burnt-orange);
             color: white;
         }
 
-    .btn-crave {
-        background: none;
-        border: 1px solid var(--burnt-orange);
-        color: var(--burnt-orange);
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        margin-top: 0.8rem;
-        transition: var(--transition);
-        width: 100%;
-    }
-
-        .btn-crave:hover {
-            background: var(--burnt-orange);
-            color: white;
-        }
-</style>
-
-<style>
     @@media (max-width: 1024px) {
         .masonry-grid {
             column-count: 2;
         }
     }
-</style>
 
-<style>
     @@media (max-width: 768px) {
         .dish-of-day-container {
             grid-template-columns: 1fr;
@@ -370,62 +328,24 @@
         var sections = document.querySelectorAll('.section-label');
         var buttons = document.querySelectorAll('.filter-tab');
 
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].classList.remove('active');
-        }
+        buttons.forEach(b => b.classList.remove('active'));
+        if (event && event.target) event.target.classList.add('active');
 
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
+        cards.forEach(card => {
+            card.style.display = (category === 'all' || card.dataset.category === category) ? 'block' : 'none';
+        });
 
-        for (var i = 0; i < cards.length; i++) {
-            if (category === 'all' || cards[i].dataset.category === category) {
-                cards[i].style.display = 'block';
-            } else {
-                cards[i].style.display = 'none';
-            }
-        }
-
-        for (var i = 0; i < sections.length; i++) {
-            if (category === 'all') {
-                sections[i].style.display = 'block';
-            } else if (sections[i].dataset.category === category) {
-                sections[i].style.display = 'block';
-            } else if (!sections[i].dataset.category) {
-                sections[i].style.display = 'block';
-            } else {
-                sections[i].style.display = 'none';
-            }
-        }
-
-        var categoryText = category;
-        if (category === 'cebu-specialty') {
-            categoryText = 'Cebu Specialty';
-        } else if (category === 'street-food') {
-            categoryText = 'Street Food';
-        }
-        showToast('Showing ' + categoryText + ' dishes');
+        showToast('Showing ' + category + ' dishes');
     }
 
     var dishSearch = document.getElementById('dishSearch');
     if (dishSearch) {
-        dishSearch.addEventListener('keyup', function() {
+        dishSearch.addEventListener('keyup', function () {
             var filter = this.value.toLowerCase();
-            var cards = document.querySelectorAll('.dish-card');
-
-            for (var i = 0; i < cards.length; i++) {
-                var nameElement = cards[i].querySelector('h3');
-                var locationElement = cards[i].querySelector('.card-location');
-
-                var name = nameElement ? nameElement.innerText.toLowerCase() : '';
-                var restaurant = locationElement ? locationElement.innerText.toLowerCase() : '';
-
-                if (name.indexOf(filter) !== -1 || restaurant.indexOf(filter) !== -1) {
-                    cards[i].style.display = 'block';
-                } else {
-                    cards[i].style.display = 'none';
-                }
-            }
+            document.querySelectorAll('.dish-card').forEach(card => {
+                var name = card.querySelector('h3')?.innerText.toLowerCase() ?? '';
+                card.style.display = name.includes(filter) ? 'block' : 'none';
+            });
         });
     }
 
@@ -442,12 +362,6 @@
         toast.className = 'toast-notification';
         toast.innerHTML = message;
         document.body.appendChild(toast);
-
-        setTimeout(function() {
-            toast.style.opacity = '0';
-            setTimeout(function() {
-                toast.remove();
-            }, 300);
-        }, 3000);
+        setTimeout(function () { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 </script>
