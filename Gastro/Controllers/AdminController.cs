@@ -95,13 +95,19 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         return RedirectToAction("Dashboard");
     }
 
+    private static readonly string[] AllowedPhotoExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+    private const long MaxPhotoBytes = 5 * 1024 * 1024; // 5 MB
+
     private async Task<string?> SavePhotoAsync(IFormFile? photo, string? fallbackUrl)
     {
         if (photo is { Length: > 0 })
         {
+            var ext = Path.GetExtension(photo.FileName).ToLowerInvariant();
+            if (!AllowedPhotoExtensions.Contains(ext) || photo.Length > MaxPhotoBytes)
+                return string.IsNullOrWhiteSpace(fallbackUrl) ? null : fallbackUrl;
+
             var uploads = Path.Combine(env.WebRootPath, "uploads");
             Directory.CreateDirectory(uploads);
-            var ext = Path.GetExtension(photo.FileName);
             var fileName = $"{Guid.NewGuid()}{ext}";
             var filePath = Path.Combine(uploads, fileName);
             await using var stream = new FileStream(filePath, FileMode.Create);
