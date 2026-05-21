@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GastroCebu.Services;
 
-public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory)
+public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, IConfiguration config)
 {
     private readonly IDbContextFactory<TasteCebuDbContext> _factory = factory;
+    private readonly IConfiguration _config = config;
 
     public void Initialize()
     {
@@ -171,6 +172,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory)
             CreatedAt = DateTime.UtcNow
         });
         db.SaveChanges();
+        if (targetType == "restaurant") RecalcRestaurantRating(db, targetId);
         AddActivity(userId, $"Reviewed a {targetType}");
     }
 
@@ -182,6 +184,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory)
         review.Rating = rating;
         review.Text = text;
         db.SaveChanges();
+        if (review.TargetType == "restaurant") RecalcRestaurantRating(db, review.TargetId);
         AddActivity(userId, "Edited a review");
         return true;
     }
@@ -193,9 +196,23 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory)
             ? db.Reviews.Find(reviewId)
             : db.Reviews.FirstOrDefault(r => r.Id == reviewId && r.UserId == userId);
         if (review is null) return;
+        var targetType = review.TargetType;
+        var targetId = review.TargetId;
         db.Reviews.Remove(review);
         db.SaveChanges();
+        if (targetType == "restaurant") RecalcRestaurantRating(db, targetId);
         AddActivity(userId, "Deleted a review");
+    }
+
+    private static void RecalcRestaurantRating(TasteCebuDbContext db, int restaurantId)
+    {
+        var restaurant = db.Restaurants.Find(restaurantId);
+        if (restaurant is null) return;
+        var avg = db.Reviews
+            .Where(r => r.TargetType == "restaurant" && r.TargetId == restaurantId)
+            .Average(r => (decimal?)r.Rating) ?? 0m;
+        restaurant.Rating = Math.Round(avg, 1);
+        db.SaveChanges();
     }
 
     public List<BookmarkEntry> GetBookmarks(int userId, string? type = null)
@@ -400,7 +417,10 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory)
     {
         // Admin account
         if (!db.Users.Any())
-            CreateUser("TasteCebu Admin", "admin@tastecebu.test", "Admin123!", "Admin");
+        {
+            var adminPassword = _config["AdminSeed:Password"] ?? "ChangeMe123!";
+            CreateUser("TasteCebu Admin", "admin@tastecebu.test", adminPassword, "Admin");
+        }
 
         // Restaurants
         if (!db.Restaurants.Any())
