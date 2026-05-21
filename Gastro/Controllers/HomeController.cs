@@ -1,4 +1,5 @@
 ﻿using GastroCebu.Services;
+using GastroCebu.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GastroCebu.Controllers;
@@ -7,19 +8,18 @@ public class HomeController(SqliteDataStore store) : Controller
 {
     public IActionResult Index()
     {
-        ViewData["FeaturedRestaurants"] = store.GetRestaurants().Take(4).ToList();
-        ViewData["TrendingDishes"] = store.GetDishes().Where(d => d.IsTrending).Take(4).ToList();
-        ViewData["NewDishes"] = store.GetDishes().Where(d => d.IsNewThisMonth).Take(2).ToList();
-        ViewData["UpcomingEvents"] = store.GetEvents()
-            .Where(e => e.Date >= DateTime.UtcNow)
-            .OrderBy(e => e.Date)
-            .Take(3)
-            .ToList();
-        ViewData["RestaurantCount"] = store.Count("Restaurants");
-        ViewData["DishCount"] = store.Count("Dishes");
-        ViewData["EventCount"] = store.Count("Events");
-        ViewData["UserCount"] = store.Count("Users");
-        return View();
+        var vm = new HomeViewModel
+        {
+            FeaturedRestaurants = store.GetRestaurants().Take(6).ToList(),
+            TrendingDishes = store.GetDishes().Where(d => d.IsTrending).Take(6).ToList(),
+            NewDishes = store.GetDishes().Where(d => d.IsNewThisMonth).Take(3).ToList(),
+            UpcomingEvents = store.GetEvents().Where(e => e.Date >= DateTime.UtcNow).Take(4).ToList(),
+            RestaurantCount = store.Count("Restaurants"),
+            DishCount = store.Count("Dishes"),
+            EventCount = store.Count("Events"),
+            UserCount = store.Count("Users")
+        };
+        return View(vm);
     }
 
     public IActionResult Error(int? statusCode = null)

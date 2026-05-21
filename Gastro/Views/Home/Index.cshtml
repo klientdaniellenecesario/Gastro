@@ -1,11 +1,11 @@
 ﻿@using GastroCebu.Models
+@model GastroCebu.ViewModels.HomeViewModel
 @{
     ViewData["Title"] = "Discover Cebu's Food Scene - TasteCebu";
-    var featuredRestaurants = ViewData["FeaturedRestaurants"] as List<RestaurantListing> ?? new();
-    var trendingDishes = ViewData["TrendingDishes"] as List<DishListing> ?? new();
-    var newDishes = ViewData["NewDishes"] as List<DishListing> ?? new();
-    var upcomingEvents = ViewData["UpcomingEvents"] as List<FoodEvent> ?? new();
-    var hasAnyContent = featuredRestaurants.Any() || trendingDishes.Any() || newDishes.Any() || upcomingEvents.Any();
+    var featuredRestaurants = Model.FeaturedRestaurants;
+    var trendingDishes = Model.TrendingDishes;
+    var newDishes = Model.NewDishes;
+    var upcomingEvents = Model.UpcomingEvents;
 }
 
 @* HERO SECTION *@
@@ -26,19 +26,19 @@
 @* STATS STRIP *@
 <div class="stats-strip" data-aos="fade-up">
     <div class="stat-item">
-        <div class="stat-number">@ViewData["RestaurantCount"]</div>
+        <div class="stat-number">@Model.RestaurantCount</div>
         <div class="stat-label">Restaurants</div>
     </div>
     <div class="stat-item">
-        <div class="stat-number">@ViewData["DishCount"]</div>
+        <div class="stat-number">@Model.DishCount</div>
         <div class="stat-label">Dishes</div>
     </div>
     <div class="stat-item">
-        <div class="stat-number">@ViewData["EventCount"]</div>
+        <div class="stat-number">@Model.EventCount</div>
         <div class="stat-label">Events</div>
     </div>
     <div class="stat-item">
-        <div class="stat-number">@ViewData["UserCount"]</div>
+        <div class="stat-number">@Model.UserCount</div>
         <div class="stat-label">Foodies</div>
     </div>
 </div>
