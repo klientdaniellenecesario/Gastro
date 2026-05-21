@@ -15,6 +15,10 @@ public class HomeController(SqliteDataStore store) : Controller
             .OrderBy(e => e.Date)
             .Take(3)
             .ToList();
+        ViewData["RestaurantCount"] = store.Count("Restaurants");
+        ViewData["DishCount"] = store.Count("Dishes");
+        ViewData["EventCount"] = store.Count("Events");
+        ViewData["UserCount"] = store.Count("Users");
         return View();
     }
 

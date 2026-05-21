@@ -1,0 +1,259 @@
+
+<style>
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-size:14px;color:var(--color-text-primary)}
+.section{margin-bottom:2rem}
+.section-title{font-size:16px;font-weight:500;margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.875rem 1rem}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;margin-right:4px}
+.tag-red{background:var(--color-background-danger);color:var(--color-text-danger)}
+.tag-amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+.tag-green{background:var(--color-background-success);color:var(--color-text-success)}
+.tag-blue{background:var(--color-background-info);color:var(--color-text-info)}
+.issue{display:flex;gap:10px;padding:.7rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.issue:last-child{border-bottom:none}
+.issue-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dot-red{background:var(--color-text-danger)}
+.dot-amber{background:var(--color-text-warning)}
+.dot-blue{background:var(--color-text-info)}
+.issue-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.issue-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.file-chip{font-family:var(--font-mono);font-size:11px;background:var(--color-background-secondary);padding:1px 6px;border-radius:4px;color:var(--color-text-secondary)}
+.feature{display:flex;gap:10px;align-items:flex-start;padding:.6rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.feature:last-child{border-bottom:none}
+.feature-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.fi-purple{background:var(--color-background-info);color:var(--color-text-info)}
+.fi-green{background:var(--color-background-success);color:var(--color-text-success)}
+.fi-amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+.progress-bar{height:6px;border-radius:3px;background:var(--color-border-tertiary);overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px}
+</style>
+<h2 class="sr-only">TasteCebu project analysis: strengths, bugs, and recommended improvements</h2>
+
+<div style="padding:1rem 0">
+
+  <div style="margin-bottom:1.5rem">
+    <div style="font-size:18px;font-weight:500;margin-bottom:4px">TasteCebu — Project Analysis</div>
+    <div style="font-size:13px;color:var(--color-text-secondary)">ASP.NET Core 8 MVC · SQLite · Cookie auth · Cebu food discovery platform</div>
+  </div>
+
+  <!-- Health overview -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Overall health</div>
+    <div class="grid-3" style="margin-bottom:10px">
+      <div class="metric">
+        <div class="metric-label">Architecture</div>
+        <div class="metric-val" style="color:var(--color-text-success)">Solid</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%;background:var(--color-text-success)"></div></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Data integrity</div>
+        <div class="metric-val" style="color:var(--color-text-warning)">Gaps</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--color-text-warning)"></div></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Feature coverage</div>
+        <div class="metric-val" style="color:var(--color-text-warning)">50%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:50%;background:var(--color-text-warning)"></div></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="metric">
+        <div class="metric-label">What's working well</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">
+          <span class="tag tag-green">Cookie auth</span>
+          <span class="tag tag-green">PBKDF2 hashing</span>
+          <span class="tag tag-green">EF Core factory</span>
+          <span class="tag tag-green">Event transactions</span>
+          <span class="tag tag-green">Activity log</span>
+          <span class="tag tag-green">Admin dashboard</span>
+          <span class="tag tag-green">REST API</span>
+          <span class="tag tag-green">Role-based auth</span>
+        </div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Stack</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">
+          <span class="tag tag-blue">.NET 8</span>
+          <span class="tag tag-blue">MVC</span>
+          <span class="tag tag-blue">EF Core 8.0.0</span>
+          <span class="tag tag-blue">SQLite</span>
+          <span class="tag tag-blue">Bootstrap 5</span>
+          <span class="tag tag-blue">jQuery</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bugs to fix -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-bug" aria-hidden="true"></i> Bugs & issues to fix</div>
+    <div class="card">
+      <div class="issue">
+        <div class="issue-dot dot-red"></div>
+        <div>
+          <div class="issue-title">Hardcoded homepage stats <span class="file-chip">Views/Home/Index.cshtml</span></div>
+          <div class="issue-desc">The stats strip shows "200+ Restaurants, 500+ Dishes, 10k+ Foodies" but these are static strings — the DB only has 8 restaurants. Replace with real counts from <span class="file-chip">store.Count()</span>.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-red"></div>
+        <div>
+          <div class="issue-title">DishListing.RestaurantId is orphaned <span class="file-chip">Models/GastroData.cs</span></div>
+          <div class="issue-desc">The <span class="file-chip">RestaurantId</span> field exists on every dish but it's never populated in the seed, never queried in <span class="file-chip">SqliteDataStore</span>, and the Restaurant detail page never shows its dishes. Either wire it up or remove it.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-red"></div>
+        <div>
+          <div class="issue-title">Rating never recalculates after reviews <span class="file-chip">Services/SqliteDataStore.cs</span></div>
+          <div class="issue-desc"><span class="file-chip">RestaurantListing.Rating</span> is set at seed time only. When users post reviews via <span class="file-chip">AddReview()</span>, the restaurant's rating is never updated. Add a call to recalculate the average rating after every review add/edit/delete.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-amber"></div>
+        <div>
+          <div class="issue-title">Admin seed password mismatch <span class="file-chip">appsettings.json</span> <span class="file-chip">SqliteDataStore.cs</span></div>
+          <div class="issue-desc"><span class="file-chip">appsettings.json</span> declares <span class="file-chip">ChangeMe123!</span> but the Seed method hardcodes <span class="file-chip">Admin123!</span> — the config value is never read. Read the password from <span class="file-chip">IConfiguration</span> instead of hardcoding it.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-amber"></div>
+        <div>
+          <div class="issue-title">DishListing has no Description field but one is passed <span class="file-chip">Controllers/AdminController.cs</span></div>
+          <div class="issue-desc"><span class="file-chip">AddDish()</span> receives a <span class="file-chip">description</span> parameter and silently folds it into <span class="file-chip">Tags</span> when tags are empty. Add a proper <span class="file-chip">Description</span> property to the model.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-amber"></div>
+        <div>
+          <div class="issue-title">No ViewModels — all data via ViewData dictionary <span class="file-chip">Controllers/*.cs</span></div>
+          <div class="issue-desc">Every controller passes data as untyped <span class="file-chip">ViewData["key"]</span> strings. A mistyped key silently returns null and causes a runtime cast exception. Create strongly-typed ViewModels for each view.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-amber"></div>
+        <div>
+          <div class="issue-title">Photo upload has no file type or size validation <span class="file-chip">Controllers/AdminController.cs</span></div>
+          <div class="issue-desc"><span class="file-chip">SavePhotoAsync()</span> accepts any file extension and has no size limit. Add a whitelist (jpg, png, webp) and a max size check (e.g. 5 MB) before writing to disk.</div>
+        </div>
+      </div>
+      <div class="issue">
+        <div class="issue-dot dot-amber"></div>
+        <div>
+          <div class="issue-title">EF Core packages on initial 8.0.0 release <span class="file-chip">Gastro.csproj</span></div>
+          <div class="issue-desc">Version <span class="file-chip">8.0.0</span> has known bugs patched in later patch releases. Bump to the latest 8.0.x (currently 8.0.13).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features to add -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-sparkles" aria-hidden="true"></i> Features to add</div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:.5rem;color:var(--color-text-secondary)">High priority</div>
+        <div class="feature">
+          <div class="feature-icon fi-purple"><i class="ti ti-search" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Search & filter</div>
+            <div class="issue-desc">No search bar anywhere. Add keyword search for restaurants and dishes, filter by category/price/rating, and a sort control (by rating, newest, price).</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-purple"><i class="ti ti-list" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Pagination</div>
+            <div class="issue-desc">All listing pages load every record at once. Add server-side pagination (or at minimum infinite scroll) to restaurants, dishes, and events.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-purple"><i class="ti ti-map-pin" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Map view for restaurants</div>
+            <div class="issue-desc">A food guide for Cebu needs a map. Integrate Google Maps / Leaflet. Store lat/lng on <span class="file-chip">RestaurantListing</span> and render pins on the restaurants page.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-purple"><i class="ti ti-lock-open" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Password reset</div>
+            <div class="issue-desc">There's no "Forgot password" flow. Add an email-based reset token system (or at minimum an admin reset tool).</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:500;margin-bottom:.5rem;color:var(--color-text-secondary)">Medium priority</div>
+        <div class="feature">
+          <div class="feature-icon fi-green"><i class="ti ti-article" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Stories section (currently empty)</div>
+            <div class="issue-desc"><span class="file-chip">StoriesController</span> returns a static view with no data. Add a <span class="file-chip">StoryPost</span> model (title, content, author, photo, date) and wire it up.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-green"><i class="ti ti-share" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Social sharing</div>
+            <div class="issue-desc">Add OpenGraph meta tags to restaurant/dish/event detail pages so sharing on Facebook or Viber renders a proper preview card.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-green"><i class="ti ti-photo" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Image optimization</div>
+            <div class="issue-desc">Uploaded photos are stored as-is. Add server-side resizing (e.g. with ImageSharp) to cap uploads at 800px wide and generate thumbnails for list views.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon fi-amber"><i class="ti ti-bell" aria-hidden="true"></i></div>
+          <div>
+            <div class="issue-title">Email notifications</div>
+            <div class="issue-desc">Add email confirmation on register and event reminder emails 24h before a registered event. Use MailKit or a transactional email service.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick wins -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-bolt" aria-hidden="true"></i> Quick wins (easy, high impact)</div>
+    <div class="card">
+      <div class="grid-2" style="gap:8px">
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-green" style="margin-bottom:4px;display:inline-block">10 min</span><br>
+          Wire real DB counts into homepage stats strip
+        </div>
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-green" style="margin-bottom:4px;display:inline-block">20 min</span><br>
+          Read admin seed password from IConfiguration
+        </div>
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-amber" style="margin-bottom:4px;display:inline-block">30 min</span><br>
+          Add file type + size validation to photo upload
+        </div>
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-amber" style="margin-bottom:4px;display:inline-block">45 min</span><br>
+          Add Description field to DishListing model
+        </div>
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-amber" style="margin-bottom:4px;display:inline-block">1 hr</span><br>
+          Auto-recalculate restaurant rating from reviews
+        </div>
+        <div style="font-size:12px;padding:.5rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+          <span class="tag tag-amber" style="margin-bottom:4px;display:inline-block">1 hr</span><br>
+          Bump EF Core to latest 8.0.x patch release
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
