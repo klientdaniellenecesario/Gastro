@@ -68,7 +68,7 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         if (type == "restaurant")
             store.UpdateRestaurant(id, name, address ?? "Cebu", category ?? "Restaurant", resolvedUrl ?? "", description ?? "");
         else if (type == "dish")
-            store.UpdateDish(id, name, price, resolvedUrl ?? "", tags ?? "", isNew, isTrending);
+            store.UpdateDish(id, name, price, resolvedUrl ?? "", description ?? "", tags ?? "", isNew, isTrending);
         else if (type == "event")
         {
             var date = DateTime.TryParse(eventDate, out var d) ? d.ToUniversalTime() : DateTime.UtcNow.AddDays(30);

@@ -119,7 +119,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             Name = name,
             Price = price,
             PhotoUrl = photoUrl,
-            Tags = string.IsNullOrWhiteSpace(tags) ? description : tags,
+            Description = description,
+            Tags = tags,
             IsNewThisMonth = isNew,
             IsTrending = isTrending
         });
@@ -323,7 +324,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
-    public void UpdateDish(int id, string name, decimal price, string photoUrl, string tags, bool isNew, bool isTrending)
+    public void UpdateDish(int id, string name, decimal price, string photoUrl, string description, string tags, bool isNew, bool isTrending)
     {
         using var db = _factory.CreateDbContext();
         var d = db.Dishes.Find(id);
@@ -331,6 +332,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         d.Name = name;
         d.Price = price;
         if (!string.IsNullOrWhiteSpace(photoUrl)) d.PhotoUrl = photoUrl;
+        d.Description = description;
         d.Tags = tags;
         d.IsNewThisMonth = isNew;
         d.IsTrending = isTrending;

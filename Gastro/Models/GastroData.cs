@@ -41,6 +41,7 @@ public class DishListing
     public string Name { get; set; } = "";
     public decimal Price { get; set; }
     public string PhotoUrl { get; set; } = "";
+    public string Description { get; set; } = "";
     public string Tags { get; set; } = "";
     public int RestaurantId { get; set; }
     public bool IsNewThisMonth { get; set; }
