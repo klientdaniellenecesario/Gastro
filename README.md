@@ -1,3 +1,3 @@
 Admin:
 - Email: admin@tastecebu.test  
-- Password: Admin123!
+- Password: ChangeMe123!
