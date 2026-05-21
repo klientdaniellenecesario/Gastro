@@ -16,4 +16,27 @@ public class DishesController(SqliteDataStore store) : Controller
         ViewData["ItemId"] = id;
         return View();
     }
+
+    [HttpPost]
+    public IActionResult Search(string query = "", string tags = "", string sortBy = "newest")
+    {
+        var results = store.SearchDishes(query, tags, sortBy);
+        ViewData["DatabaseDishes"] = results;
+        ViewData["SearchQuery"] = query;
+        ViewData["SelectedTags"] = tags;
+        ViewData["SelectedSort"] = sortBy;
+        return View("Index");
+    }
+
+    
+    [HttpGet]
+    public IActionResult Search(string query = "")
+    {
+        var results = store.SearchDishes(query, "", "newest");  // ✅ calls store directly
+        ViewData["DatabaseDishes"] = results;
+        ViewData["SearchQuery"] = query;
+        ViewData["SelectedTags"] = "";
+        ViewData["SelectedSort"] = "newest";
+        return View("Index");
+    }
 }

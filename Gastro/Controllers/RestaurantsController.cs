@@ -16,4 +16,28 @@ public class RestaurantsController(SqliteDataStore store) : Controller
         ViewData["ItemId"] = id;
         return View();
     }
+
+    [HttpPost]
+    public IActionResult Search(string query = "", string category = "", decimal minRating = 0, string sortBy = "newest")
+    {
+        var results = store.SearchRestaurants(query, category, minRating, sortBy);
+        ViewData["DatabaseRestaurants"] = results;
+        ViewData["SearchQuery"] = query;
+        ViewData["SelectedCategory"] = category;
+        ViewData["SelectedRating"] = minRating;
+        ViewData["SelectedSort"] = sortBy;
+        return View("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Search(string query = "")
+    {
+        var results = store.SearchRestaurants(query, "", 0, "newest");  // ✅
+        ViewData["DatabaseRestaurants"] = results;
+        ViewData["SearchQuery"] = query;
+        ViewData["SelectedCategory"] = "";
+        ViewData["SelectedRating"] = 0;
+        ViewData["SelectedSort"] = "newest";
+        return View("Index");
+    }
 }

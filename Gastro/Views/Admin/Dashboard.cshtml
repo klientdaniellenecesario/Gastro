@@ -108,7 +108,7 @@
                 </div>
                 <table class="admin-table">
                     <thead>
-                        <tr><th>ID</th><th>Name</th><th>Restaurant</th><th>Price</th><th>Actions</th></tr>
+                        <tr><th>ID</th><th>Name</th><th>Price</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var dish in dishes)
@@ -121,7 +121,6 @@
                             <tr>
                                 <td>@dish.Id</td>
                                 <td>@dish.Name</td>
-                                <td>#@dish.RestaurantId</td>
                                 <td>PHP @dish.Price.ToString("0.##")</td>
                                 <td>
                                     <button class="btn-edit" onclick="openEditModal('dish',@dish.Id,'@dName','@dPhoto','@dTags','','','@dish.Price','@dTags','@dIsNew','@dTrending','0','')">Edit</button>

@@ -111,6 +111,118 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         return [.. db.Dishes.OrderByDescending(d => d.Id)];
     }
 
+    // SEARCH & FILTER METHODS FOR RESTAURANTS
+    public List<RestaurantListing> SearchRestaurants(string query = "", string category = "", decimal minRating = 0, string sortBy = "newest")
+    {
+        using var db = _factory.CreateDbContext();
+        var results = db.Restaurants.AsQueryable();
+
+        // Filter by search query (name, address, description, category)
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var q = query.ToLowerInvariant();
+            results = results.Where(r => 
+                r.Name.ToLower().Contains(q) || 
+                r.Address.ToLower().Contains(q) || 
+                r.Description.ToLower().Contains(q) ||
+                r.Category.ToLower().Contains(q));
+        }
+
+        // Filter by category
+        if (!string.IsNullOrWhiteSpace(category) && category.ToLowerInvariant() != "all")
+        {
+            results = results.Where(r => r.Category.ToLowerInvariant() == category.ToLowerInvariant());
+        }
+
+        // Filter by minimum rating
+        if (minRating > 0)
+        {
+            results = results.Where(r => r.Rating >= minRating);
+        }
+
+        // Apply sorting
+        results = sortBy?.ToLowerInvariant() switch
+        {
+            "rating" => results.OrderByDescending(r => r.Rating),
+            "name" => results.OrderBy(r => r.Name),
+            "newest" or _ => results.OrderByDescending(r => r.CreatedAt)
+        };
+
+        return [.. results];
+    }
+
+    public List<RestaurantListing> GetRestaurantsByCategory(string category)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Restaurants
+            .Where(r => r.Category.ToLower() == category.ToLower())
+            .OrderByDescending(r => r.Rating)];
+    }
+
+    public List<RestaurantListing> GetRestaurantsByRating(decimal minRating = 4.0m)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Restaurants
+            .Where(r => r.Rating >= minRating)
+            .OrderByDescending(r => r.Rating)];
+    }
+
+    // SEARCH & FILTER METHODS FOR DISHES
+    public List<DishListing> SearchDishes(string query = "", string tags = "", string sortBy = "newest")
+    {
+        using var db = _factory.CreateDbContext();
+        var results = db.Dishes.AsQueryable();
+
+        // Filter by search query (name, description, tags)
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var q = query.ToLowerInvariant();
+            results = results.Where(d => 
+                d.Name.ToLower().Contains(q) || 
+                d.Description.ToLower().Contains(q) || 
+                d.Tags.ToLower().Contains(q));
+        }
+
+        // Filter by tags (comma-separated)
+        if (!string.IsNullOrWhiteSpace(tags))
+        {
+            var tagArray = tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim().ToLowerInvariant())
+                .ToList();
+
+            results = results.Where(d => 
+                tagArray.Any(tag => d.Tags.ToLower().Contains(tag)));
+        }
+
+        // Apply sorting
+        results = sortBy?.ToLowerInvariant() switch
+        {
+            "trending" => results.Where(d => d.IsTrending).OrderByDescending(d => d.Id),
+            "new" => results.Where(d => d.IsNewThisMonth).OrderByDescending(d => d.Id),
+            "price-low" => results.OrderBy(d => d.Price),
+            "price-high" => results.OrderByDescending(d => d.Price),
+            "newest" or _ => results.OrderByDescending(d => d.Id)
+        };
+
+        return [.. results];
+    }
+
+    public List<DishListing> GetTrendingDishes()
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Dishes
+            .Where(d => d.IsTrending)
+            .OrderByDescending(d => d.Id)];
+    }
+
+    public List<DishListing> GetNewDishes()
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Dishes
+            .Where(d => d.IsNewThisMonth)
+            .OrderByDescending(d => d.Id)];
+    }
+
     public void AddDish(string name, string photoUrl, string description, decimal price = 0, string tags = "", bool isNew = false, bool isTrending = false)
     {
         using var db = _factory.CreateDbContext();

@@ -1,4 +1,6 @@
-﻿@{
+﻿@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.OptionTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers
+@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.SelectTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
     ViewData["Title"] = "Dish Discovery - TasteCebu";
     var dishes = ViewData["DatabaseDishes"] as List<GastroCebu.Models.DishListing> ?? new();
     var featuredDish = dishes.FirstOrDefault(d => d.IsTrending) ?? dishes.FirstOrDefault();
@@ -44,20 +46,55 @@
 
     @* FILTERS *@
     <div class="filters-bar" data-aos="fade-up">
-        <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search dishes..." id="dishSearch">
-        </div>
+        @{
+            var selectedTags = ViewData["SelectedTags"]?.ToString() ?? "";
+            var selectedSort2 = ViewData["SelectedSort"]?.ToString() ?? "newest";
 
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterDishCategory('all')">All</button>
-            <button class="filter-tab" onclick="filterDishCategory('trending')">Trending</button>
-            <button class="filter-tab" onclick="filterDishCategory('new')">New This Month</button>
-            <button class="filter-tab" onclick="filterDishCategory('seafood')">Seafood</button>
-            <button class="filter-tab" onclick="filterDishCategory('spicy')">Spicy</button>
-            <button class="filter-tab" onclick="filterDishCategory('vegetarian')">Vegetarian</button>
-        </div>
+            string IsSelected(string value, string selected) => value == selected ? "selected" : "";
+        }
+        <form method="post" action="/Dishes/Search" class="search-form" style="display: flex; gap: 1rem; align-items: center; flex: 1;">
+            <div class="search-bar" style="flex: 1;">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search dishes..." id="dishSearch" name="query" value="@(ViewData["SearchQuery"] ?? "")">
+            </div>
+
+            <select name="tags" class="filter-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+                <option value="">All Tags</option>
+                <option value="trending" @IsSelected("trending", selectedTags)>Trending</option>
+                <option value="new" @IsSelected("new", selectedTags)>New This Month</option>
+                <option value="seafood" @IsSelected("seafood", selectedTags)>Seafood</option>
+                <option value="spicy" @IsSelected("spicy", selectedTags)>Spicy</option>
+                <option value="vegetarian" @IsSelected("vegetarian", selectedTags)>Vegetarian</option>
+            </select>
+
+            <select name="sortBy" class="sort-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+                <option value="newest" @IsSelected("newest", selectedSort2)>Newest</option>
+                <option value="trending" @IsSelected("trending", selectedSort2)>Trending</option>
+                <option value="new" @IsSelected("new", selectedSort2)>New This Month</option>
+                <option value="price-low" @IsSelected("price-low", selectedSort2)>Price: Low to High</option>
+                <option value="price-high" @IsSelected("price-high", selectedSort2)>Price: High to Low</option>
+            </select>
+
+            <button type="submit" class="btn-primary" style="white-space: nowrap;">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
     </div>
+
+    @* SEARCH RESULTS SUMMARY *@
+    @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
+    {
+        <div class="search-summary" style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; color: var(--text-secondary);">
+                    Showing <strong>@dishes.Count</strong> dish@(dishes.Count != 1 ? "es" : "") for "<strong>@ViewData["SearchQuery"]</strong>"
+                </p>
+            </div>
+            <a href="/Dishes" class="btn-secondary" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                <i class="fas fa-times"></i> Clear Search
+            </a>
+        </div>
+    }
 
     @if (!dishes.Any())
     {

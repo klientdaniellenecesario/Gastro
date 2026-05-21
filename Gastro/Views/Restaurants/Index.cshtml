@@ -1,4 +1,6 @@
-﻿@{
+﻿@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.OptionTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers
+@removeTagHelper Microsoft.AspNetCore.Mvc.TagHelpers.SelectTagHelper, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
     ViewData["Title"] = "Restaurants & Cafes - TasteCebu";
     var restaurants = ViewData["DatabaseRestaurants"] as List<GastroCebu.Models.RestaurantListing> ?? new();
 }
@@ -11,25 +13,52 @@
 
     @* SEARCH AND FILTERS *@
     <div class="filters-bar" data-aos="fade-up">
-        <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search restaurants..." id="searchInput" onkeyup="searchRestaurants()">
-        </div>
+        @{
+            var selectedCategory = ViewData["SelectedCategory"]?.ToString() ?? "";
+            var selectedSort = ViewData["SelectedSort"]?.ToString() ?? "newest";
 
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterByCategory('all')">All</button>
-            <button class="filter-tab" onclick="filterByCategory('restaurant')">Restaurant</button>
-            <button class="filter-tab" onclick="filterByCategory('cafe')">Cafe</button>
-            <button class="filter-tab" onclick="filterByCategory('bar')">Bar</button>
-            <button class="filter-tab" onclick="filterByCategory('street food')">Street Food</button>
-        </div>
+            string IsSelected(string value, string selected) => value == selected ? "selected" : "";
+        }
+        <form method="post" action="/Restaurants/Search" class="search-form" style="display: flex; gap: 1rem; align-items: center; flex: 1;">
+            <div class="search-bar" style="flex: 1;">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search restaurants..." id="searchInput" name="query" value="@(ViewData["SearchQuery"] ?? "")">
+            </div>
 
-        <select class="sort-select" id="sortSelect" onchange="sortRestaurants()">
-            <option value="newest">Newest First</option>
-            <option value="rating">Highest Rated</option>
-            <option value="name">Name A-Z</option>
-        </select>
+            <select name="category" class="filter-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+                <option value="">All Categories</option>
+                <option value="restaurant" @IsSelected("restaurant", selectedCategory)>Restaurant</option>
+                <option value="cafe" @IsSelected("cafe", selectedCategory)>Cafe</option>
+                <option value="bar" @IsSelected("bar", selectedCategory)>Bar</option>
+                <option value="street food" @IsSelected("street food", selectedCategory)>Street Food</option>
+            </select>
+
+            <select name="sortBy" class="sort-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+                <option value="newest" @IsSelected("newest", selectedSort)>Newest First</option>
+                <option value="rating" @IsSelected("rating", selectedSort)>Highest Rated</option>
+                <option value="name" @IsSelected("name", selectedSort)>Name A-Z</option>
+            </select>
+
+            <button type="submit" class="btn-primary" style="white-space: nowrap;">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
     </div>
+
+    @* SEARCH RESULTS SUMMARY *@
+    @if (!string.IsNullOrEmpty(ViewData["SearchQuery"]?.ToString()))
+    {
+        <div class="search-summary" style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; color: var(--text-secondary);">
+                    Showing <strong>@restaurants.Count</strong> restaurant@(restaurants.Count != 1 ? "s" : "") for "<strong>@ViewData["SearchQuery"]</strong>"
+                </p>
+            </div>
+            <a href="/Restaurants" class="btn-secondary" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                <i class="fas fa-times"></i> Clear Search
+            </a>
+        </div>
+    }
 
     @* RESTAURANT GRID *@
     @if (!restaurants.Any())
