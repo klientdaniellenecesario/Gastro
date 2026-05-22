@@ -83,6 +83,34 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
+    public RestaurantListing? GetRestaurantById(int id)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Restaurants.Find(id);
+    }
+
+    public DishListing? GetDishById(int id)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Dishes.Find(id);
+    }
+
+    public List<ReviewEntry> GetReviews(string targetType, int targetId)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Reviews
+            .Where(r => r.TargetType == targetType && r.TargetId == targetId)
+            .OrderByDescending(r => r.CreatedAt)];
+    }
+
+    public (int ReviewCount, decimal AverageRating) GetReviewStats(string targetType, int targetId)
+    {
+        using var db = _factory.CreateDbContext();
+        var reviews = db.Reviews.Where(r => r.TargetType == targetType && r.TargetId == targetId).ToList();
+        if (reviews.Count == 0) return (0, 0m);
+        return (reviews.Count, Math.Round((decimal)reviews.Average(r => r.Rating), 1));
+    }
+
     public List<RestaurantListing> GetRestaurants()
     {
         using var db = _factory.CreateDbContext();
@@ -121,9 +149,9 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         if (!string.IsNullOrWhiteSpace(query))
         {
             var q = query.ToLowerInvariant();
-            results = results.Where(r => 
-                r.Name.ToLower().Contains(q) || 
-                r.Address.ToLower().Contains(q) || 
+            results = results.Where(r =>
+                r.Name.ToLower().Contains(q) ||
+                r.Address.ToLower().Contains(q) ||
                 r.Description.ToLower().Contains(q) ||
                 r.Category.ToLower().Contains(q));
         }
@@ -177,9 +205,9 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         if (!string.IsNullOrWhiteSpace(query))
         {
             var q = query.ToLowerInvariant();
-            results = results.Where(d => 
-                d.Name.ToLower().Contains(q) || 
-                d.Description.ToLower().Contains(q) || 
+            results = results.Where(d =>
+                d.Name.ToLower().Contains(q) ||
+                d.Description.ToLower().Contains(q) ||
                 d.Tags.ToLower().Contains(q));
         }
 
@@ -190,7 +218,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                 .Select(t => t.Trim().ToLowerInvariant())
                 .ToList();
 
-            results = results.Where(d => 
+            results = results.Where(d =>
                 tagArray.Any(tag => d.Tags.ToLower().Contains(tag)));
         }
 
@@ -321,9 +349,11 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     {
         var restaurant = db.Restaurants.Find(restaurantId);
         if (restaurant is null) return;
-        var avg = db.Reviews
+        var ratings = db.Reviews
             .Where(r => r.TargetType == "restaurant" && r.TargetId == restaurantId)
-            .Average(r => (decimal?)r.Rating) ?? 0m;
+            .Select(r => r.Rating)
+            .ToList();
+        var avg = ratings.Count > 0 ? (decimal)ratings.Average() : 0m;
         restaurant.Rating = Math.Round(avg, 1);
         db.SaveChanges();
     }

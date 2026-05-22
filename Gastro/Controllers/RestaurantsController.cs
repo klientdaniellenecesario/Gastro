@@ -13,7 +13,27 @@ public class RestaurantsController(SqliteDataStore store) : Controller
 
     public IActionResult Detail(int id = 1)
     {
-        ViewData["ItemId"] = id;
+        var restaurant = store.GetRestaurantById(id);
+        if (restaurant is null) return NotFound();
+        var reviews = store.GetReviews("restaurant", id);
+        var userReviewIds = new HashSet<int>();
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            userReviewIds = reviews.Where(r => r.UserId == userId).Select(r => r.Id).ToHashSet();
+            // Pass current user's userId for edit/delete ownership checks in the view
+            ViewData["CurrentUserId"] = userId;
+        }
+        var reviewerNames = new Dictionary<int, string>();
+        foreach (var r in reviews)
+        {
+            var user = store.FindUserById(r.UserId);
+            reviewerNames[r.Id] = user?.FullName ?? "Anonymous";
+        }
+        ViewData["Restaurant"] = restaurant;
+        ViewData["Reviews"] = reviews;
+        ViewData["ReviewerNames"] = reviewerNames;
+        ViewData["UserReviewIds"] = userReviewIds;
         return View();
     }
 
