@@ -1,10 +1,24 @@
 ﻿@{
     ViewData["Title"] = "My Food Journey - TasteCebu";
     var profileUser = ViewData["ProfileUser"] as GastroCebu.Models.AppUser;
-    var bookmarks = ViewData["Bookmarks"] as List<GastroCebu.Models.BookmarkEntry> ?? new();
+    var restaurantBookmarks = ViewData["RestaurantBookmarks"] as List<GastroCebu.Models.BookmarkEntry> ?? new();
+    var dishBookmarks = ViewData["DishBookmarks"] as List<GastroCebu.Models.BookmarkEntry> ?? new();
     var registrations = ViewData["Registrations"] as List<GastroCebu.Models.EventRegistration> ?? new();
     var reviews = ViewData["Reviews"] as List<GastroCebu.Models.ReviewEntry> ?? new();
+    var reviewNames = ViewData["ReviewNames"] as Dictionary<int, string> ?? new();
     var activities = ViewData["Activities"] as List<GastroCebu.Models.ActivityEntry> ?? new();
+
+    // Real stats
+    var reviewCount = reviews.Count;
+    var savedRestaurants = restaurantBookmarks.Count;
+    var eventsJoined = registrations.Count;
+
+    // Foodie level: 1 XP per review + 1 per bookmark + 1 per event
+    var xp = reviewCount + restaurantBookmarks.Count + dishBookmarks.Count + eventsJoined;
+    var level = Math.Max(1, xp / 10 + 1);
+    var xpInLevel = xp % 10;
+    var xpToNext = 10 - xpInLevel;
+    var barPct = xpInLevel * 10;
 }
 
 <section class="profile-section">
@@ -18,31 +32,31 @@
                 <button class="edit-avatar"><i class="fas fa-camera"></i></button>
             </div>
             <div class="profile-details">
-                <h1 id="profileName">@(profileUser?.FullName ?? User.Identity?.Name ?? "Maria Santos")</h1>
+                <h1 id="profileName">@(profileUser?.FullName ?? User.Identity?.Name ?? "User")</h1>
                 <p class="profile-location"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">@(profileUser?.Location ?? "Cebu City, Philippines")</span></p>
                 <div class="foodie-level">
-                    <span class="level-badge">Foodie Level 7</span>
+                    <span class="level-badge">Foodie Level @level</span>
                     <div class="level-progress">
-                        <div class="level-bar" style="width: 70%"></div>
+                        <div class="level-bar" style="width: @barPct%"></div>
                     </div>
-                    <span class="next-level">85 points to Level 8</span>
+                    <span class="next-level">@xpToNext points to Level @(level + 1)</span>
                 </div>
             </div>
             <div class="profile-stats">
                 <div class="profile-stat">
-                    <div class="stat-number">47</div>
-                    <div class="stat-label">Dishes Tried</div>
+                    <div class="stat-number">@(dishBookmarks.Count)</div>
+                    <div class="stat-label">Dishes Saved</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="stat-number">23</div>
+                    <div class="stat-number">@savedRestaurants</div>
                     <div class="stat-label">Restaurants</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="stat-number">12</div>
+                    <div class="stat-number">@reviewCount</div>
                     <div class="stat-label">Reviews</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="stat-number">8</div>
+                    <div class="stat-number">@eventsJoined</div>
                     <div class="stat-label">Events Joined</div>
                 </div>
             </div>
@@ -56,7 +70,6 @@
     <div class="profile-tabs">
         <button class="profile-tab active" onclick="showProfileTab('reviews')">My Reviews</button>
         <button class="profile-tab" onclick="showProfileTab('cravings')">Cravings List</button>
-        <button class="profile-tab" onclick="showProfileTab('tried')">Tried Dishes</button>
         <button class="profile-tab" onclick="showProfileTab('events')">My Events</button>
         <button class="profile-tab" onclick="showProfileTab('activity')">Activity Feed</button>
     </div>
@@ -64,17 +77,26 @@
     <!-- MY REVIEWS TAB -->
     <div id="reviewsTab" class="profile-tab-content active">
         <div class="reviews-list">
+            @if (!reviews.Any())
+            {
+                <p class="empty-state">No reviews yet. Start exploring and share your thoughts!</p>
+            }
             @foreach (var review in reviews)
             {
+                var name = reviewNames.TryGetValue(review.Id, out var n) ? n : $"{review.TargetType} #{review.TargetId}";
                 <div class="review-item" data-review-id="@review.Id">
                     <div class="review-restaurant">
-                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="Review">
+                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@name">
                         <div>
-                            <h4>@review.TargetType #@review.TargetId</h4>
+                            <h4>@name</h4>
                             <div class="review-stars">
                                 @for (var i = 0; i < review.Rating; i++)
                                 {
                                     <i class="fas fa-star"></i>
+                                }
+                                @for (var i = review.Rating; i < 5; i++)
+                                {
+                                    <i class="far fa-star"></i>
                                 }
                             </div>
                             <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
@@ -87,122 +109,65 @@
                     </div>
                 </div>
             }
-            <div class="review-item">
-                <div class="review-restaurant">
-                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="House of Lechon">
-                    <div>
-                        <h4>House of Lechon</h4>
-                        <div class="review-stars">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="review-date">May 10, 2025</p>
-                    </div>
-                </div>
-                <p class="review-text">Best lechon in Cebu! The skin was incredibly crispy and the meat was so juicy. Their spicy vinegar dip is to die for.</p>
-                <div class="inline-actions">
-                    <button onclick="editReview(this)">Edit</button>
-                    <button onclick="deleteReview(this)">Delete</button>
-                </div>
-            </div>
-
-            <div class="review-item">
-                <div class="review-restaurant">
-                    <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=100&h=100&fit=crop" alt="Good Cup Coffee">
-                    <div>
-                        <h4>Good Cup Coffee</h4>
-                        <div class="review-stars">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <p class="review-date">April 28, 2025</p>
-                    </div>
-                </div>
-                <p class="review-text">Amazing specialty coffee! Their pour-over is perfection. The pastries are also great.</p>
-                <div class="inline-actions">
-                    <button onclick="editReview(this)">Edit</button>
-                    <button onclick="deleteReview(this)">Delete</button>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- CRAVINGS LIST TAB -->
     <div id="cravingsTab" class="profile-tab-content">
-        <div class="cravings-list" id="cravingsList">
-            @foreach (var bookmark in bookmarks)
+
+        @* Saved Restaurants *@
+        <h3 class="cravings-section-title"><i class="fas fa-store"></i> Saved Restaurants</h3>
+        <div class="cravings-list" id="restaurantCravingsList">
+            @if (!restaurantBookmarks.Any())
             {
-                <div class="craving-item">
+                <p class="empty-state">No saved restaurants yet.</p>
+            }
+            @foreach (var bookmark in restaurantBookmarks)
+            {
+                <div class="craving-item" data-item-type="restaurant" data-item-id="@bookmark.ItemId">
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
+                    <div class="craving-info">
+                        <h4>@bookmark.ItemName</h4>
+                        <p>Restaurant &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                    </div>
+                    <button class="btn-remove-craving" onclick="removeCraving(this, 'restaurant', @bookmark.ItemId)">Remove</button>
+                </div>
+            }
+        </div>
+
+        @* Saved Dishes *@
+        <h3 class="cravings-section-title" style="margin-top:2rem"><i class="fas fa-utensils"></i> Saved Dishes</h3>
+        <div class="cravings-list" id="dishCravingsList">
+            @if (!dishBookmarks.Any())
+            {
+                <p class="empty-state">No saved dishes yet.</p>
+            }
+            @foreach (var bookmark in dishBookmarks)
+            {
+                <div class="craving-item" data-item-type="dish" data-item-id="@bookmark.ItemId">
                     <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
                     <div class="craving-info">
                         <h4>@bookmark.ItemName</h4>
-                        <p>@bookmark.ItemType saved on @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                        <p>Dish &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
                     </div>
-                    <button class="btn-remove-craving" onclick="removeCraving(this, '@bookmark.ItemType', @bookmark.ItemId, '@bookmark.ItemName')">Remove</button>
+                    <button class="btn-remove-craving" onclick="removeCraving(this, 'dish', @bookmark.ItemId)">Remove</button>
                 </div>
             }
-            <div class="craving-item">
-                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=100&h=100&fit=crop" alt="Lechon">
-                <div class="craving-info">
-                    <h4>Cebu Lechon</h4>
-                    <p>House of Lechon - $450</p>
-                </div>
-                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
-            </div>
-            <div class="craving-item">
-                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=100&h=100&fit=crop" alt="Kinilaw">
-                <div class="craving-info">
-                    <h4>Kinilaw Tacos</h4>
-                    <p>Tales and Feelings - $320</p>
-                </div>
-                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
-            </div>
-            <div class="craving-item">
-                <img src="https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=100&h=100&fit=crop" alt="Lechon Ramen">
-                <div class="craving-info">
-                    <h4>Lechon Ramen</h4>
-                    <p>Ramen Sage - $390</p>
-                </div>
-                <button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button>
-            </div>
         </div>
-        <button class="btn-explore-more" onclick="location.href='/Dishes'">+ Add More Cravings</button>
-    </div>
 
-    <!-- TRIED DISHES TAB -->
-    <div id="triedTab" class="profile-tab-content">
-        <div class="tried-grid" id="triedGrid">
-            <div class="tried-item">
-                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt="Lechon">
-                <div class="tried-overlay">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Tried on May 10, 2025</span>
-                </div>
-                <h4>Cebu Lechon</h4>
-                <p>House of Lechon</p>
-            </div>
-            <div class="tried-item">
-                <img src="https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=200&h=150&fit=crop" alt="Kinilaw">
-                <div class="tried-overlay">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Tried on Apr 28, 2025</span>
-                </div>
-                <h4>Kinilaw Tacos</h4>
-                <p>Tales and Feelings</p>
-            </div>
-            <div class="tried-item">
-                <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=200&h=150&fit=crop" alt="Ube Champorado">
-                <div class="tried-overlay">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Tried on Apr 15, 2025</span>
-                </div>
-                <h4>Ube Champorado</h4>
-                <p>Phat Monday</p>
-            </div>
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
+            <button class="btn-explore-more" onclick="location.href='/Restaurants'" style="flex:1">+ Save Restaurants</button>
+            <button class="btn-explore-more" onclick="location.href='/Dishes'" style="flex:1">+ Save Dishes</button>
         </div>
     </div>
 
     <!-- MY EVENTS TAB -->
     <div id="eventsTab" class="profile-tab-content">
         <div class="events-list" id="registeredEventsList">
+            @if (!registrations.Any())
+            {
+                <p class="empty-state">No events registered yet.</p>
+            }
             @foreach (var registration in registrations)
             {
                 <div class="event-item" data-event-id="@registration.EventId">
@@ -219,38 +184,16 @@
                     <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
                 </div>
             }
-            <div class="event-item">
-                <div class="event-date-badge">
-                    <span class="event-date-month">JUN</span>
-                    <span class="event-date-day">15</span>
-                </div>
-                <div class="event-info">
-                    <h4>Lechon Masterclass at Carbon</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> Carbon Market, Cebu City</p>
-                    <p><i class="far fa-clock"></i> 9:00 AM - 1:00 PM</p>
-                </div>
-                <span class="event-status confirmed">Confirmed</span>
-                <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
-            </div>
-            <div class="event-item">
-                <div class="event-date-badge">
-                    <span class="event-date-month">JUN</span>
-                    <span class="event-date-day">22</span>
-                </div>
-                <div class="event-info">
-                    <h4>Cebu Street Food Crawl</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> Colon Street and Carbon</p>
-                    <p><i class="far fa-clock"></i> 6:00 PM - 10:00 PM</p>
-                </div>
-                <span class="event-status pending">Pending</span>
-                <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
-            </div>
         </div>
     </div>
 
     <!-- ACTIVITY FEED TAB -->
     <div id="activityTab" class="profile-tab-content">
         <div class="activity-feed">
+            @if (!activities.Any())
+            {
+                <p class="empty-state">No activity yet.</p>
+            }
             @foreach (var activity in activities)
             {
                 <div class="activity-item">
@@ -261,34 +204,6 @@
                     </div>
                 </div>
             }
-            <div class="activity-item">
-                <div class="activity-icon"><i class="fas fa-utensils"></i></div>
-                <div class="activity-content">
-                    <p>You tried <strong>Cebu Lechon</strong> at <strong>House of Lechon</strong></p>
-                    <span class="activity-time">2 days ago</span>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon"><i class="fas fa-star"></i></div>
-                <div class="activity-content">
-                    <p>You reviewed <strong>Good Cup Coffee</strong> (5 stars)</p>
-                    <span class="activity-time">5 days ago</span>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon"><i class="fas fa-heart"></i></div>
-                <div class="activity-content">
-                    <p>You added <strong>Kinilaw Tacos</strong> to your Cravings List</p>
-                    <span class="activity-time">1 week ago</span>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon"><i class="fas fa-ticket-alt"></i></div>
-                <div class="activity-content">
-                    <p>You registered for <strong>Lechon Masterclass at Carbon</strong></p>
-                    <span class="activity-time">2 weeks ago</span>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -481,6 +396,23 @@
             display: block;
         }
 
+    .cravings-section-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .empty-state {
+        color: var(--text-muted);
+        padding: 1.5rem;
+        text-align: center;
+        background: var(--bg-card);
+        border-radius: 16px;
+    }
+
     .craving-item, .event-item, .activity-item, .review-item {
         display: flex;
         align-items: center;
@@ -522,47 +454,21 @@
         margin-top: 1rem;
     }
 
-    .tried-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
+    .review-stars i {
+        color: var(--golden-yellow);
+        font-size: 0.85rem;
     }
 
-    .tried-item {
-        position: relative;
-        background: var(--bg-card);
-        border-radius: 16px;
-        overflow: hidden;
-    }
-
-        .tried-item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-    .tried-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));
-        padding: 0.5rem;
-        color: white;
-        font-size: 0.7rem;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-    .tried-item h4, .tried-item p {
-        padding: 0.3rem 0.8rem;
-    }
-
-    .tried-item p {
+    .review-date {
+        font-size: 0.75rem;
         color: var(--text-secondary);
-        font-size: 0.8rem;
-        padding-bottom: 0.8rem;
+        margin-top: 0.2rem;
+    }
+
+    .review-text {
+        flex: 1;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
 
     .event-date-badge {
@@ -701,56 +607,34 @@
 
 <script>
     function showProfileTab(tab) {
-        var tabs = ['reviews', 'cravings', 'tried', 'events', 'activity'];
-        var tabButtons = document.querySelectorAll('.profile-tab');
-
-        for (var i = 0; i < tabs.length; i++) {
-            var content = document.getElementById(tabs[i] + 'Tab');
-            if (content) {
-                content.classList.remove('active');
-            }
-        }
-
-        var activeTab = document.getElementById(tab + 'Tab');
-        if (activeTab) {
-            activeTab.classList.add('active');
-        }
-
-        for (var i = 0; i < tabButtons.length; i++) {
-            tabButtons[i].classList.remove('active');
-        }
-
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
+        document.querySelectorAll('.profile-tab-content').forEach(function(el) { el.classList.remove('active'); });
+        document.querySelectorAll('.profile-tab').forEach(function(el) { el.classList.remove('active'); });
+        var content = document.getElementById(tab + 'Tab');
+        if (content) content.classList.add('active');
+        if (event && event.target) event.target.classList.add('active');
     }
 
-    async function removeCraving(btn, itemType, itemId, itemName) {
-        if (itemType && itemId && window.addToCravings) {
-            await window.addToCravings(itemName, itemId, itemType);
-        }
-        var item = btn.closest('.craving-item');
-        if (item) {
-            var name = item.querySelector('h4') ? item.querySelector('h4').innerText : '';
-            item.remove();
-            var cravings = JSON.parse(localStorage.getItem('cravings') || '[]').filter(function(craving) {
-                return craving.name !== name;
+    async function removeCraving(btn, itemType, itemId) {
+        try {
+            var res = await fetch('/api/bookmarks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemType: itemType, itemId: itemId, itemName: btn.closest('.craving-item').querySelector('h4').innerText })
             });
-            localStorage.setItem('cravings', JSON.stringify(cravings));
-        }
-        showToast('Removed from Cravings List');
+            if (!res.ok) { showToast('Could not remove bookmark.'); return; }
+        } catch (e) { showToast('Could not remove bookmark.'); return; }
+
+        btn.closest('.craving-item').remove();
+        showToast('Removed from Cravings');
     }
 
     async function cancelEvent(btn) {
         var item = btn.closest('.event-item');
-        var title = item.querySelector('h4').innerText;
-        var eventId = item.dataset.eventId || '1';
-        await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+        var eventId = item.dataset.eventId;
+        if (eventId) {
+            await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+        }
         item.remove();
-        var events = JSON.parse(localStorage.getItem('registeredEvents') || '[]').filter(function(eventItem) {
-            return eventItem.title !== title;
-        });
-        localStorage.setItem('registeredEvents', JSON.stringify(events));
         showToast('Event registration cancelled');
     }
 
@@ -761,7 +645,6 @@
         var starsEl = item.querySelector('.review-stars');
         var currentRating = starsEl ? starsEl.querySelectorAll('i.fas').length : 5;
 
-        // Build an inline edit form inside the card
         var existing = item.querySelector('.inline-edit-form');
         if (existing) { existing.remove(); return; }
 
@@ -789,10 +672,7 @@
         var rating = parseInt(form.querySelector('.edit-rating-input').value);
         var text = form.querySelector('.edit-text-input').value.trim();
 
-        if (!text || rating < 1 || rating > 5) {
-            showToast('Please enter a rating (1–5) and review text.');
-            return;
-        }
+        if (!text || rating < 1 || rating > 5) { showToast('Please enter a rating (1–5) and review text.'); return; }
 
         if (reviewId) {
             var res = await fetch('/api/reviews/' + reviewId, {
@@ -803,7 +683,6 @@
             if (!res.ok) { showToast('Could not update review.'); return; }
         }
 
-        // Update the displayed text and stars
         var textEl = item.querySelector('.review-text');
         if (textEl) textEl.innerText = text;
 
@@ -848,10 +727,7 @@
     async function saveProfile() {
         var name = document.getElementById('editProfileName').value.trim();
         var location = document.getElementById('editProfileLocation').value.trim();
-        if (!name || !location) {
-            showToast('Please complete the profile fields');
-            return;
-        }
+        if (!name || !location) { showToast('Please complete the profile fields'); return; }
         await fetch('/Account/UpdateProfile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -866,10 +742,7 @@
     async function changePassword() {
         var current = document.getElementById('currentPassword').value.trim();
         var next = document.getElementById('newPassword').value.trim();
-        if (!current || next.length < 6) {
-            showToast('New password must be at least 6 characters');
-            return;
-        }
+        if (!current || next.length < 6) { showToast('New password must be at least 6 characters'); return; }
         await fetch('/Account/ChangePassword', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -881,47 +754,14 @@
         showToast('Password changed');
     }
 
-    function renderStoredProfileData() {
-        var profile = JSON.parse(localStorage.getItem('profile') || 'null');
-        if (profile) {
-            document.getElementById('profileName').innerText = profile.name;
-            document.getElementById('profileLocation').innerText = profile.location;
-        }
-
-        var cravings = JSON.parse(localStorage.getItem('cravings') || '[]');
-        var cravingsList = document.getElementById('cravingsList');
-        cravings.forEach(function(craving) {
-            if ([].some.call(cravingsList.querySelectorAll('h4'), function(h) { return h.innerText === craving.name; })) return;
-            cravingsList.insertAdjacentHTML('afterbegin', '<div class="craving-item"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt=""><div class="craving-info"><h4>' + craving.name + '</h4><p>' + craving.type + ' saved from browsing</p></div><button class="btn-remove-craving" onclick="removeCraving(this)">Remove</button></div>');
-        });
-
-        var tried = JSON.parse(localStorage.getItem('triedDishes') || '[]');
-        var triedGrid = document.getElementById('triedGrid');
-        tried.forEach(function(id) {
-            triedGrid.insertAdjacentHTML('beforeend', '<div class="tried-item"><img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt=""><div class="tried-overlay"><i class="fas fa-check-circle"></i><span>Tried recently</span></div><h4>Saved Dish #' + id + '</h4><p>From browsing</p></div>');
-        });
-
-        var storedEvents = JSON.parse(localStorage.getItem('registeredEvents') || '[]');
-        var eventList = document.getElementById('registeredEventsList');
-        storedEvents.forEach(function(eventItem) {
-            if ([].some.call(eventList.querySelectorAll('h4'), function(h) { return h.innerText === eventItem.title; })) return;
-            eventList.insertAdjacentHTML('afterbegin', '<div class="event-item"><div class="event-date-badge"><span class="event-date-month">JUN</span><span class="event-date-day">--</span></div><div class="event-info"><h4>' + eventItem.title + '</h4><p><i class="fas fa-map-marker-alt"></i> ' + (eventItem.location || 'Cebu') + '</p><p><i class="far fa-clock"></i> Upcoming</p></div><span class="event-status confirmed">Confirmed</span><button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button></div>');
-        });
-    }
-
-    renderStoredProfileData();
-
     function showToast(message) {
         var toast = document.createElement('div');
         toast.className = 'toast-notification';
-        toast.innerHTML = message;
+        toast.innerText = message;
         document.body.appendChild(toast);
-
         setTimeout(function() {
             toast.style.opacity = '0';
-            setTimeout(function() {
-                toast.remove();
-            }, 300);
+            setTimeout(function() { toast.remove(); }, 300);
         }, 3000);
     }
 </script>

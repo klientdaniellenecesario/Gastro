@@ -35,7 +35,7 @@ public class AccountController : Controller
 
         await SignInUser(user.Id, user.FullName, user.Email, user.Role, rememberMe);
         TempData["Success"] = "Welcome back!";
-        return LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/Account/Profile" : returnUrl);
+        return LocalRedirect(string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl);
     }
 
     [HttpGet]
@@ -70,10 +70,13 @@ public class AccountController : Controller
     public IActionResult Profile()
     {
         var userId = GetUserId();
+        var reviews = _store.GetUserReviews(userId);
         ViewData["ProfileUser"] = _store.FindUserById(userId);
-        ViewData["Bookmarks"] = _store.GetBookmarks(userId);
+        ViewData["RestaurantBookmarks"] = _store.GetBookmarks(userId, "restaurant");
+        ViewData["DishBookmarks"] = _store.GetBookmarks(userId, "dish");
         ViewData["Registrations"] = _store.GetRegistrations(userId);
-        ViewData["Reviews"] = _store.GetUserReviews(userId);
+        ViewData["Reviews"] = reviews;
+        ViewData["ReviewNames"] = _store.ResolveReviewNames(reviews);
         ViewData["Activities"] = _store.GetActivities(userId);
         return View();
     }

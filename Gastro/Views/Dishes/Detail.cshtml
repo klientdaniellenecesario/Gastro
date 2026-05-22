@@ -1,172 +1,49 @@
-@using GastroCebu.Models
 @{
-    var dish = (DishListing)ViewData["Dish"]!;
-    var reviews = (List<ReviewEntry>)ViewData["Reviews"]!;
-    var names = (Dictionary<int, string>)ViewData["ReviewerNames"]!;
-    var myIds = (HashSet<int>)(ViewData["UserReviewIds"] ?? new HashSet<int>());
-    var isAuth = User.Identity?.IsAuthenticated == true;
-    var isAdmin = User.IsInRole("Admin");
-    ViewData["Title"] = dish.Name + " - TasteCebu";
-
-    decimal avgRating = reviews.Count > 0 ? Math.Round((decimal)reviews.Average(r => r.Rating), 1) : 0m;
-
-    string RatingStars(decimal r)
-    {
-        var sb = new System.Text.StringBuilder();
-        for (int i = 1; i <= 5; i++)
-        {
-            if (r >= i) sb.Append("<i class=\"fas fa-star\"></i>");
-            else if (r >= i - 0.5m) sb.Append("<i class=\"fas fa-star-half-alt\"></i>");
-            else sb.Append("<i class=\"far fa-star\"></i>");
-        }
-        return sb.ToString();
-    }
-
-    var tagList = dish.Tags.Split(',', System.StringSplitOptions.RemoveEmptyEntries)
-                          .Select(t => t.Trim()).ToList();
+    ViewData["Title"] = "Dish Details - TasteCebu";
 }
 
 <section class="detail-shell">
     <nav class="breadcrumb-trail">
-        <a href="/">Home</a><span>/</span><a href="/Dishes">Dishes</a><span>/</span><strong>@dish.Name</strong>
+        <a href="/">Home</a><span>/</span><a href="/Dishes">Dishes</a><span>/</span><strong id="dishCrumb">Dish</strong>
     </nav>
 
     <div class="detail-hero-card">
-        <img src="@dish.PhotoUrl" alt="@dish.Name">
+        <img id="dishImage" src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop" alt="Dish">
         <div class="detail-hero-copy">
-            @if (dish.IsTrending)
-            {
-                <span class="detail-kicker">🔥 Trending</span>
-            }
-            else if (dish.IsNewThisMonth)
-            {
-
-                <span class="detail-kicker">✨ New This Month</span>
-            }
-            else
-            {
-
-                <span class="detail-kicker">Cebu Specialty</span>
-            }
-            <h1>@dish.Name</h1>
-            <p>@dish.Description</p>
+            <span class="detail-kicker" id="dishTag">Cebu Specialty</span>
+            <h1 id="dishName">Lechon Cebu</h1>
+            <p id="dishDescription">Crispy-skinned roasted pork served with puso and spiced vinegar.</p>
             <div class="detail-meta">
-                <span><i class="fas fa-tag"></i> PHP @dish.Price.ToString("N0")</span>
-                @if (reviews.Count > 0)
-                {
-                    <span><i class="fas fa-star" style="color:var(--golden-yellow)"></i> @avgRating.ToString("F1") (@reviews.Count @(reviews.Count == 1 ? "review" : "reviews"))</span>
-                }
-                else
-                {
-                    <span><i class="fas fa-star"></i> No reviews yet</span>
-                }
+                <span><i class="fas fa-store"></i> <span id="dishRestaurant">House of Lechon</span></span>
+                <span><i class="fas fa-tag"></i> <span id="dishPrice">PHP 450</span></span>
+                <span><i class="fas fa-star"></i> 4.9</span>
             </div>
-            @if (isAuth)
-            {
-                <div class="detail-actions">
-                    <button class="btn-primary" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">
-                        <i class="fas fa-heart"></i> Save Dish
-                    </button>
-                </div>
-            }
+            <div class="detail-actions">
+                <button class="btn-primary" onclick="addToCravings(document.getElementById('dishName').innerText, 'dish-detail', 'dish')"><i class="fas fa-heart"></i> Save Dish</button>
+                <button class="btn-secondary outline-dark" onclick="triedDish(document.getElementById('dishName').innerText, 'dish-detail')"><i class="fas fa-check"></i> I Tried This</button>
+            </div>
         </div>
     </div>
 
     <div class="detail-grid">
-        <!-- TAGS -->
         <div class="detail-panel">
             <h2>Food Tags</h2>
-            <div class="vibe-tags">
-                @foreach (var tag in tagList)
-                {
-                    <span class="vibe-tag">@tag</span>
-                }
-                @if (!tagList.Any())
-                {
-                    <span class="vibe-tag">Cebu Food</span>
-                }
-            </div>
+            <div class="vibe-tags" id="dishTags"></div>
         </div>
-
-        <!-- REVIEW FORM -->
         <div class="detail-panel">
             <h2>Review This Dish</h2>
-            @if (isAuth)
-            {
-                <div class="star-rating-selector" id="dishStars">
-                    <i class="far fa-star" onclick="dishSetRating(1)"></i>
-                    <i class="far fa-star" onclick="dishSetRating(2)"></i>
-                    <i class="far fa-star" onclick="dishSetRating(3)"></i>
-                    <i class="far fa-star" onclick="dishSetRating(4)"></i>
-                    <i class="far fa-star" onclick="dishSetRating(5)"></i>
-                </div>
-                <textarea id="dishReviewText" rows="4" placeholder="What did you think?"></textarea>
-                <button class="btn-primary" onclick="submitDishReview()">Submit Dish Review</button>
-            }
-            else
-            {
-                <p><a href="/Account/Login?returnUrl=/Dishes/Detail/@dish.Id">Sign in</a> to leave a review.</p>
-            }
+            <div class="star-rating-selector">
+                <i class="far fa-star" onclick="setDishRating(1)"></i>
+                <i class="far fa-star" onclick="setDishRating(2)"></i>
+                <i class="far fa-star" onclick="setDishRating(3)"></i>
+                <i class="far fa-star" onclick="setDishRating(4)"></i>
+                <i class="far fa-star" onclick="setDishRating(5)"></i>
+            </div>
+            <textarea id="dishReviewText" rows="4" placeholder="What did you think?"></textarea>
+            <button class="btn-primary" onclick="submitDishReview()">Submit Dish Review</button>
         </div>
     </div>
-
-    <!-- REVIEWS LIST -->
-    @if (reviews.Any())
-    {
-        <div class="reviews-section" style="margin-top:2rem;">
-            <h2>@reviews.Count @(reviews.Count == 1 ? "Review" : "Reviews")</h2>
-            @foreach (var review in reviews)
-            {
-                var canEdit = myIds.Contains(review.Id);
-                var canDelete = canEdit || isAdmin;
-                <div class="review-card" id="review-@review.Id">
-                    <div class="reviewer-info">
-                        <div class="reviewer-avatar">@names[review.Id][0]</div>
-                        <div>
-                            <h4>@names[review.Id]</h4>
-                            <div class="review-stars">@Html.Raw(RatingStars(review.Rating))</div>
-                            <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</p>
-                        </div>
-                        @if (canDelete)
-                        {
-                            <div class="review-actions">
-                                @if (canEdit)
-                                {
-                                    <button class="review-action-btn" onclick="openEditModal(@review.Id, @review.Rating, @Json.Serialize(review.Text))">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                }
-                                <button class="review-action-btn delete" onclick="deleteReview(@review.Id)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        }
-                    </div>
-                    <p class="review-text">@review.Text</p>
-                </div>
-            }
-        </div>
-    }
 </section>
-
-<!-- EDIT MODAL -->
-<div id="editModal" class="modal-backdrop" style="display:none">
-    <div class="modal-box">
-        <h3>Edit Review</h3>
-        <div class="star-rating-selector" id="editStars">
-            <i class="far fa-star" onclick="dishSetEditRating(1)"></i>
-            <i class="far fa-star" onclick="dishSetEditRating(2)"></i>
-            <i class="far fa-star" onclick="dishSetEditRating(3)"></i>
-            <i class="far fa-star" onclick="dishSetEditRating(4)"></i>
-            <i class="far fa-star" onclick="dishSetEditRating(5)"></i>
-        </div>
-        <textarea id="editReviewText" rows="4"></textarea>
-        <div class="modal-actions">
-            <button class="btn-primary" onclick="saveEdit()">Save</button>
-            <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
-        </div>
-    </div>
-</div>
 
 <style>
     .detail-shell {
@@ -200,7 +77,7 @@
 
         .detail-hero-card img {
             width: 100%;
-            aspect-ratio: 4/3;
+            aspect-ratio: 4 / 3;
             object-fit: cover;
             border-radius: 16px;
         }
@@ -217,7 +94,7 @@
         margin: 0.5rem 0;
     }
 
-    .detail-meta {
+    .detail-meta, .detail-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
@@ -228,8 +105,9 @@
             color: var(--text-secondary);
         }
 
-    .detail-actions {
-        margin-top: 1.2rem;
+    .outline-dark {
+        border-color: var(--burnt-orange);
+        color: var(--burnt-orange);
     }
 
     .detail-grid {
@@ -245,11 +123,6 @@
         padding: 1.5rem;
     }
 
-        .detail-panel h2 {
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-
         .detail-panel textarea {
             width: 100%;
             margin: 1rem 0;
@@ -258,156 +131,13 @@
             border: 1px solid var(--text-muted);
             border-radius: 12px;
             padding: 0.8rem;
-            resize: vertical;
         }
-
-        .detail-panel a {
-            color: var(--burnt-orange);
-        }
-
-    .vibe-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .vibe-tag {
-        background: var(--bg-elevated);
-        padding: 0.3rem 1rem;
-        border-radius: 30px;
-        font-size: 0.85rem;
-    }
 
     .star-rating-selector i {
         color: var(--golden-yellow);
         cursor: pointer;
         font-size: 1.4rem;
         margin-right: 0.2rem;
-    }
-
-        .star-rating-selector i.active {
-            color: var(--golden-yellow);
-        }
-    /* Reviews */
-    .reviews-section h2 {
-        font-size: 1.4rem;
-        margin-bottom: 1rem;
-    }
-
-    .review-card {
-        background: var(--bg-card);
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin-bottom: 1rem;
-    }
-
-    .reviewer-info {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 0.8rem;
-        align-items: flex-start;
-    }
-
-    .reviewer-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: var(--gradient-warm);
-        color: white;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .reviewer-info h4 {
-        margin: 0 0 0.2rem;
-    }
-
-    .review-stars i {
-        color: var(--golden-yellow);
-        font-size: 0.8rem;
-    }
-
-    .review-date {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin: 0;
-    }
-
-    .review-text {
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    .review-actions {
-        margin-left: auto;
-        display: flex;
-        gap: 0.4rem;
-    }
-
-    .review-action-btn {
-        background: none;
-        border: 1px solid var(--text-muted);
-        color: var(--text-secondary);
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: var(--transition);
-    }
-
-        .review-action-btn:hover {
-            border-color: var(--burnt-orange);
-            color: var(--burnt-orange);
-        }
-
-        .review-action-btn.delete:hover {
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
-    /* Modal */
-    .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-
-    .modal-box {
-        background: var(--bg-card);
-        border-radius: 20px;
-        padding: 2rem;
-        width: 90%;
-        max-width: 480px;
-    }
-
-        .modal-box h3 {
-            margin-bottom: 1rem;
-        }
-
-        .modal-box textarea {
-            width: 100%;
-            background: var(--bg-elevated);
-            border: 1px solid var(--text-muted);
-            color: var(--text-primary);
-            padding: 0.8rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            resize: vertical;
-        }
-
-    .modal-actions {
-        display: flex;
-        gap: 1rem;
     }
 
     @@media (max-width: 768px) {
@@ -422,72 +152,42 @@
 </style>
 
 <script>
-    var dishId = @dish.Id;
+    document.addEventListener('DOMContentLoaded', function () {
+        var dishes = [
+            { name: 'Lechon Cebu', restaurant: 'House of Lechon', price: 'PHP 450', tag: 'Cebu Specialty', description: 'Crispy-skinned roasted pork served with puso and spiced vinegar.', image: 'https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop', tags: ['Roasted', 'Crispy', 'Signature'] },
+            { name: 'Kinilaw Tacos', restaurant: 'Tales and Feelings', price: 'PHP 320', tag: 'Seafood', description: 'Fresh kinilaw served taco-style with herbs, chili, and citrus.', image: 'https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=1000&h=650&fit=crop', tags: ['Seafood', 'Citrus', 'Fresh'] },
+            { name: 'Lechon Ramen', restaurant: 'Ramen Sage', price: 'PHP 390', tag: 'Trending', description: 'Rich ramen broth topped with Cebu lechon and chili oil.', image: 'https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=1000&h=650&fit=crop', tags: ['Spicy', 'Fusion', 'Trending'] }
+        ];
+
+        var index = Math.max(0, Math.min(dishes.length - 1, (@ViewData["ItemId"] ?? 1) - 1));
+        var dish = dishes[index];
+
+        document.getElementById('dishName').innerText = dish.name;
+        document.getElementById('dishCrumb').innerText = dish.name;  // breadcrumb
+        document.getElementById('dishRestaurant').innerText = dish.restaurant;
+        document.getElementById('dishPrice').innerText = dish.price;
+        document.getElementById('dishTag').innerText = dish.tag;
+        document.getElementById('dishDescription').innerText = dish.description;
+        document.getElementById('dishImage').src = dish.image;
+        document.getElementById('dishTags').innerHTML = dish.tags.map(function (tag) {
+            return '<span class="vibe-tag">' + tag + '</span>';
+        }).join('');
+    });
+
     var dishRating = 0;
 
-    function dishSetRating(rating) {
+    function setDishRating(rating) {
         dishRating = rating;
-        document.querySelectorAll('#dishStars i').forEach(function(s, i) {
-            s.className = i < rating ? 'fas fa-star active' : 'far fa-star';
+        document.querySelectorAll('.star-rating-selector i').forEach(function (star, i) {
+            star.className = i < rating ? 'fas fa-star' : 'far fa-star';
         });
     }
 
     async function submitDishReview() {
         var text = document.getElementById('dishReviewText').value.trim();
         if (!dishRating || !text) { showToast('Add a rating and review first.'); return; }
-        var res = await fetch('/api/reviews', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ targetType: 'dish', targetId: dishId, rating: dishRating, text: text })
-        });
-        if (res.ok) {
-            document.getElementById('dishReviewText').value = '';
-            dishSetRating(0);
-            location.reload();
-        } else {
-            var err = await res.json();
-            showToast(err.message || 'Could not submit review.');
-        }
-    }
-
-    // Edit modal
-    var editingReviewId = 0, editRating = 0;
-    function openEditModal(id, rating, text) {
-        editingReviewId = id; editRating = rating;
-        document.getElementById('editReviewText').value = text;
-        dishSetEditRating(rating);
-        document.getElementById('editModal').style.display = 'flex';
-    }
-    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
-    function dishSetEditRating(rating) {
-        editRating = rating;
-        document.querySelectorAll('#editStars i').forEach(function(s, i) {
-            s.className = i < rating ? 'fas fa-star active' : 'far fa-star';
-        });
-    }
-    async function saveEdit() {
-        var text = document.getElementById('editReviewText').value.trim();
-        if (!editRating || !text) { showToast('Rating and text required.'); return; }
-        var res = await fetch('/api/reviews/' + editingReviewId, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rating: editRating, text: text })
-        });
-        if (res.ok) { closeEditModal(); location.reload(); }
-        else { var err = await res.json(); showToast(err.message || 'Update failed.'); }
-    }
-    async function deleteReview(id) {
-        if (!confirm('Delete this review?')) return;
-        var res = await fetch('/api/reviews/' + id, { method: 'DELETE' });
-        if (res.ok) location.reload();
-        else showToast('Could not delete review.');
-    }
-
-    function showToast(message) {
-        var t = document.createElement('div');
-        t.className = 'toast-notification';
-        t.textContent = message;
-        document.body.appendChild(t);
-        setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 3000);
+        var itemIndex = Math.max(0, Math.min(2, (@ViewData["ItemId"] ?? 1) - 1));
+        var ok = await window.submitServerReview('dish', itemIndex + 1, dishRating, text);
+        if (ok) { document.getElementById('dishReviewText').value = ''; setDishRating(0); }
     }
 </script>
