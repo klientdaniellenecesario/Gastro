@@ -74,6 +74,16 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         AddActivity(userId, "Changed password");
     }
 
+    public void AdminUpdateUser(int userId, string fullName, string email)
+    {
+        using var db = _factory.CreateDbContext();
+        var user = db.Users.Find(userId);
+        if (user is null) return;
+        user.FullName = fullName;
+        user.Email = email;
+        db.SaveChanges();
+    }
+
     public void SetAdminRole(int userId, bool isAdmin)
     {
         using var db = _factory.CreateDbContext();
@@ -111,36 +121,27 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         return [.. db.Dishes.OrderByDescending(d => d.Id)];
     }
 
-    // SEARCH & FILTER METHODS FOR RESTAURANTS
     public List<RestaurantListing> SearchRestaurants(string query = "", string category = "", decimal minRating = 0, string sortBy = "newest")
     {
         using var db = _factory.CreateDbContext();
         var results = db.Restaurants.AsQueryable();
 
-        // Filter by search query (name, address, description, category)
         if (!string.IsNullOrWhiteSpace(query))
         {
             var q = query.ToLowerInvariant();
-            results = results.Where(r => 
-                r.Name.ToLower().Contains(q) || 
-                r.Address.ToLower().Contains(q) || 
+            results = results.Where(r =>
+                r.Name.ToLower().Contains(q) ||
+                r.Address.ToLower().Contains(q) ||
                 r.Description.ToLower().Contains(q) ||
                 r.Category.ToLower().Contains(q));
         }
 
-        // Filter by category
         if (!string.IsNullOrWhiteSpace(category) && category.ToLowerInvariant() != "all")
-        {
             results = results.Where(r => r.Category.ToLowerInvariant() == category.ToLowerInvariant());
-        }
 
-        // Filter by minimum rating
         if (minRating > 0)
-        {
             results = results.Where(r => r.Rating >= minRating);
-        }
 
-        // Apply sorting
         results = sortBy?.ToLowerInvariant() switch
         {
             "rating" => results.OrderByDescending(r => r.Rating),
@@ -167,34 +168,28 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             .OrderByDescending(r => r.Rating)];
     }
 
-    // SEARCH & FILTER METHODS FOR DISHES
     public List<DishListing> SearchDishes(string query = "", string tags = "", string sortBy = "newest")
     {
         using var db = _factory.CreateDbContext();
         var results = db.Dishes.AsQueryable();
 
-        // Filter by search query (name, description, tags)
         if (!string.IsNullOrWhiteSpace(query))
         {
             var q = query.ToLowerInvariant();
-            results = results.Where(d => 
-                d.Name.ToLower().Contains(q) || 
-                d.Description.ToLower().Contains(q) || 
+            results = results.Where(d =>
+                d.Name.ToLower().Contains(q) ||
+                d.Description.ToLower().Contains(q) ||
                 d.Tags.ToLower().Contains(q));
         }
 
-        // Filter by tags (comma-separated)
         if (!string.IsNullOrWhiteSpace(tags))
         {
             var tagArray = tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(t => t.Trim().ToLowerInvariant())
                 .ToList();
-
-            results = results.Where(d => 
-                tagArray.Any(tag => d.Tags.ToLower().Contains(tag)));
+            results = results.Where(d => tagArray.Any(tag => d.Tags.ToLower().Contains(tag)));
         }
 
-        // Apply sorting
         results = sortBy?.ToLowerInvariant() switch
         {
             "trending" => results.Where(d => d.IsTrending).OrderByDescending(d => d.Id),
@@ -210,20 +205,16 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     public List<DishListing> GetTrendingDishes()
     {
         using var db = _factory.CreateDbContext();
-        return [.. db.Dishes
-            .Where(d => d.IsTrending)
-            .OrderByDescending(d => d.Id)];
+        return [.. db.Dishes.Where(d => d.IsTrending).OrderByDescending(d => d.Id)];
     }
 
     public List<DishListing> GetNewDishes()
     {
         using var db = _factory.CreateDbContext();
-        return [.. db.Dishes
-            .Where(d => d.IsNewThisMonth)
-            .OrderByDescending(d => d.Id)];
+        return [.. db.Dishes.Where(d => d.IsNewThisMonth).OrderByDescending(d => d.Id)];
     }
 
-    public void AddDish(string name, string photoUrl, string description, decimal price = 0, string tags = "", bool isNew = false, bool isTrending = false)
+    public void AddDish(string name, string photoUrl, string description, decimal price = 0, string tags = "", bool isNew = false, bool isTrending = false, int? restaurantId = null)
     {
         using var db = _factory.CreateDbContext();
         db.Dishes.Add(new DishListing
@@ -234,7 +225,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             Description = description,
             Tags = tags,
             IsNewThisMonth = isNew,
-            IsTrending = isTrending
+            IsTrending = isTrending,
+            RestaurantId = restaurantId
         });
         db.SaveChanges();
     }
@@ -253,6 +245,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             Title = title,
             Date = date ?? DateTime.UtcNow.AddDays(30),
             Location = location,
+            TotalSlots = availableSlots,
             AvailableSlots = availableSlots,
             PhotoUrl = photoUrl,
             Description = description
@@ -270,6 +263,21 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     {
         using var db = _factory.CreateDbContext();
         return [.. db.Reviews.Where(r => r.UserId == userId).OrderByDescending(r => r.CreatedAt)];
+    }
+
+    public Dictionary<int, string> ResolveReviewNames(List<ReviewEntry> reviews)
+    {
+        using var db = _factory.CreateDbContext();
+        var result = new Dictionary<int, string>();
+        foreach (var r in reviews)
+        {
+            result[r.Id] = r.TargetType == "restaurant"
+                ? db.Restaurants.Find(r.TargetId)?.Name ?? $"Restaurant #{r.TargetId}"
+                : r.TargetType == "dish"
+                    ? db.Dishes.Find(r.TargetId)?.Name ?? $"Dish #{r.TargetId}"
+                    : $"{r.TargetType} #{r.TargetId}";
+        }
+        return result;
     }
 
     public void AddReview(int userId, string targetType, int targetId, int rating, string text)
@@ -340,7 +348,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     {
         using var db = _factory.CreateDbContext();
         var existing = db.Bookmarks
-                         .FirstOrDefault(b => b.UserId == userId && b.ItemType == itemType && b.ItemId == itemId);
+            .FirstOrDefault(b => b.UserId == userId && b.ItemType == itemType && b.ItemId == itemId);
         if (existing is not null)
         {
             db.Bookmarks.Remove(existing);
@@ -411,6 +419,31 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         return [.. db.Activities.Where(a => a.UserId == userId).OrderByDescending(a => a.CreatedAt).Take(20)];
     }
 
+    public List<ActivityEntry> GetRecentActivities(int take = 10)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Activities.OrderByDescending(a => a.CreatedAt).Take(take)];
+    }
+
+    public List<AppUser> GetEventRegistrants(int eventId)
+    {
+        using var db = _factory.CreateDbContext();
+        var userIds = db.EventRegistrations
+            .Where(r => r.EventId == eventId)
+            .Select(r => r.UserId)
+            .ToList();
+        return [.. db.Users.Where(u => userIds.Contains(u.Id)).OrderBy(u => u.FullName)];
+    }
+
+    public Dictionary<int, string> GetUserNames(List<ReviewEntry> reviews)
+    {
+        using var db = _factory.CreateDbContext();
+        var userIds = reviews.Select(r => r.UserId).Distinct().ToList();
+        return db.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionary(u => u.Id, u => u.FullName);
+    }
+
     public void AddActivity(int userId, string message)
     {
         using var db = _factory.CreateDbContext();
@@ -436,7 +469,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
-    public void UpdateDish(int id, string name, decimal price, string photoUrl, string description, string tags, bool isNew, bool isTrending)
+    public void UpdateDish(int id, string name, decimal price, string photoUrl, string description, string tags, bool isNew, bool isTrending, int? restaurantId = null)
     {
         using var db = _factory.CreateDbContext();
         var d = db.Dishes.Find(id);
@@ -448,6 +481,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         d.Tags = tags;
         d.IsNewThisMonth = isNew;
         d.IsTrending = isTrending;
+        if (restaurantId.HasValue) d.RestaurantId = restaurantId;
         db.SaveChanges();
     }
 
@@ -529,14 +563,12 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
 
     private void Seed(TasteCebuDbContext db)
     {
-        // Admin account
         if (!db.Users.Any())
         {
             var adminPassword = _config["AdminSeed:Password"] ?? "ChangeMe123!";
             CreateUser("TasteCebu Admin", "admin@tastecebu.test", adminPassword, "Admin");
         }
 
-        // Restaurants
         if (!db.Restaurants.Any())
         {
             var restaurants = new List<RestaurantListing>
@@ -618,7 +650,6 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             db.SaveChanges();
         }
 
-        // Dishes
         if (!db.Dishes.Any())
         {
             var dishes = new List<DishListing>
@@ -692,7 +723,6 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             db.SaveChanges();
         }
 
-        // Events
         if (!db.Events.Any())
         {
             var events = new List<FoodEvent>
@@ -701,6 +731,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Title = "Lechon Masterclass at Carbon Market",
                     Date = DateTime.UtcNow.AddDays(26),
                     Location = "Carbon Market, Cebu City",
+                    TotalSlots = 15,
                     AvailableSlots = 15,
                     PhotoUrl = "https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop",
                     Description = "Learn the secrets of Cebu's world-famous lechon from master roasters. Includes hands-on pig preparation and roasting."
@@ -709,6 +740,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Title = "Cebu Street Food Crawl",
                     Date = DateTime.UtcNow.AddDays(33),
                     Location = "Colon Street, Cebu City",
+                    TotalSlots = 32,
                     AvailableSlots = 32,
                     PhotoUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
                     Description = "Explore the best street eats in Colon and Carbon Market with a local food guide. 10+ food stops included."
@@ -717,6 +749,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Title = "Coffee Cupping & Latte Art Workshop",
                     Date = DateTime.UtcNow.AddDays(41),
                     Location = "Good Cup Coffee, Mandaue",
+                    TotalSlots = 20,
                     AvailableSlots = 20,
                     PhotoUrl = "https://images.unsplash.com/photo-1534087298023-017580581d8d?w=600&h=400&fit=crop",
                     Description = "Hands-on espresso training with Cebu's top baristas. Learn cupping, extraction, and latte art from scratch."
@@ -725,6 +758,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Title = "Kinilaw & Craft Beer Pairing",
                     Date = DateTime.UtcNow.AddDays(55),
                     Location = "Abaca Restaurant, Mactan",
+                    TotalSlots = 25,
                     AvailableSlots = 25,
                     PhotoUrl = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop",
                     Description = "A guided pairing session featuring Cebu's finest kinilaw variations matched with local craft beers."

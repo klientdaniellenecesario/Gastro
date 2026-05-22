@@ -18,7 +18,11 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         ViewData["Dishes"] = store.GetDishes();
         ViewData["Events"] = store.GetEvents();
         ViewData["Users"] = store.GetUsers();
-        ViewData["Reviews"] = store.GetAllReviews();
+        var reviews = store.GetAllReviews();
+        ViewData["Reviews"] = reviews;
+        ViewData["ReviewUserNames"] = store.GetUserNames(reviews);
+        ViewData["ReviewTargetNames"] = store.ResolveReviewNames(reviews);
+        ViewData["RecentActivities"] = store.GetRecentActivities(10);
         return View();
     }
 
@@ -40,7 +44,10 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         if (type == "restaurant")
             store.AddRestaurant(name, resolvedUrl, description, address ?? "Cebu", category ?? "Restaurant");
         else if (type == "dish")
-            store.AddDish(name, resolvedUrl, description, price, tags ?? "", isNew, isTrending);
+        {
+            var rid = Request.Form.TryGetValue("restaurantId", out var rv) && int.TryParse(rv, out var rId) ? (int?)rId : null;
+            store.AddDish(name, resolvedUrl, description, price, tags ?? "", isNew, isTrending, rid);
+        }
         else if (type == "event")
         {
             var date = DateTime.TryParse(eventDate, out var d) ? d.ToUniversalTime() : DateTime.UtcNow.AddDays(30);
@@ -68,7 +75,10 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         if (type == "restaurant")
             store.UpdateRestaurant(id, name, address ?? "Cebu", category ?? "Restaurant", resolvedUrl ?? "", description ?? "");
         else if (type == "dish")
-            store.UpdateDish(id, name, price, resolvedUrl ?? "", description ?? "", tags ?? "", isNew, isTrending);
+        {
+            var rid = Request.Form.TryGetValue("restaurantId", out var rv) && int.TryParse(rv, out var rId) ? (int?)rId : null;
+            store.UpdateDish(id, name, price, resolvedUrl ?? "", description ?? "", tags ?? "", isNew, isTrending, rid);
+        }
         else if (type == "event")
         {
             var date = DateTime.TryParse(eventDate, out var d) ? d.ToUniversalTime() : DateTime.UtcNow.AddDays(30);
@@ -88,10 +98,56 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
     }
 
     [HttpPost]
+    public IActionResult DeleteUser(int id)
+    {
+        var target = store.FindUserById(id);
+        if (target == null || target.Email == "admin@tastecebu.test")
+        {
+            TempData["Error"] = "The system admin account cannot be deleted.";
+            return RedirectToAction("Dashboard");
+        }
+        store.DeleteFromAdmin("user", id);
+        TempData["Success"] = $"{target.FullName} has been deleted.";
+        return RedirectToAction("Dashboard");
+    }
+
+    [HttpPost]
+    public IActionResult EditUser(int id, string fullName, string email)
+    {
+        var target = store.FindUserById(id);
+        if (target == null || target.Email == "admin@tastecebu.test")
+        {
+            TempData["Error"] = "The system admin account cannot be edited.";
+            return RedirectToAction("Dashboard");
+        }
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email))
+        {
+            TempData["Error"] = "Name and email are required.";
+            return RedirectToAction("Dashboard");
+        }
+        store.AdminUpdateUser(id, fullName.Trim(), email.Trim());
+        TempData["Success"] = "User updated.";
+        return RedirectToAction("Dashboard");
+    }
+
+    [HttpPost]
     public IActionResult SetAdmin(int id, bool isAdmin)
     {
-        store.SetAdminRole(id, isAdmin);
-        TempData["Success"] = "User role updated.";
+        // Block: never touch the seeded system admin account
+        var target = store.FindUserById(id);
+        if (target == null || target.Email == "admin@tastecebu.test")
+        {
+            TempData["Error"] = "The system admin account cannot be modified.";
+            return RedirectToAction("Dashboard");
+        }
+        // Block: cannot promote regular users to admin
+        if (isAdmin)
+        {
+            TempData["Error"] = "Users cannot be promoted to Admin.";
+            return RedirectToAction("Dashboard");
+        }
+        store.SetAdminRole(id, false);
+        TempData["Success"] = "Admin role removed.";
         return RedirectToAction("Dashboard");
     }
 

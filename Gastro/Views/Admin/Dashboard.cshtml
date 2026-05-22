@@ -108,7 +108,7 @@
                 </div>
                 <table class="admin-table">
                     <thead>
-                        <tr><th>ID</th><th>Name</th><th>Price</th><th>Actions</th></tr>
+                        <tr><th>ID</th><th>Name</th><th>Price</th><th>Restaurant</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var dish in dishes)
@@ -119,9 +119,13 @@
                             var dIsNew = dish.IsNewThisMonth ? "true" : "false";
                             var dTrending = dish.IsTrending ? "true" : "false";
                             <tr>
+                                @{
+                                    var linkedRName = dish.RestaurantId.HasValue ? (restaurants.FirstOrDefault(r => r.Id == dish.RestaurantId.Value)?.Name ?? "--") : "--";
+                                }
                                 <td>@dish.Id</td>
                                 <td>@dish.Name</td>
                                 <td>PHP @dish.Price.ToString("0.##")</td>
+                                <td>@linkedRName</td>
                                 <td>
                                     <button class="btn-edit" onclick="openEditModal('dish',@dish.Id,'@dName','@dPhoto','@dTags','','','@dish.Price','@dTags','@dIsNew','@dTrending','0','')">Edit</button>
                                     <form method="post" action="/Admin/DeleteItem" class="inline-form">
@@ -160,6 +164,7 @@
                                 <td>@foodEvent.Date.ToString("MMM d, yyyy")</td>
                                 <td>@foodEvent.AvailableSlots left</td>
                                 <td>
+                                    <button class="btn-registrants" onclick="openRegistrantsModal(@foodEvent.Id, '@eTitle')">Registrants</button>
                                     <button class="btn-edit" onclick="openEditModal('event',@foodEvent.Id,'@eTitle','@ePhoto','@eDesc','@eLoc','','0','','false','false','@foodEvent.AvailableSlots','@eDate')">Edit</button>
                                     <form method="post" action="/Admin/DeleteItem" class="inline-form">
                                         <input type="hidden" name="type" value="event">
@@ -185,19 +190,72 @@
                     <tbody>
                         @foreach (var appUser in users)
                         {
+                            var isSeededAdmin = appUser.Email == "admin@tastecebu.test";
                             <tr>
                                 <td>@appUser.Id</td>
                                 <td>@appUser.FullName</td>
                                 <td>@appUser.Email</td>
-                                <td>@appUser.Role</td>
                                 <td>
-                                    <form method="post" action="/Admin/SetAdmin" class="inline-form">
-                                        <input type="hidden" name="id" value="@appUser.Id">
-                                        <input type="hidden" name="isAdmin" value="@(appUser.Role == "Admin" ? "false" : "true")">
-                                        <button class="btn-edit">@(appUser.Role == "Admin" ? "Remove Admin" : "Make Admin")</button>
-                                    </form>
+                                    @appUser.Role
+                                    @if (isSeededAdmin)
+                                    {
+                                        <span style="font-size:0.75rem;color:var(--burnt-orange);margin-left:6px;">(system)</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                                        @if (isSeededAdmin)
+                                        {
+                                            <span style="color:var(--text-muted);font-size:0.85rem;">Protected</span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Edit button triggers inline edit row -->
+                                            <button class="btn-edit" onclick="toggleUserEdit(@appUser.Id)">
+                                                <i class="fas fa-pen"></i> Edit
+                                            </button>
+                                            <!-- Delete -->
+                                            <form method="post" action="/Admin/DeleteUser" class="inline-form" style="display:contents"
+                                                  onsubmit="return confirm('Delete @appUser.FullName? This cannot be undone.')">
+                                                <input type="hidden" name="id" value="@appUser.Id">
+                                                <button class="btn-delete"><i class="fas fa-trash"></i> Delete</button>
+                                            </form>
+                                            @if (appUser.Role == "Admin")
+                                            {
+                                                <form method="post" action="/Admin/SetAdmin" class="inline-form" style="display:contents">
+                                                    <input type="hidden" name="id" value="@appUser.Id">
+                                                    <input type="hidden" name="isAdmin" value="false">
+                                                    <button class="btn-delete" style="background:var(--bg-elevated);color:var(--burnt-orange);border:1px solid var(--burnt-orange);">
+                                                        Remove Admin
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                    </div>
                                 </td>
                             </tr>
+                            @if (!isSeededAdmin)
+                            {
+                                <!-- Inline edit row, hidden by default -->
+                                <tr id="userEditRow-@appUser.Id" style="display:none;background:var(--bg-elevated);">
+                                    <td colspan="5" style="padding:1rem;">
+                                        <form method="post" action="/Admin/EditUser" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+                                            <input type="hidden" name="id" value="@appUser.Id">
+                                            <input type="text" name="fullName" value="@appUser.FullName"
+                                                   placeholder="Full name" required
+                                                   style="padding:0.5rem;border-radius:8px;border:1px solid var(--navbar-border);background:var(--bg-card);color:var(--text-primary);flex:1;min-width:160px;">
+                                            <input type="email" name="email" value="@appUser.Email"
+                                                   placeholder="Email" required
+                                                   style="padding:0.5rem;border-radius:8px;border:1px solid var(--navbar-border);background:var(--bg-card);color:var(--text-primary);flex:1;min-width:200px;">
+                                            <button type="submit" class="btn-edit"><i class="fas fa-save"></i> Save</button>
+                                            <button type="button" class="btn-secondary" onclick="toggleUserEdit(@appUser.Id)"
+                                                    style="padding:0.4rem 0.9rem;border-radius:8px;border:1px solid var(--navbar-border);background:none;color:var(--text-secondary);cursor:pointer;">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
@@ -213,12 +271,18 @@
                         <tr><th>ID</th><th>User</th><th>Target</th><th>Rating</th><th>Review</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
+                        @{
+                            var reviewUserNames = ViewData["ReviewUserNames"] as Dictionary<int, string> ?? new();
+                            var reviewTargetNames = ViewData["ReviewTargetNames"] as Dictionary<int, string> ?? new();
+                        }
                         @foreach (var review in reviews)
                         {
+                            var rUserName = reviewUserNames.TryGetValue(review.UserId, out var rUn) ? rUn : $"User #{review.UserId}";
+                            var rTargetName = reviewTargetNames.TryGetValue(review.Id, out var rTn) ? rTn : $"{review.TargetType} #{review.TargetId}";
                             <tr>
                                 <td>@review.Id</td>
-                                <td>User #@review.UserId</td>
-                                <td>@review.TargetType #@review.TargetId</td>
+                                <td>@rUserName</td>
+                                <td>@review.TargetType: @rTargetName</td>
                                 <td>@review.Rating stars</td>
                                 <td>@review.Text</td>
                                 <td>
@@ -236,14 +300,40 @@
 
             <div class="recent-activity-panel">
                 <h3>Recent Activity</h3>
-                <div class="activity-item"><i class="fas fa-star"></i> Maria reviewed House of Lechon</div>
-                <div class="activity-item"><i class="fas fa-heart"></i> Juan saved Good Cup Coffee</div>
-                <div class="activity-item"><i class="fas fa-ticket-alt"></i> Ana registered for Coffee Cupping</div>
+                @{
+                    var activities = ViewData["RecentActivities"] as List<GastroCebu.Models.ActivityEntry> ?? new();
+                    var allUsers = ViewData["Users"] as List<GastroCebu.Models.AppUser> ?? new();
+                    var userDict = allUsers.ToDictionary(u => u.Id, u => u.FullName);
+                }
+                @if (!activities.Any())
+                {
+                    <div class="activity-item" style="color:var(--text-muted)">No activity yet.</div>
+                }
+                @foreach (var act in activities)
+                {
+                    var actUser = userDict.TryGetValue(act.UserId, out var uName) ? uName : $"User #{act.UserId}";
+                    <div class="activity-item">
+                        <i class="fas fa-circle-dot"></i>
+                        <strong>@actUser</strong> &mdash; @act.Message
+                        <span style="font-size:0.75rem;color:var(--text-muted);float:right">@act.CreatedAt.ToString("MMM d, h:mm tt")</span>
+                    </div>
+                }
             </div>
 
         </div>
     </div>
 </section>
+
+<!-- REGISTRANTS MODAL -->
+<div id="registrantsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('registrantsModal')">&times;</span>
+        <h2 id="registrantsTitle">Registrants</h2>
+        <div id="registrantsList" style="margin-top:1rem">
+            <p style="color:var(--text-muted)">Loading...</p>
+        </div>
+    </div>
+</div>
 
 <!-- ADD MODAL -->
 <div id="addModal" class="modal">
@@ -287,6 +377,16 @@
             </div>
             <!-- Dish-only fields -->
             <div id="addDishFields" style="display:none">
+                <div class="form-group">
+                    <label>Linked Restaurant (optional)</label>
+                    <select name="restaurantId" id="addDishRestaurant">
+                        <option value="">-- None --</option>
+                        @foreach (var r in restaurants)
+                        {
+                            <option value="@r.Id">@r.Name</option>
+                        }
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Price (PHP)</label>
                     <input type="number" name="price" step="0.01" min="0" value="0">
@@ -367,6 +467,16 @@
             </div>
             <!-- Dish-only fields -->
             <div id="editDishFields" style="display:none">
+                <div class="form-group">
+                    <label>Linked Restaurant (optional)</label>
+                    <select name="restaurantId" id="editDishRestaurant">
+                        <option value="">-- None --</option>
+                        @foreach (var r in restaurants)
+                        {
+                            <option value="@r.Id">@r.Name</option>
+                        }
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Price (PHP)</label>
                     <input type="number" name="price" id="editPrice" step="0.01" min="0">
@@ -534,6 +644,16 @@
         color: white;
     }
 
+    .btn-registrants {
+        background: #27ae60;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        margin-right: 0.5rem;
+    }
+
     .inline-form {
         display: inline;
     }
@@ -645,6 +765,11 @@
 </style>
 
 <script>
+    function toggleUserEdit(userId) {
+        const row = document.getElementById('userEditRow-' + userId);
+        if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+
     function showAdminPanel(panel) {
         var panels = ['restaurants', 'dishes', 'events', 'users', 'reviews'];
         var buttons = document.querySelectorAll('.admin-nav-btn');
@@ -720,10 +845,32 @@
         }
     }
 
+    async function openRegistrantsModal(eventId, title) {
+        document.getElementById('registrantsTitle').textContent = 'Registrants: ' + title;
+        document.getElementById('registrantsList').innerHTML = '<p style="color:var(--text-muted)">Loading...</p>';
+        document.getElementById('registrantsModal').style.display = 'flex';
+        try {
+            const res = await fetch('/api/events/' + eventId + '/registrants');
+            const data = await res.json();
+            if (!data.length) {
+                document.getElementById('registrantsList').innerHTML = '<p style="color:var(--text-muted)">No registrants yet.</p>';
+                return;
+            }
+            var html = '<table class="admin-table"><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>';
+            data.forEach(function(u) { html += '<tr><td>' + u.fullName + '</td><td>' + u.email + '</td></tr>'; });
+            html += '</tbody></table>';
+            document.getElementById('registrantsList').innerHTML = html;
+        } catch(e) {
+            document.getElementById('registrantsList').innerHTML = '<p style="color:red">Failed to load.</p>';
+        }
+    }
+
     window.onclick = function(e) {
         var addModal = document.getElementById('addModal');
         var editModal = document.getElementById('editModal');
         if (e.target == addModal) addModal.style.display = 'none';
         if (e.target == editModal) editModal.style.display = 'none';
+        var regModal = document.getElementById('registrantsModal');
+        if (e.target == regModal) regModal.style.display = 'none';
     }
 </script>

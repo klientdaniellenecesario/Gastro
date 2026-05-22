@@ -46,45 +46,148 @@
 </section>
 
 <style>
-    .detail-shell { max-width: var(--container-width); margin: 0 auto; padding: 2rem; }
-    .breadcrumb-trail { display: flex; gap: 0.5rem; flex-wrap: wrap; color: var(--text-secondary); margin-bottom: 1rem; }
-    .breadcrumb-trail a { color: var(--burnt-orange); text-decoration: none; }
-    .detail-hero-card { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; background: var(--bg-card); border-radius: 20px; padding: 1.5rem; }
-    .detail-hero-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; }
-    .detail-kicker { color: var(--burnt-orange); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; }
-    .detail-hero-copy h1 { font-size: 2.8rem; margin: 0.5rem 0; }
-    .detail-meta, .detail-actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.2rem; }
-    .detail-meta span { color: var(--text-secondary); }
-    .outline-dark { border-color: var(--burnt-orange); color: var(--burnt-orange); }
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
-    .detail-panel { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; }
-    .detail-panel textarea { width: 100%; margin: 1rem 0; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--text-muted); border-radius: 12px; padding: 0.8rem; }
-    .star-rating-selector i { color: var(--golden-yellow); cursor: pointer; font-size: 1.4rem; margin-right: 0.2rem; }
-    @@media (max-width: 768px) { .detail-hero-card, .detail-grid { grid-template-columns: 1fr; } .detail-hero-copy h1 { font-size: 2rem; } }
+    .detail-shell {
+        max-width: var(--container-width);
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .breadcrumb-trail {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+        .breadcrumb-trail a {
+            color: var(--burnt-orange);
+            text-decoration: none;
+        }
+
+    .detail-hero-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: center;
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 1.5rem;
+    }
+
+        .detail-hero-card img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+    .detail-kicker {
+        color: var(--burnt-orange);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+
+    .detail-hero-copy h1 {
+        font-size: 2.8rem;
+        margin: 0.5rem 0;
+    }
+
+    .detail-meta, .detail-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.2rem;
+    }
+
+        .detail-meta span {
+            color: var(--text-secondary);
+        }
+
+    .outline-dark {
+        border-color: var(--burnt-orange);
+        color: var(--burnt-orange);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .detail-panel {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+        .detail-panel textarea {
+            width: 100%;
+            margin: 1rem 0;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--text-muted);
+            border-radius: 12px;
+            padding: 0.8rem;
+        }
+
+    .star-rating-selector i {
+        color: var(--golden-yellow);
+        cursor: pointer;
+        font-size: 1.4rem;
+        margin-right: 0.2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .detail-hero-card, .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-hero-copy h1 {
+            font-size: 2rem;
+        }
+    }
 </style>
 
 <script>
-    var dishes = [
-        { name: 'Lechon Cebu', restaurant: 'House of Lechon', price: 'PHP 450', tag: 'Cebu Specialty', description: 'Crispy-skinned roasted pork served with puso and spiced vinegar.', image: 'https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop', tags: ['Roasted', 'Crispy', 'Signature'] },
-        { name: 'Kinilaw Tacos', restaurant: 'Tales and Feelings', price: 'PHP 320', tag: 'Seafood', description: 'Fresh kinilaw served taco-style with herbs, chili, and citrus.', image: 'https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=1000&h=650&fit=crop', tags: ['Seafood', 'Citrus', 'Fresh'] },
-        { name: 'Lechon Ramen', restaurant: 'Ramen Sage', price: 'PHP 390', tag: 'Trending', description: 'Rich ramen broth topped with Cebu lechon and chili oil.', image: 'https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=1000&h=650&fit=crop', tags: ['Spicy', 'Fusion', 'Trending'] }
-    ];
-    var index = Math.max(0, Math.min(dishes.length - 1, (@ViewData["ItemId"] ?? 1) - 1));
-    var dish = dishes[index];
-    document.getElementById('dishName').innerText = dish.name;
-    document.getElementById('dishCrumb').innerText = dish.name;
-    document.getElementById('dishRestaurant').innerText = dish.restaurant;
-    document.getElementById('dishPrice').innerText = dish.price;
-    document.getElementById('dishTag').innerText = dish.tag;
-    document.getElementById('dishDescription').innerText = dish.description;
-    document.getElementById('dishImage').src = dish.image;
-    document.getElementById('dishTags').innerHTML = dish.tags.map(function(tag) { return '<span class="vibe-tag">' + tag + '</span>'; }).join('');
+    document.addEventListener('DOMContentLoaded', function () {
+        var dishes = [
+            { name: 'Lechon Cebu', restaurant: 'House of Lechon', price: 'PHP 450', tag: 'Cebu Specialty', description: 'Crispy-skinned roasted pork served with puso and spiced vinegar.', image: 'https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=1000&h=650&fit=crop', tags: ['Roasted', 'Crispy', 'Signature'] },
+            { name: 'Kinilaw Tacos', restaurant: 'Tales and Feelings', price: 'PHP 320', tag: 'Seafood', description: 'Fresh kinilaw served taco-style with herbs, chili, and citrus.', image: 'https://images.unsplash.com/photo-1615141982883-c7ad0a69fd62?w=1000&h=650&fit=crop', tags: ['Seafood', 'Citrus', 'Fresh'] },
+            { name: 'Lechon Ramen', restaurant: 'Ramen Sage', price: 'PHP 390', tag: 'Trending', description: 'Rich ramen broth topped with Cebu lechon and chili oil.', image: 'https://images.unsplash.com/photo-1591814468924-caf5d1237a2a?w=1000&h=650&fit=crop', tags: ['Spicy', 'Fusion', 'Trending'] }
+        ];
+
+        var index = Math.max(0, Math.min(dishes.length - 1, (@ViewData["ItemId"] ?? 1) - 1));
+        var dish = dishes[index];
+
+        document.getElementById('dishName').innerText = dish.name;
+        document.getElementById('dishCrumb').innerText = dish.name;  // breadcrumb
+        document.getElementById('dishRestaurant').innerText = dish.restaurant;
+        document.getElementById('dishPrice').innerText = dish.price;
+        document.getElementById('dishTag').innerText = dish.tag;
+        document.getElementById('dishDescription').innerText = dish.description;
+        document.getElementById('dishImage').src = dish.image;
+        document.getElementById('dishTags').innerHTML = dish.tags.map(function (tag) {
+            return '<span class="vibe-tag">' + tag + '</span>';
+        }).join('');
+    });
+
     var dishRating = 0;
-    function setDishRating(rating) { dishRating = rating; document.querySelectorAll('.star-rating-selector i').forEach(function(star, i) { star.className = i < rating ? 'fas fa-star' : 'far fa-star'; }); }
+
+    function setDishRating(rating) {
+        dishRating = rating;
+        document.querySelectorAll('.star-rating-selector i').forEach(function (star, i) {
+            star.className = i < rating ? 'fas fa-star' : 'far fa-star';
+        });
+    }
+
     async function submitDishReview() {
         var text = document.getElementById('dishReviewText').value.trim();
         if (!dishRating || !text) { showToast('Add a rating and review first.'); return; }
-        var ok = await window.submitServerReview('dish', index + 1, dishRating, text);
+        var itemIndex = Math.max(0, Math.min(2, (@ViewData["ItemId"] ?? 1) - 1));
+        var ok = await window.submitServerReview('dish', itemIndex + 1, dishRating, text);
         if (ok) { document.getElementById('dishReviewText').value = ''; setDishRating(0); }
     }
 </script>

@@ -39,16 +39,20 @@
                     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
                     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
                 }
-                <a href="/" class="nav-link @(controller == "Home" && action == "Index" ? "active" : "")">Home</a>
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <!-- Guest: show Home as the landing page link -->
+                    <a href="/" class="nav-link @(controller == "Home" && action == "Index" ? "active" : "")">Home</a>
+                }
                 <a href="/Restaurants" class="nav-link @(controller == "Restaurants" ? "active" : "")">Eateries</a>
                 <a href="/Dishes" class="nav-link @(controller == "Dishes" ? "active" : "")">Dishes</a>
                 <a href="/Events" class="nav-link @(controller == "Events" ? "active" : "")">Events</a>
                 <a href="/Stories" class="nav-link @(controller == "Stories" ? "active" : "")">Stories</a>
+                <a href="/About" class="nav-link @(controller == "About" ? "active" : "")">About</a>
                 @if (User.IsInRole("Admin"))
                 {
-                    <a href="/Admin/Dashboard" class="nav-link @(controller == "Admin" ? "active" : "")">Admin</a>
+                    <a href="/Admin/Dashboard" class="nav-link nav-link--admin @(controller == "Admin" ? "active" : "")"><i class="fas fa-shield-alt"></i> Dashboard</a>
                 }
-                <a href="/About" class="nav-link @(controller == "About" ? "active" : "")">About</a>
             </div>
 
             <div class="nav-actions">
@@ -86,20 +90,23 @@
             <button class="close-drawer" id="closeDrawer">&times;</button>
         </div>
         <div class="drawer-links">
-            <a href="/"><i class="fas fa-home"></i> Home</a>
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <a href="/"><i class="fas fa-home"></i> Home</a>
+            }
             <a href="/Restaurants"><i class="fas fa-utensils"></i> Eateries</a>
             <a href="/Dishes"><i class="fas fa-drumstick-bite"></i> Dishes</a>
             <a href="/Events"><i class="fas fa-calendar-alt"></i> Events</a>
             <a href="/Stories"><i class="fas fa-book-open"></i> Stories</a>
-            @if (User.IsInRole("Admin"))
-            {
-                <a href="/Admin/Dashboard"><i class="fas fa-chart-line"></i> Admin</a>
-            }
+            <a href="/About"><i class="fas fa-info-circle"></i> About</a>
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <a href="/Account/Profile"><i class="fas fa-user"></i> Profile</a>
+                <a href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a>
             }
-            <a href="/About"><i class="fas fa-info-circle"></i> About</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Admin/Dashboard" class="drawer-link--admin"><i class="fas fa-shield-alt"></i> Admin Dashboard</a>
+            }
         </div>
         @if (User.Identity?.IsAuthenticated != true)
         {

@@ -2,6 +2,14 @@
     ViewData["Title"] = "House of Lechon - TasteCebu";
 }
 
+<nav class="breadcrumb-trail" style="max-width:var(--container-width);margin:1rem auto;padding:0 2rem;display:flex;gap:0.5rem;flex-wrap:wrap;color:var(--text-secondary);">
+    <a href="/" style="color:var(--burnt-orange);text-decoration:none;">Home</a>
+    <span>/</span>
+    <a href="/Restaurants" style="color:var(--burnt-orange);text-decoration:none;">Restaurants</a>
+    <span>/</span>
+    <strong id="restaurantCrumb">House of Lechon</strong>
+</nav>
+
 <!-- HERO BANNER -->
 <section class="restaurant-hero">
     <div class="restaurant-hero-image">
@@ -552,47 +560,38 @@
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // If this page becomes data-driven, set the crumb here.
+        // For now it's hardcoded to House of Lechon so the crumb already matches.
+        var crumb = document.getElementById('restaurantCrumb');
+        var h1 = document.querySelector('.restaurant-title-container h1');
+        if (crumb && h1) { crumb.innerText = h1.innerText; }
+    });
+
     var currentRating = 0;
 
     function setRating(rating) {
         currentRating = rating;
         var ratingValue = document.getElementById('ratingValue');
-        if (ratingValue) {
-            ratingValue.value = rating;
-        }
-
+        if (ratingValue) { ratingValue.value = rating; }
         var stars = document.querySelectorAll('.star-rating-selector i');
         for (var i = 0; i < stars.length; i++) {
-            if (i < rating) {
-                stars[i].className = 'fas fa-star active';
-            } else {
-                stars[i].className = 'far fa-star';
-            }
+            stars[i].className = i < rating ? 'fas fa-star active' : 'far fa-star';
         }
     }
 
     async function submitReview() {
-        if (currentRating === 0) {
-            showToast('Please select a rating first!');
-            return;
-        }
+        if (currentRating === 0) { showToast('Please select a rating first!'); return; }
         var textarea = document.querySelector('.leave-review textarea');
         var text = textarea ? textarea.value.trim() : '';
-        if (!text) {
-            showToast('Please write your review first!');
-            return;
-        }
+        if (!text) { showToast('Please write your review first!'); return; }
         var ok = await window.submitServerReview('restaurant', 2, currentRating, text);
         if (!ok) return;
-        if (textarea) {
-            textarea.value = '';
-        }
+        if (textarea) { textarea.value = ''; }
         setRating(0);
     }
 
-    function sortReviews(sortBy) {
-        showToast('Reviews sorted by ' + sortBy);
-    }
+    function sortReviews(sortBy) { showToast('Reviews sorted by ' + sortBy); }
 
     function getDirections() {
         window.open('https://maps.google.com/?q=House+of+Lechon+Cebu+City', '_blank');
@@ -603,25 +602,24 @@
         showToast('Link copied to clipboard!');
     }
 
-    function openLightbox(index) {
-        showToast('Lightbox gallery would open here');
-    }
+    function openLightbox(index) { showToast('Lightbox gallery would open here'); }
 
     function triedDish(dishName, dishId) {
         showToast('You tried ' + dishName + '! Added to your food journey.');
     }
 
     function showToast(message) {
+        if (window.TasteCebu && window.TasteCebu.showToast) {
+            window.TasteCebu.showToast(message);
+            return;
+        }
         var toast = document.createElement('div');
         toast.className = 'toast-notification';
         toast.innerHTML = message;
         document.body.appendChild(toast);
-
-        setTimeout(function() {
+        setTimeout(function () {
             toast.style.opacity = '0';
-            setTimeout(function() {
-                toast.remove();
-            }, 300);
+            setTimeout(function () { toast.remove(); }, 300);
         }, 3000);
     }
 </script>

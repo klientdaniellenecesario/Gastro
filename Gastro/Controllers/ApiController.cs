@@ -69,6 +69,16 @@ public class ApiController(SqliteDataStore store) : ControllerBase
         return Ok(new { message = "Event registration cancelled." });
     }
 
+    [HttpGet("events/{eventId:int}/registrants")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult GetEventRegistrants(int eventId)
+    {
+        var registrants = store.GetEventRegistrants(eventId)
+            .Select(u => new { u.FullName, u.Email })
+            .ToList();
+        return Ok(registrants);
+    }
+
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }
 

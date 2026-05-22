@@ -43,9 +43,9 @@ public class DishListing
     public string PhotoUrl { get; set; } = "";
     public string Description { get; set; } = "";
     public string Tags { get; set; } = "";
-    
     public bool IsNewThisMonth { get; set; }
     public bool IsTrending { get; set; }
+    public int? RestaurantId { get; set; }
 }
 
 public class FoodEvent
@@ -54,7 +54,8 @@ public class FoodEvent
     public string Title { get; set; } = "";
     public DateTime Date { get; set; }
     public string Location { get; set; } = "";
-    public int AvailableSlots { get; set; }
+    public int TotalSlots { get; set; }      // NEW — set once on creation, never changes
+    public int AvailableSlots { get; set; }  // decrements on register, increments on cancel
     public string PhotoUrl { get; set; } = "";
     public string Description { get; set; } = "";
 }

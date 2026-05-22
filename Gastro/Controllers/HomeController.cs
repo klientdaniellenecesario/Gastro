@@ -8,6 +8,14 @@ public class HomeController(SqliteDataStore store) : Controller
 {
     public IActionResult Index()
     {
+        // Landing page is for guests only — redirect logged-in users
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Dashboard", "Admin");
+            return RedirectToAction("Index", "Restaurants");
+        }
+
         var vm = new HomeViewModel
         {
             FeaturedRestaurants = store.GetRestaurants().Take(6).ToList(),
