@@ -93,6 +93,26 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
+    public RestaurantListing? GetRestaurantById(int id)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Restaurants.Find(id);
+    }
+
+    public DishListing? GetDishById(int id)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Dishes.Find(id);
+    }
+
+    public List<ReviewEntry> GetReviews(string targetType, int targetId)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Reviews
+            .Where(r => r.TargetType == targetType && r.TargetId == targetId)
+            .OrderByDescending(r => r.CreatedAt)];
+    }
+
     public List<RestaurantListing> GetRestaurants()
     {
         using var db = _factory.CreateDbContext();
@@ -329,9 +349,11 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     {
         var restaurant = db.Restaurants.Find(restaurantId);
         if (restaurant is null) return;
-        var avg = db.Reviews
+        var ratings = db.Reviews
             .Where(r => r.TargetType == "restaurant" && r.TargetId == restaurantId)
-            .Average(r => (decimal?)r.Rating) ?? 0m;
+            .Select(r => r.Rating)
+            .ToList();
+        var avg = ratings.Count > 0 ? (decimal)ratings.Average() : 0m;
         restaurant.Rating = Math.Round(avg, 1);
         db.SaveChanges();
     }

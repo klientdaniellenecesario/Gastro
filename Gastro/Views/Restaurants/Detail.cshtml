@@ -1,27 +1,43 @@
-﻿@{
-    ViewData["Title"] = "House of Lechon - TasteCebu";
-}
+﻿@using GastroCebu.Models
+@{
+    var restaurant = (RestaurantListing)ViewData["Restaurant"]!;
+    var reviews = (List<ReviewEntry>)ViewData["Reviews"]!;
+    var names = (Dictionary<int, string>)ViewData["ReviewerNames"]!;
+    var myIds = (HashSet<int>)(ViewData["UserReviewIds"] ?? new HashSet<int>());
+    var currentUid = (int?)ViewData["CurrentUserId"];
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin");
+    ViewData["Title"] = restaurant.Name + " - TasteCebu";
 
-<nav class="breadcrumb-trail" style="max-width:var(--container-width);margin:1rem auto;padding:0 2rem;display:flex;gap:0.5rem;flex-wrap:wrap;color:var(--text-secondary);">
-    <a href="/" style="color:var(--burnt-orange);text-decoration:none;">Home</a>
-    <span>/</span>
-    <a href="/Restaurants" style="color:var(--burnt-orange);text-decoration:none;">Restaurants</a>
-    <span>/</span>
-    <strong id="restaurantCrumb">House of Lechon</strong>
-</nav>
+    // star helpers
+    string RatingStars(decimal r)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 1; i <= 5; i++)
+        {
+            if (r >= i) sb.Append("<i class=\"fas fa-star\"></i>");
+            else if (r >= i - 0.5m) sb.Append("<i class=\"fas fa-star-half-alt\"></i>");
+            else sb.Append("<i class=\"far fa-star\"></i>");
+        }
+        return sb.ToString();
+    }
+}
 
 <!-- HERO BANNER -->
 <section class="restaurant-hero">
     <div class="restaurant-hero-image">
-        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=500&fit=crop" alt="House of Lechon">
+        <img src="@restaurant.PhotoUrl" alt="@restaurant.Name">
     </div>
     <div class="restaurant-hero-overlay">
         <div class="restaurant-title-container">
-            <h1>House of Lechon</h1>
+            <h1>@restaurant.Name</h1>
             <div class="restaurant-actions-header">
-                <button class="action-btn" onclick="addToCravings('House of Lechon', 2, 'restaurant')">
-                    <i class="fas fa-heart"></i> Crave
-                </button>
+                @if (isAuth)
+                {
+                    <button class="action-btn" onclick="addToCravings('@restaurant.Name', @restaurant.Id, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                }
                 <button class="action-btn share-btn" onclick="shareRestaurant()">
                     <i class="fas fa-share-alt"></i> Share
                 </button>
@@ -32,201 +48,142 @@
 
 <section class="section">
     <div class="restaurant-detail-grid">
-        <!-- LEFT COLUMN - INFO -->
+        <!-- LEFT COLUMN -->
         <div class="restaurant-info">
             <div class="info-card">
                 <h3><i class="fas fa-info-circle"></i> About</h3>
-                <p>House of Lechon is Cebu's premier destination for authentic Cebu lechon. Known for its incredibly crispy skin and juicy, flavorful meat, this restaurant has been serving locals and tourists alike for over a decade. Their signature spicy vinegar dip is the perfect complement to their perfectly roasted pig.</p>
+                <p>@restaurant.Description</p>
             </div>
 
             <div class="info-card">
-                <h3><i class="fas fa-tags"></i> Vibe and Tags</h3>
+                <h3><i class="fas fa-tags"></i> Category</h3>
                 <div class="vibe-tags">
-                    <span class="vibe-tag"><i class="fas fa-music"></i> Loud and Fun</span>
-                    <span class="vibe-tag"><i class="fas fa-users"></i> Family Friendly</span>
-                    <span class="vibe-tag"><i class="fas fa-fire"></i> Lechon Specialty</span>
-                    <span class="vibe-tag"><i class="fas fa-beer"></i> Craft Beer Available</span>
+                    <span class="vibe-tag"><i class="fas fa-utensils"></i> @restaurant.Category</span>
                 </div>
             </div>
 
             <div class="info-card">
-                <h3><i class="fas fa-map-marker-alt"></i> Location and Contact</h3>
-                <p><strong>Address:</strong> Acacia Street, Capitol Site, Cebu City, 6000</p>
-                <p><strong>Phone:</strong> (032) 255 5555</p>
-                <p><strong>Email:</strong> hello@houseoflechon.com</p>
-                <p><strong>Hours:</strong> Daily 10:00 AM - 10:00 PM</p>
-                <button class="btn-get-directions" onclick="getDirections()">Get Directions <i class="fas fa-external-link-alt"></i></button>
+                <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+                <p><strong>Address:</strong> @restaurant.Address</p>
+                <button class="btn-get-directions" onclick="getDirections('@restaurant.Address')">
+                    Get Directions <i class="fas fa-external-link-alt"></i>
+                </button>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN - STATS AND REVIEWS -->
+        <!-- RIGHT COLUMN - STATS -->
         <div class="restaurant-stats">
             <div class="stats-card">
                 <div class="rating-large">
-                    <span class="rating-number">4.9</span>
+                    <span class="rating-number">@(restaurant.Rating > 0 ? restaurant.Rating.ToString("F1") : "—")</span>
                     <div class="rating-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        @Html.Raw(RatingStars(restaurant.Rating))
                     </div>
-                    <span class="review-count">1,234 reviews</span>
+                    <span class="review-count">@reviews.Count @(reviews.Count == 1 ? "review" : "reviews")</span>
                 </div>
                 <div class="stats-grid">
                     <div class="stat">
-                        <div class="stat-value">200+</div>
-                        <div class="stat-label">Daily Customers</div>
+                        <div class="stat-value">@reviews.Count</div>
+                        <div class="stat-label">Total Reviews</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">15+</div>
-                        <div class="stat-label">Years in Business</div>
+                        <div class="stat-value">@(restaurant.Rating > 0 ? restaurant.Rating.ToString("F1") : "N/A")</div>
+                        <div class="stat-label">Avg Rating</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- DISH HIGHLIGHTS -->
-    <div class="dish-highlights">
-        <h3>Signature Dishes</h3>
-        <div class="dish-highlights-grid">
-            <div class="highlight-dish">
-                <img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=200&h=150&fit=crop" alt="Lechon">
-                <div class="highlight-dish-info">
-                    <h4>Cebu Lechon</h4>
-                    <p>Whole roasted pig with crispy skin</p>
-                    <p class="price">$450 / serving</p>
-                    <button class="btn-tried-small" onclick="triedDish('Cebu Lechon', 1)">I Tried This</button>
-                </div>
-            </div>
-            <div class="highlight-dish">
-                <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=200&h=150&fit=crop" alt="Lechon Sisig">
-                <div class="highlight-dish-info">
-                    <h4>Lechon Sisig</h4>
-                    <p>Sizzling chopped lechon with onions and chili</p>
-                    <p class="price">$320</p>
-                    <button class="btn-tried-small" onclick="triedDish('Lechon Sisig', 9)">I Tried This</button>
-                </div>
-            </div>
-            <div class="highlight-dish">
-                <img src="https://images.unsplash.com/photo-1591267990532-e5bdb1b0f664?w=200&h=150&fit=crop" alt="Puso">
-                <div class="highlight-dish-info">
-                    <h4>Puso (Hanging Rice)</h4>
-                    <p>Traditional Cebu rice wrapped in coconut leaves</p>
-                    <p class="price">$10 each</p>
-                    <button class="btn-tried-small" onclick="triedDish('Puso', 4)">I Tried This</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PHOTO GALLERY -->
-    <div class="photo-gallery">
-        <h3>Photo Gallery</h3>
-        <div class="gallery-grid">
-            <div class="gallery-img" onclick="openLightbox(0)"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300&h=200&fit=crop" alt="Interior"></div>
-            <div class="gallery-img" onclick="openLightbox(1)"><img src="https://images.unsplash.com/photo-1615937722923-69f6dde0c6f3?w=300&h=200&fit=crop" alt="Lechon"></div>
-            <div class="gallery-img" onclick="openLightbox(2)"><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&h=200&fit=crop" alt="Sisig"></div>
-            <div class="gallery-img" onclick="openLightbox(3)"><img src="https://images.unsplash.com/photo-1591267990532-e5bdb1b0f664?w=300&h=200&fit=crop" alt="Puso"></div>
         </div>
     </div>
 
     <!-- REVIEWS SECTION -->
-    <div class="reviews-section">
+    <div class="reviews-section" id="reviewsSection">
         <div class="reviews-header">
-            <h3>Customer Reviews</h3>
-            <select class="sort-select" onchange="sortReviews(this.value)">
-                <option value="newest">Newest First</option>
-                <option value="highest">Highest Rated</option>
-                <option value="lowest">Lowest Rated</option>
-            </select>
+            <h3>Customer Reviews (@reviews.Count)</h3>
         </div>
 
-        <div class="reviews-list">
-            <div class="review-card">
-                <div class="reviewer-info">
-                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Reviewer">
-                    <div>
-                        <h4>Juan Dela Cruz</h4>
-                        <div class="review-stars">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        <div class="reviews-list" id="reviewsList">
+            @if (!reviews.Any())
+            {
+                <p class="no-reviews-msg">No reviews yet. Be the first to share your experience!</p>
+            }
+            @foreach (var review in reviews)
+            {
+                var canEdit = myIds.Contains(review.Id);
+                var canDelete = canEdit || isAdmin;
+                <div class="review-card" id="review-@review.Id">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">@names[review.Id][0]</div>
+                        <div>
+                            <h4>@names[review.Id]</h4>
+                            <div class="review-stars">
+                                @Html.Raw(RatingStars(review.Rating))
+                            </div>
+                            <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</p>
                         </div>
-                        <p class="review-date">May 10, 2025</p>
+                        @if (canDelete)
+                        {
+                            <div class="review-actions">
+                                @if (canEdit)
+                                {
+                                    <button class="review-action-btn" onclick="openEditModal(@review.Id, @review.Rating, @Json.Serialize(review.Text))">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                }
+                                <button class="review-action-btn delete" onclick="deleteReview(@review.Id)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
                     </div>
+                    <p class="review-text">@review.Text</p>
                 </div>
-                <p class="review-text">Best lechon in Cebu! The skin was incredibly crispy and the meat was so juicy. Their spicy vinegar dip is to die for. Highly recommend!</p>
-            </div>
-
-            <div class="review-card">
-                <div class="reviewer-info">
-                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Reviewer">
-                    <div>
-                        <h4>Maria Santos</h4>
-                        <div class="review-stars">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="review-date">May 5, 2025</p>
-                    </div>
-                </div>
-                <p class="review-text">Worth the hype! Came here based on recommendations and it did not disappoint. The lechon sisig was amazing too!</p>
-            </div>
-
-            <div class="review-card">
-                <div class="reviewer-info">
-                    <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Reviewer">
-                    <div>
-                        <h4>Mike Lee</h4>
-                        <div class="review-stars">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <p class="review-date">April 28, 2025</p>
-                    </div>
-                </div>
-                <p class="review-text">Great food and lively atmosphere. Gets crowded during lunch time but the service is fast. Will come back!</p>
-            </div>
+            }
         </div>
 
-        <!-- LEAVE A REVIEW FORM -->
-        <div class="leave-review">
-            <h3>Leave a Review</h3>
-            <div class="star-rating-selector" id="starRatingSelector">
-                <i class="far fa-star" data-rating="1" onclick="setRating(1)"></i>
-                <i class="far fa-star" data-rating="2" onclick="setRating(2)"></i>
-                <i class="far fa-star" data-rating="3" onclick="setRating(3)"></i>
-                <i class="far fa-star" data-rating="4" onclick="setRating(4)"></i>
-                <i class="far fa-star" data-rating="5" onclick="setRating(5)"></i>
-            </div>
-            <textarea placeholder="Share your experience..." rows="4"></textarea>
-            <input type="hidden" id="ratingValue" value="0">
-            <button class="btn-primary" onclick="submitReview()">Submit Review</button>
-        </div>
-    </div>
-
-    <!-- SIMILAR RESTAURANTS -->
-    <div class="similar-restaurants">
-        <h3>You Might Also Like</h3>
-        <div class="similar-grid">
-            <div class="similar-card" onclick="location.href='/Restaurants/Detail/2'">
-                <img src="https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=200&h=150&fit=crop" alt="Lantaw">
-                <div>
-                    <h4>Lantaw Native Restaurant</h4>
-                    <p>Cordova, Cebu</p>
+        <!-- LEAVE A REVIEW -->
+        @if (isAuth)
+        {
+            <div class="leave-review" id="leaveReview">
+                <h3>Leave a Review</h3>
+                <div class="star-rating-selector" id="starRatingSelector">
+                    <i class="far fa-star" onclick="restSetRating(1)"></i>
+                    <i class="far fa-star" onclick="restSetRating(2)"></i>
+                    <i class="far fa-star" onclick="restSetRating(3)"></i>
+                    <i class="far fa-star" onclick="restSetRating(4)"></i>
+                    <i class="far fa-star" onclick="restSetRating(5)"></i>
                 </div>
+                <textarea id="reviewText" placeholder="Share your experience..." rows="4"></textarea>
+                <input type="hidden" id="ratingValue" value="0">
+                <button class="btn-primary" onclick="submitReview()">Submit Review</button>
             </div>
-            <div class="similar-card" onclick="location.href='/Restaurants/Detail/3'">
-                <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200&h=150&fit=crop" alt="Pig and Palm">
-                <div>
-                    <h4>Pig and Palm</h4>
-                    <p>Nivel Hills, Lahug</p>
-                </div>
+        }
+        else
+        {
+            <div class="leave-review login-prompt">
+                <p><a href="/Account/Login?returnUrl=/Restaurants/Detail/@restaurant.Id">Sign in</a> to leave a review.</p>
             </div>
-            <div class="similar-card" onclick="location.href='/Restaurants/Detail/4'">
-                <img src="https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=200&h=150&fit=crop" alt="STK ta Bay">
-                <div>
-                    <h4>STK ta Bay</h4>
-                    <p>Mactan, Lapu-Lapu</p>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </section>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-backdrop" style="display:none">
+    <div class="modal-box">
+        <h3>Edit Review</h3>
+        <div class="star-rating-selector" id="editStars">
+            <i class="far fa-star" onclick="restSetEditRating(1)"></i>
+            <i class="far fa-star" onclick="restSetEditRating(2)"></i>
+            <i class="far fa-star" onclick="restSetEditRating(3)"></i>
+            <i class="far fa-star" onclick="restSetEditRating(4)"></i>
+            <i class="far fa-star" onclick="restSetEditRating(5)"></i>
+        </div>
+        <textarea id="editReviewText" rows="4"></textarea>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="saveEdit()">Save</button>
+            <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 
 <style>
     .restaurant-hero {
@@ -344,6 +301,18 @@
         font-weight: 700;
     }
 
+    .rating-stars i {
+        color: #fff;
+        font-size: 1.1rem;
+    }
+
+    .review-count {
+        display: block;
+        font-size: 0.9rem;
+        opacity: 0.85;
+        margin-top: 0.3rem;
+    }
+
     .stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -355,90 +324,25 @@
         font-weight: 700;
     }
 
-    .dish-highlights, .photo-gallery, .reviews-section, .similar-restaurants {
+    .reviews-section {
         margin-top: 3rem;
     }
-
-        .dish-highlights h3, .photo-gallery h3, .reviews-section h3, .similar-restaurants h3 {
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-        }
-
-    .dish-highlights-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .highlight-dish {
-        display: flex;
-        gap: 1rem;
-        background: var(--bg-card);
-        border-radius: 16px;
-        padding: 1rem;
-    }
-
-        .highlight-dish img {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
-            object-fit: cover;
-        }
-
-    .highlight-dish-info h4 {
-        margin-bottom: 0.3rem;
-    }
-
-    .highlight-dish-info p {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-    }
-
-    .price {
-        font-weight: 700;
-        color: var(--burnt-orange);
-        margin: 0.3rem 0;
-    }
-
-    .btn-tried-small {
-        background: none;
-        border: 1px solid var(--burnt-orange);
-        color: var(--burnt-orange);
-        padding: 0.2rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        cursor: pointer;
-        margin-top: 0.3rem;
-    }
-
-    .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
-    }
-
-    .gallery-img {
-        border-radius: 12px;
-        overflow: hidden;
-        cursor: pointer;
-    }
-
-        .gallery-img img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            transition: var(--transition);
-        }
-
-        .gallery-img:hover img {
-            transform: scale(1.05);
-        }
 
     .reviews-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
+    }
+
+        .reviews-header h3 {
+            font-size: 1.5rem;
+        }
+
+    .no-reviews-msg {
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-bottom: 1rem;
     }
 
     .review-card {
@@ -452,13 +356,26 @@
         display: flex;
         gap: 1rem;
         margin-bottom: 1rem;
+        align-items: flex-start;
     }
 
-        .reviewer-info img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-        }
+    .reviewer-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--gradient-warm);
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .reviewer-info h4 {
+        margin: 0 0 0.2rem;
+    }
 
     .review-stars i {
         color: var(--golden-yellow);
@@ -468,6 +385,43 @@
     .review-date {
         font-size: 0.75rem;
         color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .review-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 0.4rem;
+    }
+
+    .review-action-btn {
+        background: none;
+        border: 1px solid var(--text-muted);
+        color: var(--text-secondary);
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+        .review-action-btn:hover {
+            border-color: var(--burnt-orange);
+            color: var(--burnt-orange);
+        }
+
+        .review-action-btn.delete:hover {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+    .review-text {
+        margin: 0;
+        line-height: 1.6;
     }
 
     .leave-review {
@@ -477,6 +431,10 @@
         margin-top: 2rem;
     }
 
+        .leave-review h3 {
+            margin-bottom: 1rem;
+        }
+
     .star-rating-selector i {
         font-size: 1.5rem;
         cursor: pointer;
@@ -484,7 +442,7 @@
         margin-right: 0.3rem;
     }
 
-        .star-rating-selector i.active, .star-rating-selector i:hover {
+        .star-rating-selector i.active {
             color: var(--golden-yellow);
         }
 
@@ -496,56 +454,58 @@
         padding: 0.8rem;
         border-radius: 12px;
         margin: 1rem 0;
+        resize: vertical;
     }
 
-    .similar-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
+    .login-prompt {
+        text-align: center;
+        color: var(--text-secondary);
     }
 
-    .similar-card {
+        .login-prompt a {
+            color: var(--burnt-orange);
+        }
+    /* Modal */
+    .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-box {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 480px;
+    }
+
+        .modal-box h3 {
+            margin-bottom: 1rem;
+        }
+
+        .modal-box textarea {
+            width: 100%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--text-muted);
+            color: var(--text-primary);
+            padding: 0.8rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            resize: vertical;
+        }
+
+    .modal-actions {
         display: flex;
         gap: 1rem;
-        background: var(--bg-card);
-        padding: 1rem;
-        border-radius: 16px;
-        cursor: pointer;
-        transition: var(--transition);
     }
 
-        .similar-card:hover {
-            transform: translateX(5px);
-        }
-
-        .similar-card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            object-fit: cover;
-        }
-
-    .sort-select {
-        background: var(--bg-elevated);
-        border: 1px solid var(--text-muted);
-        color: var(--text-primary);
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
-        cursor: pointer;
-    }
-</style>
-
-<style>
     @@media (max-width: 768px) {
         .restaurant-detail-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .gallery-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .similar-grid {
             grid-template-columns: 1fr;
         }
 
@@ -560,66 +520,87 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // If this page becomes data-driven, set the crumb here.
-        // For now it's hardcoded to House of Lechon so the crumb already matches.
-        var crumb = document.getElementById('restaurantCrumb');
-        var h1 = document.querySelector('.restaurant-title-container h1');
-        if (crumb && h1) { crumb.innerText = h1.innerText; }
-    });
-
     var currentRating = 0;
+    var restaurantId = @restaurant.Id;
 
-    function setRating(rating) {
+    function restSetRating(rating) {
         currentRating = rating;
-        var ratingValue = document.getElementById('ratingValue');
-        if (ratingValue) { ratingValue.value = rating; }
-        var stars = document.querySelectorAll('.star-rating-selector i');
-        for (var i = 0; i < stars.length; i++) {
-            stars[i].className = i < rating ? 'fas fa-star active' : 'far fa-star';
-        }
+        document.getElementById('ratingValue').value = rating;
+        document.querySelectorAll('#starRatingSelector i').forEach(function(s, i) {
+            s.className = i < rating ? 'fas fa-star active' : 'far fa-star';
+        });
     }
 
     async function submitReview() {
         if (currentRating === 0) { showToast('Please select a rating first!'); return; }
-        var textarea = document.querySelector('.leave-review textarea');
-        var text = textarea ? textarea.value.trim() : '';
-        if (!text) { showToast('Please write your review first!'); return; }
-        var ok = await window.submitServerReview('restaurant', 2, currentRating, text);
-        if (!ok) return;
-        if (textarea) { textarea.value = ''; }
-        setRating(0);
+        var text = document.getElementById('reviewText').value.trim();
+        if (!text) { showToast('Please write your review!'); return; }
+        var res = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetType: 'restaurant', targetId: restaurantId, rating: currentRating, text: text })
+        });
+        if (res.ok) {
+            showToast('Review submitted!');
+            document.getElementById('reviewText').value = '';
+            restSetRating(0);
+            location.reload();
+        } else {
+            var err = await res.json();
+            showToast(err.message || 'Could not submit review.');
+        }
     }
 
-    function sortReviews(sortBy) { showToast('Reviews sorted by ' + sortBy); }
+    // Edit modal
+    var editingReviewId = 0;
+    var editRating = 0;
 
-    function getDirections() {
-        window.open('https://maps.google.com/?q=House+of+Lechon+Cebu+City', '_blank');
+    function openEditModal(id, rating, text) {
+        editingReviewId = id;
+        editRating = rating;
+        document.getElementById('editReviewText').value = text;
+        restSetEditRating(rating);
+        document.getElementById('editModal').style.display = 'flex';
+    }
+    function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+    function restSetEditRating(rating) {
+        editRating = rating;
+        document.querySelectorAll('#editStars i').forEach(function(s, i) {
+            s.className = i < rating ? 'fas fa-star active' : 'far fa-star';
+        });
+    }
+    async function saveEdit() {
+        var text = document.getElementById('editReviewText').value.trim();
+        if (!editRating || !text) { showToast('Rating and text required.'); return; }
+        var res = await fetch('/api/reviews/' + editingReviewId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: editRating, text: text })
+        });
+        if (res.ok) { closeEditModal(); location.reload(); }
+        else { var err = await res.json(); showToast(err.message || 'Update failed.'); }
     }
 
+    async function deleteReview(id) {
+        if (!confirm('Delete this review?')) return;
+        var res = await fetch('/api/reviews/' + id, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else showToast('Could not delete review.');
+    }
+
+    function getDirections(address) {
+        window.open('https://maps.google.com/?q=' + encodeURIComponent(address), '_blank');
+    }
     function shareRestaurant() {
         navigator.clipboard.writeText(window.location.href);
         showToast('Link copied to clipboard!');
     }
 
-    function openLightbox(index) { showToast('Lightbox gallery would open here'); }
-
-    function triedDish(dishName, dishId) {
-        showToast('You tried ' + dishName + '! Added to your food journey.');
-    }
-
     function showToast(message) {
-        if (window.TasteCebu && window.TasteCebu.showToast) {
-            window.TasteCebu.showToast(message);
-            return;
-        }
-        var toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-        setTimeout(function () {
-            toast.style.opacity = '0';
-            setTimeout(function () { toast.remove(); }, 300);
-        }, 3000);
+        var t = document.createElement('div');
+        t.className = 'toast-notification';
+        t.textContent = message;
+        document.body.appendChild(t);
+        setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 3000);
     }
 </script>
