@@ -1,7 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Events and Masterclasses - TasteCebu";
     var events = ViewData["DatabaseEvents"] as List<GastroCebu.Models.FoodEvent> ?? new();
-    var nextEvent = events.Where(e => e.Date >= DateTime.UtcNow).OrderBy(e => e.Date).FirstOrDefault();
+    var upcomingEvents = events.Where(e => e.Date >= DateTime.UtcNow).OrderBy(e => e.Date).ToList();
+    var pastEvents = events.Where(e => e.Date < DateTime.UtcNow).OrderByDescending(e => e.Date).ToList();
+    var nextEvent = upcomingEvents.FirstOrDefault();
+    var isAuth = User.Identity?.IsAuthenticated == true;
 }
 
 <!-- HERO SECTION WITH COUNTDOWN -->
@@ -23,13 +26,13 @@
 <section class="section">
     <!-- VIEW TOGGLE -->
     <div class="view-toggle" data-aos="fade-up">
-        <button class="view-btn active" onclick="toggleView('grid')"><i class="fas fa-th-large"></i> Grid View</button>
-        <button class="view-btn" onclick="toggleView('calendar')"><i class="fas fa-calendar-alt"></i> Calendar View</button>
+        <button class="view-btn active" onclick="toggleView('grid', this)"><i class="fas fa-th-large"></i> Grid View</button>
+        <button class="view-btn" onclick="toggleView('calendar', this)"><i class="fas fa-calendar-alt"></i> Calendar View</button>
     </div>
 
     <!-- GRID VIEW -->
-    <div id="gridView" class="card-grid">
-        @if (!events.Any())
+    <div id="gridView" class="events-grid">
+        @if (!upcomingEvents.Any())
         {
             <div class="empty-state" style="grid-column: 1/-1;">
                 <div class="empty-state-icon">📅</div>
@@ -43,27 +46,78 @@
         }
         else
         {
-            @foreach (var foodEvent in events.OrderBy(e => e.Date))
+            @foreach (var foodEvent in upcomingEvents)
             {
+                var fillPct = foodEvent.TotalSlots > 0
+                    ? (int)(((double)(foodEvent.TotalSlots - foodEvent.AvailableSlots) / foodEvent.TotalSlots) * 100)
+                    : 0;
+                var spotsLow = foodEvent.AvailableSlots <= 5;
                 <div class="event-card" data-date="@foodEvent.Date.ToString("yyyy-MM-dd")" data-aos="fade-up"
                      onclick="location.href='/Events/Detail/@foodEvent.Id'">
                     <div class="card-image">
-                        <img src="@foodEvent.PhotoUrl" alt="@foodEvent.Title">
+                        @if (!string.IsNullOrWhiteSpace(foodEvent.PhotoUrl))
+                        {
+                            <img src="@foodEvent.PhotoUrl" alt="@foodEvent.Title"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="card-img-fallback" style="display:none">
+                                <i class="fas fa-calendar-star"></i>
+                                <span>@foodEvent.Title</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-img-fallback">
+                                <i class="fas fa-calendar-star"></i>
+                                <span>@foodEvent.Title</span>
+                            </div>
+                        }
                         <div class="date-badge">
-                            <span class="date-month">@foodEvent.Date.ToString("MMM").ToUpperInvariant()</span>
-                            <span class="date-day">@foodEvent.Date.Day</span>
+                            <span class="date-month">@foodEvent.Date.ToLocalTime().ToString("MMM").ToUpperInvariant()</span>
+                            <span class="date-day">@foodEvent.Date.ToLocalTime().Day</span>
                         </div>
+                        @if (spotsLow && foodEvent.AvailableSlots > 0)
+                        {
+                            <span class="card-badge badge-urgent">Almost Full</span>
+                        }
+                        else if (foodEvent.AvailableSlots == 0)
+                        {
+                            <span class="card-badge badge-full">Full</span>
+                        }
                     </div>
                     <div class="card-content">
                         <h3>@foodEvent.Title</h3>
                         <p class="card-location"><i class="fas fa-map-marker-alt"></i> @foodEvent.Location</p>
-                        <p class="event-time"><i class="far fa-clock"></i> @foodEvent.Date.ToString("h:mm tt")</p>
-                        <p>@foodEvent.Description</p>
+                        <p class="event-time"><i class="far fa-clock"></i> @foodEvent.Date.ToLocalTime().ToString("h:mm tt · MMMM d, yyyy")</p>
+                        <p class="event-desc">@foodEvent.Description</p>
                         <div class="seats-info">
-                            <div class="progress-bar"><div class="progress" style="width: 45%"></div></div>
-                            <p>@foodEvent.AvailableSlots seats available</p>
+                            <div class="progress-bar">
+                                <div class="progress @(spotsLow ? "progress-warn" : "")" style="width: @fillPct%"></div>
+                            </div>
+                            <p class="@(spotsLow ? "seats-low" : "")">
+                                @if (foodEvent.AvailableSlots == 0)
+                                {
+                                    <text>No seats left</text>
+                                }
+                                else
+                                {
+                                    <text>@foodEvent.AvailableSlots @(foodEvent.AvailableSlots == 1 ? "seat" : "seats") available</text>
+                                }
+                            </p>
                         </div>
-                        <button class="btn-register" onclick="event.stopPropagation(); registerEvent(@foodEvent.Id)">Register Now →</button>
+                        @if (isAuth)
+                        {
+                            <button class="btn-register @(foodEvent.AvailableSlots == 0 ? "btn-register--full" : "")"
+                                    onclick="event.stopPropagation(); registerEvent(@foodEvent.Id)"
+                                @(foodEvent.AvailableSlots == 0 ? "disabled" : "")>
+                                @(foodEvent.AvailableSlots == 0 ? "Fully Booked" : "Register Now →")
+                            </button>
+                        }
+                        else
+                        {
+                            <a class="btn-register btn-register--guest" href="/Account/Login?returnUrl=/Events" onclick="event.stopPropagation()">
+                                <i class="fas fa-lock"></i> Sign in to Register
+                            </a>
+                        }
                     </div>
                 </div>
             }
@@ -80,28 +134,48 @@
         <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
-    @if (events.Any())
-    {
-        <!-- PAST EVENTS GALLERY -->
-        <div class="past-events" data-aos="fade-up">
-            <div class="section-header">
-                <h2>Past Events Gallery</h2>
-                <p>Relive the flavors from our previous gatherings</p>
-            </div>
+    <!-- PAST EVENTS GALLERY -->
+    <div class="past-events" data-aos="fade-up">
+        <div class="section-header" style="text-align:center; margin-bottom:2rem;">
+            <h2>Past Events Gallery</h2>
+            <p>Relive the flavors from our previous gatherings</p>
+        </div>
+        @if (pastEvents.Any())
+        {
             <div class="gallery-grid">
-                @foreach (var pastEvent in events.Where(e => e.Date < DateTime.UtcNow).Take(6))
+                @foreach (var pastEvent in pastEvents.Take(6))
                 {
-                    <div class="gallery-item">
-                        <img src="@pastEvent.PhotoUrl" alt="@pastEvent.Title">
+                    <div class="gallery-item" onclick="location.href='/Events/Detail/@pastEvent.Id'" title="@pastEvent.Title">
+                        @if (!string.IsNullOrWhiteSpace(pastEvent.PhotoUrl))
+                        {
+                            <img src="@pastEvent.PhotoUrl" alt="@pastEvent.Title"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="gallery-fallback" style="display:none">
+                                <i class="fas fa-images"></i>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="gallery-fallback">
+                                <i class="fas fa-images"></i>
+                            </div>
+                        }
+                        <div class="gallery-overlay">
+                            <span>@pastEvent.Title</span>
+                            <small>@pastEvent.Date.ToLocalTime().ToString("MMMM d, yyyy")</small>
+                        </div>
                     </div>
                 }
-                @if (!events.Any(e => e.Date < DateTime.UtcNow))
-                {
-                    <p style="color: var(--text-secondary); padding: 1rem;">No past events yet.</p>
-                }
             </div>
-        </div>
-    }
+        }
+        else
+        {
+            <div class="past-empty-state">
+                <i class="fas fa-photo-video"></i>
+                <p>No past events yet — photos from completed events will appear here.</p>
+            </div>
+        }
+    </div>
 </section>
 
 <style>
@@ -126,11 +200,10 @@
         margin-bottom: 1.5rem;
     }
 
+    /* Hero */
     .events-hero {
-        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1511795409674-a7fcf7b6bde4?q=80&w=2070&auto=format');
-        background-size: cover;
-        background-position: center;
-        padding: 4rem 2rem;
+        background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)), url('/images/culinary.jpg') center/cover no-repeat;
+        padding: 5rem 2rem;
         text-align: center;
         color: white;
     }
@@ -140,70 +213,168 @@
         margin-bottom: 1rem;
     }
 
+    .events-hero-content p {
+        font-size: 1.1rem;
+        opacity: 0.85;
+    }
+
     .next-event-countdown {
         margin-top: 2rem;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
 
     .countdown-timer {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
         color: var(--burnt-orange);
-        margin-top: 0.5rem;
+        margin-top: 0.4rem;
+        letter-spacing: 0.02em;
     }
 
+    /* View toggle */
     .view-toggle {
         display: flex;
         justify-content: center;
         gap: 1rem;
-        margin-bottom: 2rem;
+        margin-bottom: 2.5rem;
     }
 
     .view-btn {
         background: var(--bg-elevated);
         border: none;
-        padding: 0.5rem 1.5rem;
+        padding: 0.55rem 1.5rem;
         border-radius: 30px;
         color: var(--text-primary);
         cursor: pointer;
         transition: var(--transition);
+        font-size: 0.92rem;
+        font-weight: 500;
     }
 
         .view-btn.active {
             background: var(--gradient-warm);
+            color: white;
         }
 
+    /* Events grid — always 3 columns, wraps on smaller screens */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Card image fallback */
+    .card-img-fallback {
+        width: 100%;
+        height: 100%;
+        background: var(--bg-elevated);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        color: var(--text-muted);
+        font-size: 2rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+        .card-img-fallback span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+    /* Badges */
+    .badge-urgent {
+        background: rgba(231, 76, 60, 0.85) !important;
+        color: white !important;
+    }
+
+    .badge-full {
+        background: rgba(100,100,100,0.85) !important;
+        color: white !important;
+    }
+
+    /* Date badge */
     .date-badge {
         position: absolute;
         top: 1rem;
         right: 1rem;
-        background: var(--bg-dark);
+        background: white;
+        color: #111;
         border-radius: 12px;
         text-align: center;
-        padding: 0.3rem 0.6rem;
-        min-width: 50px;
+        padding: 0.3rem 0.7rem;
+        min-width: 52px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
     .date-month {
         display: block;
-        font-size: 0.7rem;
-        font-weight: 600;
+        font-size: 0.65rem;
+        font-weight: 700;
         color: var(--burnt-orange);
         text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .date-day {
         display: block;
-        font-size: 1.2rem;
-        font-weight: 700;
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1.1;
     }
 
     .event-time {
         color: var(--text-secondary);
-        font-size: 0.85rem;
-        margin: 0.3rem 0;
+        font-size: 0.82rem;
+        margin: 0.3rem 0 0.6rem;
     }
 
+    .event-desc {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+        background: var(--bg-elevated);
+        border-radius: 10px;
+        height: 6px;
+        margin: 0.8rem 0 0.4rem;
+        overflow: hidden;
+    }
+
+    .progress {
+        background: var(--gradient-warm);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-warn {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+    }
+
+    .seats-info p {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+    }
+
+    .seats-low {
+        color: #e74c3c !important;
+        font-weight: 600;
+    }
+
+    /* Register button */
     .btn-register {
         background: var(--gradient-warm);
         color: white;
@@ -215,16 +386,42 @@
         cursor: pointer;
         font-weight: 600;
         transition: var(--transition);
+        display: block;
+        text-align: center;
     }
 
         .btn-register:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
+    .btn-register--full {
+        background: var(--bg-elevated) !important;
+        color: var(--text-secondary) !important;
+        cursor: not-allowed;
+    }
+
+    .btn-register--guest {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        background: transparent;
+        border: 2px solid var(--burnt-orange);
+        color: var(--burnt-orange);
+    }
+
+        .btn-register--guest:hover {
+            background: var(--burnt-orange);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    /* Calendar */
     .calendar-view {
         background: var(--bg-card);
         border-radius: 24px;
         padding: 2rem;
+        margin-bottom: 3rem;
     }
 
     .calendar-header {
@@ -254,64 +451,121 @@
         font-weight: 600;
         padding: 0.5rem;
         color: var(--burnt-orange);
+        font-size: 0.85rem;
     }
 
     .calendar-date {
-        padding: 1rem;
+        padding: 0.8rem;
         border-radius: 12px;
         cursor: pointer;
         transition: var(--transition);
+        font-size: 0.9rem;
     }
 
-        .calendar-date:hover, .calendar-date.has-event {
-            background: var(--burnt-orange);
-            color: white;
+        .calendar-date:hover {
+            background: var(--bg-elevated);
         }
 
+        .calendar-date.has-event {
+            background: var(--burnt-orange);
+            color: white;
+            font-weight: 700;
+        }
+
+    /* Past events gallery */
     .past-events {
         margin-top: 4rem;
     }
 
     .gallery-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
-        margin-top: 2rem;
     }
 
     .gallery-item {
         border-radius: 16px;
         overflow: hidden;
-        transition: var(--transition);
+        position: relative;
+        cursor: pointer;
+        aspect-ratio: 4/3;
+        background: var(--bg-elevated);
     }
 
-        .gallery-item:hover {
-            transform: scale(1.05);
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.06);
         }
 
         .gallery-item img {
             width: 100%;
-            height: 150px;
+            height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+            display: block;
         }
 
-    .progress-bar {
-        background: var(--bg-elevated);
-        border-radius: 10px;
-        height: 6px;
-        margin: 0.8rem 0 0.5rem;
-        overflow: hidden;
-    }
-
-    .progress {
-        background: var(--gradient-warm);
+    .gallery-fallback {
+        width: 100%;
         height: 100%;
-        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: var(--text-muted);
     }
 
-    .seats-info p {
-        font-size: 0.75rem;
+    .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(transparent 40%, rgba(0,0,0,0.75));
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 1rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        color: white;
+    }
+
+        .gallery-overlay span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .gallery-overlay small {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 0.2rem;
+        }
+
+    .past-empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: var(--bg-card);
+        border-radius: 20px;
         color: var(--text-secondary);
+    }
+
+        .past-empty-state i {
+            font-size: 3rem;
+            opacity: 0.25;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+    @@media (max-width: 1024px) {
+        .events-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     @@media (max-width: 768px) {
@@ -323,6 +577,14 @@
             font-size: 1.5rem;
         }
 
+        .events-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
         .calendar-date {
             padding: 0.5rem;
         }
@@ -330,12 +592,10 @@
 </style>
 
 <script>
-    // Dynamic countdown from the next event's date
     (function () {
         var el = document.getElementById('countdownTimer');
         if (!el) return;
         var target = new Date(el.dataset.target).getTime();
-
         function update() {
             var dist = target - Date.now();
             if (dist < 0) { el.innerHTML = "Event Started!"; return; }
@@ -352,27 +612,23 @@
     var currentMonth = new Date().getMonth();
     var currentYear = new Date().getFullYear();
 
-    function toggleView(view) {
+    function toggleView(view, btn) {
         document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
         document.getElementById('calendarView').style.display = view === 'grid' ? 'none' : 'block';
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        if (event && event.target) event.target.closest('.view-btn').classList.add('active');
+        btn.classList.add('active');
         if (view === 'calendar') renderCalendar();
     }
 
     function renderCalendar() {
         var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         document.getElementById('currentMonthYear').innerText = monthNames[currentMonth] + ' ' + currentYear;
-
         var firstDay = new Date(currentYear, currentMonth, 1).getDay();
         var totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-        // collect event dates from rendered cards
         var eventDates = Array.from(document.querySelectorAll('.event-card[data-date]'))
             .map(c => new Date(c.dataset.date))
             .filter(d => d.getFullYear() === currentYear && d.getMonth() === currentMonth)
             .map(d => d.getDate());
-
         var html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => '<div class="calendar-day-header">' + d + '</div>').join('');
         for (var i = 0; i < firstDay; i++) html += '<div class="calendar-date"></div>';
         for (var date = 1; date <= totalDays; date++) {
@@ -393,8 +649,75 @@
         showToast('Check grid view for events on day ' + date);
     }
 
-    function registerEvent(eventId) {
-        if (window.registerForEvent) window.registerForEvent(eventId);
+    async function registerEvent(eventId, btn) {
+        btn.disabled = true;
+        btn.textContent = 'Registering...';
+        try {
+            var res = await fetch('/api/events/' + eventId + '/register', { method: 'POST' });
+            var data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Registered successfully!');
+                btn.className = btn.className.replace('btn-register', 'btn-register btn-register--registered');
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Registered — Cancel';
+                btn.disabled = false;
+                btn.onclick = function(e) { e.stopPropagation(); cancelEvent(eventId, btn); };
+                // update seat count
+                var card = btn.closest('.event-card');
+                if (card) {
+                    var seatsEl = card.querySelector('.seats-info p');
+                    if (seatsEl && !seatsEl.classList.contains('seats-low')) {
+                        var match = seatsEl.textContent.match(/(\d+)/);
+                        if (match) {
+                            var n = parseInt(match[1]) - 1;
+                            seatsEl.textContent = n + (n === 1 ? ' seat available' : ' seats available');
+                        }
+                    }
+                }
+            } else {
+                showToast(data.message || 'Could not register.');
+                btn.disabled = false;
+                btn.textContent = 'Register Now →';
+            }
+        } catch (e) {
+            showToast('Network error. Please try again.');
+            btn.disabled = false;
+            btn.textContent = 'Register Now →';
+        }
+    }
+
+    async function cancelEvent(eventId, btn) {
+        btn.disabled = true;
+        btn.textContent = 'Cancelling...';
+        try {
+            var res = await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+            var data = await res.json();
+            if (res.ok) {
+                showToast('Registration cancelled.');
+                btn.className = btn.className.replace('btn-register--registered', '').trim();
+                btn.innerHTML = 'Register Now →';
+                btn.disabled = false;
+                btn.onclick = function(e) { e.stopPropagation(); registerEvent(eventId, btn); };
+                var card = btn.closest('.event-card');
+                if (card) {
+                    var seatsEl = card.querySelector('.seats-info p');
+                    if (seatsEl) {
+                        var match = seatsEl.textContent.match(/(\d+)/);
+                        if (match) {
+                            var n = parseInt(match[1]) + 1;
+                            seatsEl.textContent = n + (n === 1 ? ' seat available' : ' seats available');
+                        }
+                    }
+                }
+            } else {
+                showToast(data.message || 'Could not cancel.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Registered — Cancel';
+            }
+        } catch (e) {
+            showToast('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Registered — Cancel';
+        }
     }
 
     function showToast(message) {

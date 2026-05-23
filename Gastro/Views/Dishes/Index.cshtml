@@ -4,6 +4,7 @@
     ViewData["Title"] = "Dish Discovery - TasteCebu";
     var dishes = ViewData["DatabaseDishes"] as List<GastroCebu.Models.DishListing> ?? new();
     var featuredDish = dishes.FirstOrDefault(d => d.IsTrending) ?? dishes.FirstOrDefault();
+    var isAuth = User.Identity?.IsAuthenticated == true;
 }
 
 @* DISH OF THE DAY HERO — only shown when there is at least one dish *@
@@ -27,8 +28,22 @@
                     }
                 </div>
                 <div class="dish-actions">
-                    <button class="btn-tried" onclick="triedDish('@featuredDish.Name', @featuredDish.Id)"><i class="fas fa-check-circle"></i> I Tried This</button>
-                    <button class="btn-crave" onclick="addToCravings('@featuredDish.Name', @featuredDish.Id, 'dish')"><i class="fas fa-heart"></i> Add to Cravings</button>
+                    @if (isAuth)
+                    {
+                        <button class="btn-tried" onclick="triedDish('@featuredDish.Name', @featuredDish.Id)"><i class="fas fa-check-circle"></i> I Tried This</button>
+                    }
+                    else
+                    {
+                        <button class="btn-tried btn-tried--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Track</button>
+                    }
+                    @if (isAuth)
+                    {
+                        <button class="btn-crave" onclick="addToCravings('@featuredDish.Name', @featuredDish.Id, 'dish')"><i class="fas fa-heart"></i> Add to Cravings</button>
+                    }
+                    else
+                    {
+                        <button class="btn-crave btn-crave--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Save</button>
+                    }
                 </div>
             </div>
             <div class="dish-of-day-image" data-aos="fade-left">
@@ -113,58 +128,94 @@
         <div class="masonry-grid" id="dishesGrid">
             @if (dishes.Any(d => d.IsTrending))
             {
-                <div class="section-label">
-                    <h3><i class="fas fa-fire"></i> Trending Now</h3>
-                </div>
-                @foreach (var dish in dishes.Where(d => d.IsTrending))
-                {
-                    <div class="dish-card" data-category="trending" data-name="@dish.Name">
-                        <div class="card-image">
-                            <img src="@dish.PhotoUrl" alt="@dish.Name">
-                            <span class="card-badge">TRENDING</span>
-                        </div>
-                        <div class="card-content">
-                            <h3>@dish.Name</h3>
-                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
-                            <div class="dish-tags">
-                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                {
-                                    <span class="tag">@tag.Trim()</span>
-                                }
-                            </div>
-                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
-                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
-                        </div>
+                <div class="section-group">
+                    <div class="section-label">
+                        <h3><i class="fas fa-fire"></i> Trending Now</h3>
                     </div>
-                }
+                    <div class="section-group-cards">
+                        @foreach (var dish in dishes.Where(d => d.IsTrending))
+                        {
+                            <div class="dish-card" data-category="trending" data-name="@dish.Name">
+                                <div class="card-image">
+                                    <img src="@dish.PhotoUrl" alt="@dish.Name">
+                                    <span class="card-badge">TRENDING</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>@dish.Name</h3>
+                                    <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                                    <div class="dish-tags">
+                                        @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <span class="tag">@tag.Trim()</span>
+                                        }
+                                    </div>
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-tried btn-tried--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Track</button>
+                                    }
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-crave btn-crave--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Save</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
 
             @if (dishes.Any(d => d.IsNewThisMonth))
             {
-                <div class="section-label">
-                    <h3><i class="fas fa-certificate"></i> New This Month</h3>
-                </div>
-                @foreach (var dish in dishes.Where(d => d.IsNewThisMonth))
-                {
-                    <div class="dish-card" data-category="new" data-name="@dish.Name">
-                        <div class="card-image">
-                            <img src="@dish.PhotoUrl" alt="@dish.Name">
-                            <span class="card-badge new-badge">NEW</span>
-                        </div>
-                        <div class="card-content">
-                            <h3>@dish.Name</h3>
-                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
-                            <div class="dish-tags">
-                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                {
-                                    <span class="tag">@tag.Trim()</span>
-                                }
-                            </div>
-                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
-                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
-                        </div>
+                <div class="section-group">
+                    <div class="section-label">
+                        <h3><i class="fas fa-certificate"></i> New This Month</h3>
                     </div>
-                }
+                    <div class="section-group-cards">
+                        @foreach (var dish in dishes.Where(d => d.IsNewThisMonth))
+                        {
+                            <div class="dish-card" data-category="new" data-name="@dish.Name">
+                                <div class="card-image">
+                                    <img src="@dish.PhotoUrl" alt="@dish.Name">
+                                    <span class="card-badge new-badge">NEW</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>@dish.Name</h3>
+                                    <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                                    <div class="dish-tags">
+                                        @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <span class="tag">@tag.Trim()</span>
+                                        }
+                                    </div>
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-tried btn-tried--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Track</button>
+                                    }
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-crave btn-crave--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Save</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
 
             @{
@@ -172,31 +223,49 @@
             }
             @if (otherDishes.Any())
             {
-                <div class="section-label">
-                    <h3><i class="fas fa-utensils"></i> All Dishes</h3>
-                </div>
-                @foreach (var dish in otherDishes)
-                {
-                    var firstTag = (dish.Tags ?? "dish").Split(',').FirstOrDefault()?.Trim().ToLowerInvariant().Replace(" ", "-") ?? "dish";
-                    <div class="dish-card" data-category="@firstTag" data-name="@dish.Name">
-                        <div class="card-image">
-                            <img src="@dish.PhotoUrl" alt="@dish.Name">
-                            <span class="card-badge">@(dish.Tags?.Split(',').FirstOrDefault()?.Trim().ToUpperInvariant() ?? "DISH")</span>
-                        </div>
-                        <div class="card-content">
-                            <h3>@dish.Name</h3>
-                            <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
-                            <div class="dish-tags">
-                                @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
-                                {
-                                    <span class="tag">@tag.Trim()</span>
-                                }
-                            </div>
-                            <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
-                            <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
-                        </div>
+                <div class="section-group">
+                    <div class="section-label">
+                        <h3><i class="fas fa-utensils"></i> All Dishes</h3>
                     </div>
-                }
+                    <div class="section-group-cards">
+                        @foreach (var dish in otherDishes)
+                        {
+                            var firstTag = (dish.Tags ?? "dish").Split(',').FirstOrDefault()?.Trim().ToLowerInvariant().Replace(" ", "-") ?? "dish";
+                            <div class="dish-card" data-category="@firstTag" data-name="@dish.Name">
+                                <div class="card-image">
+                                    <img src="@dish.PhotoUrl" alt="@dish.Name">
+                                    <span class="card-badge">@(dish.Tags?.Split(',').FirstOrDefault()?.Trim().ToUpperInvariant() ?? "DISH")</span>
+                                </div>
+                                <div class="card-content">
+                                    <h3>@dish.Name</h3>
+                                    <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
+                                    <div class="dish-tags">
+                                        @foreach (var tag in (dish.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <span class="tag">@tag.Trim()</span>
+                                        }
+                                    </div>
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">I Tried This</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-tried btn-tried--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Track</button>
+                                    }
+                                    @if (isAuth)
+                                    {
+                                        <button class="btn-crave" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">Add to Cravings</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-crave btn-crave--guest" onclick="showGuestModal(window.location.pathname)"><i class="fas fa-lock"></i> Sign in to Save</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
         </div>
     }
@@ -279,20 +348,29 @@
     }
 
     .masonry-grid {
-        column-count: 3;
-        column-gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .section-group {
+        margin-bottom: 2.5rem;
     }
 
     .section-label {
-        column-span: all;
-        margin: 2rem 0 1rem;
+        margin: 0 0 1rem;
         padding-left: 0.5rem;
         border-left: 4px solid var(--burnt-orange);
     }
 
+    .section-group-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
     .dish-card, .restaurant-card {
-        break-inside: avoid;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0;
     }
 
     .dish-price {
@@ -344,9 +422,33 @@
             color: white;
         }
 
+    .btn-crave--guest {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        opacity: 0.8;
+        width: 100%;
+    }
+
+        .btn-crave--guest:hover {
+            opacity: 1;
+        }
+
+    .btn-tried--guest {
+        display: block;
+        text-align: center;
+        text-decoration: none;
+        opacity: 0.8;
+        width: 100%;
+    }
+
+        .btn-tried--guest:hover {
+            opacity: 1;
+        }
+
     @@media (max-width: 1024px) {
-        .masonry-grid {
-            column-count: 2;
+        .section-group-cards {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 
@@ -355,8 +457,8 @@
             grid-template-columns: 1fr;
         }
 
-        .masonry-grid {
-            column-count: 1;
+        .section-group-cards {
+            grid-template-columns: 1fr;
         }
 
         .dish-of-day-content h2 {
@@ -402,14 +504,6 @@
             this.src = 'https://placehold.co/400x300/1a1a1a/888?text=No+Photo';
         });
     });
-
-    function triedDish(dishName, dishId) {
-        showToast('You tried ' + dishName + '! Added to your food journey.');
-    }
-
-    function addToCravings(itemName, itemId, type) {
-        showToast(itemName + ' added to your Cravings List!');
-    }
 
     function showToast(message) {
         var toast = document.createElement('div');

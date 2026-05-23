@@ -7,6 +7,11 @@
     var reviews = ViewData["Reviews"] as List<GastroCebu.Models.ReviewEntry> ?? new();
     var reviewNames = ViewData["ReviewNames"] as Dictionary<int, string> ?? new();
     var activities = ViewData["Activities"] as List<GastroCebu.Models.ActivityEntry> ?? new();
+    var triedDishes = ViewData["TriedDishes"] as List<GastroCebu.Models.DishListing> ?? new();
+    var registeredEvents = ViewData["RegisteredEvents"] as List<GastroCebu.Models.FoodEvent> ?? new();
+    FoodEvent? GetEvent(int id) => registeredEvents.FirstOrDefault(e => e.Id == id);
+
+    var avatarUrl = string.IsNullOrWhiteSpace(profileUser?.AvatarUrl) ? "/images/default.jpg" : profileUser!.AvatarUrl;
 
     // Real stats
     var reviewCount = reviews.Count;
@@ -28,184 +33,248 @@
         </div>
         <div class="profile-info">
             <div class="profile-avatar">
-                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Avatar">
-                <button class="edit-avatar"><i class="fas fa-camera"></i></button>
+                <img src="@avatarUrl" alt="Avatar" id="profileAvatarImg" onerror="this.src='/images/default.jpg'">
+                <label class="edit-avatar" for="avatarFileInput" title="Change photo">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="uploadAvatar(this)">
             </div>
             <div class="profile-details">
                 <h1 id="profileName">@(profileUser?.FullName ?? User.Identity?.Name ?? "User")</h1>
-                <p class="profile-location"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">@(profileUser?.Location ?? "Cebu City, Philippines")</span></p>
-                <div class="foodie-level">
-                    <span class="level-badge">Foodie Level @level</span>
-                    <div class="level-progress">
-                        <div class="level-bar" style="width: @barPct%"></div>
-                    </div>
-                    <span class="next-level">@xpToNext points to Level @(level + 1)</span>
+                <p class="profile-location">
+                    <i class="fas fa-map-marker-alt"></i> <span id="profileLocation">@(profileUser?.Location ?? "")</span>@if (string.IsNullOrWhiteSpace(profileUser?.Location)) {
+                    <span class="location-hint" style="color:var(--text-muted);font-size:0.85rem"> Add your location</span>
+                }
+            </p>
+            <div class="foodie-level">
+                <span class="level-badge">Foodie Level @level</span>
+                <div class="level-progress">
+                    <div class="level-bar" style="width: @barPct%"></div>
                 </div>
-            </div>
-            <div class="profile-stats">
-                <div class="profile-stat">
-                    <div class="stat-number">@(dishBookmarks.Count)</div>
-                    <div class="stat-label">Dishes Saved</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="stat-number">@savedRestaurants</div>
-                    <div class="stat-label">Restaurants</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="stat-number">@reviewCount</div>
-                    <div class="stat-label">Reviews</div>
-                </div>
-                <div class="profile-stat">
-                    <div class="stat-number">@eventsJoined</div>
-                    <div class="stat-label">Events Joined</div>
-                </div>
-            </div>
-            <div class="profile-actions">
-                <button class="profile-action-btn" onclick="openProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
-                <button class="profile-action-btn" onclick="openPasswordModal()"><i class="fas fa-key"></i> Change Password</button>
+                <span class="next-level">@xpToNext points to Level @(level + 1)</span>
             </div>
         </div>
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <div class="stat-number">@(dishBookmarks.Count)</div>
+                <div class="stat-label">Dishes Saved</div>
+            </div>
+            <div class="profile-stat">
+                <div class="stat-number">@savedRestaurants</div>
+                <div class="stat-label">Restaurants</div>
+            </div>
+            <div class="profile-stat">
+                <div class="stat-number">@reviewCount</div>
+                <div class="stat-label">Reviews</div>
+            </div>
+            <div class="profile-stat">
+                <div class="stat-number">@eventsJoined</div>
+                <div class="stat-label">Events Joined</div>
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button class="profile-action-btn" onclick="openProfileModal()"><i class="fas fa-pen"></i> Edit Profile</button>
+            <button class="profile-action-btn" onclick="openPasswordModal()"><i class="fas fa-key"></i> Change Password</button>
+        </div>
+    </div>
+</div>
+
+<div class="profile-tabs">
+    <button class="profile-tab active" onclick="showProfileTab('reviews')">My Reviews</button>
+    <button class="profile-tab" onclick="showProfileTab('cravings')">Cravings List</button>
+    <button class="profile-tab" onclick="showProfileTab('events')">My Events</button>
+    <button class="profile-tab" onclick="showProfileTab('tried')">Dishes I Tried</button>
+    <button class="profile-tab" onclick="showProfileTab('activity')">Activity Feed</button>
+</div>
+
+<!-- MY REVIEWS TAB -->
+<div id="reviewsTab" class="profile-tab-content active">
+    <div class="reviews-list">
+        @if (!reviews.Any())
+        {
+            <p class="empty-state">No reviews yet. Start exploring and share your thoughts!</p>
+        }
+        @foreach (var review in reviews)
+        {
+            var name = reviewNames.TryGetValue(review.Id, out var n) ? n : $"{review.TargetType} #{review.TargetId}";
+            <div class="review-item" data-review-id="@review.Id">
+                <div class="review-restaurant">
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@name">
+                    <div>
+                        <h4>@name</h4>
+                        <div class="review-stars">
+                            @for (var i = 0; i < review.Rating; i++)
+                            {
+                                <i class="fas fa-star"></i>
+                            }
+                            @for (var i = review.Rating; i < 5; i++)
+                            {
+                                <i class="far fa-star"></i>
+                            }
+                        </div>
+                        <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                    </div>
+                </div>
+                <p class="review-text">@review.Text</p>
+                <div class="inline-actions">
+                    <button onclick="editReview(this)">Edit</button>
+                    <button onclick="deleteReview(this)">Delete</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- CRAVINGS LIST TAB -->
+<div id="cravingsTab" class="profile-tab-content">
+
+    @* Saved Restaurants *@
+    <h3 class="cravings-section-title"><i class="fas fa-store"></i> Saved Restaurants</h3>
+    <div class="cravings-list" id="restaurantCravingsList">
+        @if (!restaurantBookmarks.Any())
+        {
+            <p class="empty-state">No saved restaurants yet.</p>
+        }
+        @foreach (var bookmark in restaurantBookmarks)
+        {
+            <div class="craving-item" data-item-type="restaurant" data-item-id="@bookmark.ItemId">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
+                <div class="craving-info">
+                    <h4>@bookmark.ItemName</h4>
+                    <p>Restaurant &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                </div>
+                <button class="btn-remove-craving" onclick="removeCraving(this, 'restaurant', @bookmark.ItemId)">Remove</button>
+            </div>
+        }
     </div>
 
-    <div class="profile-tabs">
-        <button class="profile-tab active" onclick="showProfileTab('reviews')">My Reviews</button>
-        <button class="profile-tab" onclick="showProfileTab('cravings')">Cravings List</button>
-        <button class="profile-tab" onclick="showProfileTab('events')">My Events</button>
-        <button class="profile-tab" onclick="showProfileTab('activity')">Activity Feed</button>
+    @* Saved Dishes *@
+    <h3 class="cravings-section-title" style="margin-top:2rem"><i class="fas fa-utensils"></i> Saved Dishes</h3>
+    <div class="cravings-list" id="dishCravingsList">
+        @if (!dishBookmarks.Any())
+        {
+            <p class="empty-state">No saved dishes yet.</p>
+        }
+        @foreach (var bookmark in dishBookmarks)
+        {
+            <div class="craving-item" data-item-type="dish" data-item-id="@bookmark.ItemId">
+                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
+                <div class="craving-info">
+                    <h4>@bookmark.ItemName</h4>
+                    <p>Dish &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+                </div>
+                <button class="btn-remove-craving" onclick="removeCraving(this, 'dish', @bookmark.ItemId)">Remove</button>
+            </div>
+        }
     </div>
 
-    <!-- MY REVIEWS TAB -->
-    <div id="reviewsTab" class="profile-tab-content active">
-        <div class="reviews-list">
-            @if (!reviews.Any())
+    <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
+        <button class="btn-explore-more" onclick="location.href='/Restaurants'" style="flex:1">+ Save Restaurants</button>
+        <button class="btn-explore-more" onclick="location.href='/Dishes'" style="flex:1">+ Save Dishes</button>
+    </div>
+</div>
+
+<!-- MY EVENTS TAB -->
+<div id="eventsTab" class="profile-tab-content">
+    <div class="events-list" id="registeredEventsList">
+        @if (!registrations.Any())
+        {
+            <p class="empty-state">No events registered yet. <a href="/Events">Browse upcoming events →</a></p>
+        }
+        @foreach (var registration in registrations)
+        {
+            var ev = GetEvent(registration.EventId);
+            var evDate = ev?.Date.ToLocalTime() ?? registration.RegisteredAt.ToLocalTime();
+            var evLocation = ev?.Location ?? "Cebu";
+            var isPast = ev != null && ev.Date < DateTime.UtcNow;
+            <div class="event-item" data-event-id="@registration.EventId">
+                <a href="/Events/Detail/@registration.EventId" class="event-date-badge" style="text-decoration:none;color:white">
+                    <span class="event-date-month">@evDate.ToString("MMM").ToUpperInvariant()</span>
+                    <span class="event-date-day">@evDate.Day</span>
+                </a>
+                <div class="event-info">
+                    <h4><a href="/Events/Detail/@registration.EventId" style="color:var(--text-primary);text-decoration:none">@registration.EventTitle</a></h4>
+                    <p><i class="fas fa-map-marker-alt"></i> @evLocation</p>
+                    <p><i class="far fa-clock"></i> @evDate.ToString("MMM d, yyyy · h:mm tt")</p>
+                </div>
+                <span class="event-status @(isPast ? "pending" : "confirmed")">@(isPast ? "Attended" : "Confirmed")</span>
+                @if (!isPast)
+                {
+                    <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ACTIVITY FEED TAB -->
+<div id="triedTab" class="profile-tab-content">
+    @if (!triedDishes.Any())
+    {
+        <p class="empty-state">You haven't tried any dishes yet. <a href="/Dishes">Explore dishes &rarr;</a></p>
+    }
+    else
+    {
+        <div class="card-grid">
+            @foreach (var dish in triedDishes)
             {
-                <p class="empty-state">No reviews yet. Start exploring and share your thoughts!</p>
-            }
-            @foreach (var review in reviews)
-            {
-                var name = reviewNames.TryGetValue(review.Id, out var n) ? n : $"{review.TargetType} #{review.TargetId}";
-                <div class="review-item" data-review-id="@review.Id">
-                    <div class="review-restaurant">
-                        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@name">
-                        <div>
-                            <h4>@name</h4>
-                            <div class="review-stars">
-                                @for (var i = 0; i < review.Rating; i++)
+                <div class="dish-card">
+                    <div class="card-image">
+                        @if (!string.IsNullOrWhiteSpace(dish.PhotoUrl))
+                        {
+                            <img src="@dish.PhotoUrl" alt="@dish.Name">
+                        }
+                        else
+                        {
+                            <div style="height:220px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;color:var(--text-muted)">No Photo</div>
+                        }
+                        @if (dish.IsTrending)
+                        {
+                            <span class="card-badge">TRENDING</span>
+                        }
+                        @if (dish.IsNewThisMonth)
+                        {
+                            <span class="card-badge new-badge">NEW</span>
+                        }
+                    </div>
+                    <div class="card-content">
+                        <h3>@dish.Name</h3>
+                        <p style="color:var(--burnt-orange);font-weight:600">PHP @dish.Price.ToString("0.##")</p>
+                        @if (!string.IsNullOrWhiteSpace(dish.Tags))
+                        {
+                            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem">
+                                @foreach (var tag in dish.Tags.Split(',', System.StringSplitOptions.RemoveEmptyEntries))
                                 {
-                                    <i class="fas fa-star"></i>
-                                }
-                                @for (var i = review.Rating; i < 5; i++)
-                                {
-                                    <i class="far fa-star"></i>
+                                    <span class="dish-tag">@tag.Trim()</span>
                                 }
                             </div>
-                            <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
-                        </div>
-                    </div>
-                    <p class="review-text">@review.Text</p>
-                    <div class="inline-actions">
-                        <button onclick="editReview(this)">Edit</button>
-                        <button onclick="deleteReview(this)">Delete</button>
+                        }
+                        <a href="/Dishes/Detail/@dish.Id" class="btn-primary" style="display:block;text-align:center;margin-top:1rem;text-decoration:none">View Dish</a>
                     </div>
                 </div>
             }
         </div>
+    }
+</div>
+
+<div id="activityTab" class="profile-tab-content">
+    <div class="activity-feed">
+        @if (!activities.Any())
+        {
+            <p class="empty-state">No activity yet.</p>
+        }
+        @foreach (var activity in activities)
+        {
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-circle"></i></div>
+                <div class="activity-content">
+                    <p>@activity.Message</p>
+                    <span class="activity-time">@activity.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                </div>
+            </div>
+        }
     </div>
-
-    <!-- CRAVINGS LIST TAB -->
-    <div id="cravingsTab" class="profile-tab-content">
-
-        @* Saved Restaurants *@
-        <h3 class="cravings-section-title"><i class="fas fa-store"></i> Saved Restaurants</h3>
-        <div class="cravings-list" id="restaurantCravingsList">
-            @if (!restaurantBookmarks.Any())
-            {
-                <p class="empty-state">No saved restaurants yet.</p>
-            }
-            @foreach (var bookmark in restaurantBookmarks)
-            {
-                <div class="craving-item" data-item-type="restaurant" data-item-id="@bookmark.ItemId">
-                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
-                    <div class="craving-info">
-                        <h4>@bookmark.ItemName</h4>
-                        <p>Restaurant &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
-                    </div>
-                    <button class="btn-remove-craving" onclick="removeCraving(this, 'restaurant', @bookmark.ItemId)">Remove</button>
-                </div>
-            }
-        </div>
-
-        @* Saved Dishes *@
-        <h3 class="cravings-section-title" style="margin-top:2rem"><i class="fas fa-utensils"></i> Saved Dishes</h3>
-        <div class="cravings-list" id="dishCravingsList">
-            @if (!dishBookmarks.Any())
-            {
-                <p class="empty-state">No saved dishes yet.</p>
-            }
-            @foreach (var bookmark in dishBookmarks)
-            {
-                <div class="craving-item" data-item-type="dish" data-item-id="@bookmark.ItemId">
-                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=100&h=100&fit=crop" alt="@bookmark.ItemName">
-                    <div class="craving-info">
-                        <h4>@bookmark.ItemName</h4>
-                        <p>Dish &middot; saved @bookmark.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
-                    </div>
-                    <button class="btn-remove-craving" onclick="removeCraving(this, 'dish', @bookmark.ItemId)">Remove</button>
-                </div>
-            }
-        </div>
-
-        <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap">
-            <button class="btn-explore-more" onclick="location.href='/Restaurants'" style="flex:1">+ Save Restaurants</button>
-            <button class="btn-explore-more" onclick="location.href='/Dishes'" style="flex:1">+ Save Dishes</button>
-        </div>
-    </div>
-
-    <!-- MY EVENTS TAB -->
-    <div id="eventsTab" class="profile-tab-content">
-        <div class="events-list" id="registeredEventsList">
-            @if (!registrations.Any())
-            {
-                <p class="empty-state">No events registered yet.</p>
-            }
-            @foreach (var registration in registrations)
-            {
-                <div class="event-item" data-event-id="@registration.EventId">
-                    <div class="event-date-badge">
-                        <span class="event-date-month">EVT</span>
-                        <span class="event-date-day">@registration.EventId</span>
-                    </div>
-                    <div class="event-info">
-                        <h4>@registration.EventTitle</h4>
-                        <p><i class="fas fa-map-marker-alt"></i> Cebu</p>
-                        <p><i class="far fa-clock"></i> Registered @registration.RegisteredAt.ToLocalTime().ToString("MMM d, yyyy")</p>
-                    </div>
-                    <span class="event-status confirmed">Confirmed</span>
-                    <button class="btn-remove-craving" onclick="cancelEvent(this)">Cancel</button>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- ACTIVITY FEED TAB -->
-    <div id="activityTab" class="profile-tab-content">
-        <div class="activity-feed">
-            @if (!activities.Any())
-            {
-                <p class="empty-state">No activity yet.</p>
-            }
-            @foreach (var activity in activities)
-            {
-                <div class="activity-item">
-                    <div class="activity-icon"><i class="fas fa-circle"></i></div>
-                    <div class="activity-content">
-                        <p>@activity.Message</p>
-                        <span class="activity-time">@activity.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
+</div>
 </section>
 
 <div class="profile-modal" id="profileModal">
@@ -280,16 +349,26 @@
 
     .edit-avatar {
         position: absolute;
-        bottom: 0;
-        right: 0;
+        bottom: 2px;
+        right: 2px;
         background: var(--burnt-orange);
-        border: none;
-        width: 30px;
-        height: 30px;
+        border: 2px solid var(--bg-card);
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         color: white;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        transition: var(--transition);
     }
+
+        .edit-avatar:hover {
+            background: var(--terracotta);
+            transform: scale(1.1);
+        }
 
     .profile-details h1 {
         font-size: 1.8rem;
@@ -631,11 +710,13 @@
     async function cancelEvent(btn) {
         var item = btn.closest('.event-item');
         var eventId = item.dataset.eventId;
-        if (eventId) {
-            await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
-        }
+        if (!eventId) return;
+        try {
+            var res = await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+            if (!res.ok) { showToast('Could not cancel registration. Please try again.'); return; }
+        } catch (e) { showToast('Network error. Please try again.'); return; }
         item.remove();
-        showToast('Event registration cancelled');
+        showToast('Event registration cancelled.');
     }
 
     function editReview(btn) {
@@ -702,11 +783,13 @@
 
     async function deleteReview(btn) {
         var item = btn.closest('.review-item');
-        if (item.dataset.reviewId) {
-            await fetch('/api/reviews/' + item.dataset.reviewId, { method: 'DELETE' });
-        }
+        if (!item.dataset.reviewId) return;
+        try {
+            var res = await fetch('/api/reviews/' + item.dataset.reviewId, { method: 'DELETE' });
+            if (!res.ok) { showToast('Could not delete review. Please try again.'); return; }
+        } catch (e) { showToast('Network error. Please try again.'); return; }
         item.remove();
-        showToast('Review deleted');
+        showToast('Review deleted.');
     }
 
     function openProfileModal() {
@@ -727,31 +810,58 @@
     async function saveProfile() {
         var name = document.getElementById('editProfileName').value.trim();
         var location = document.getElementById('editProfileLocation').value.trim();
-        if (!name || !location) { showToast('Please complete the profile fields'); return; }
-        await fetch('/Account/UpdateProfile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ fullName: name, location: location })
-        });
+        if (!name || !location) { showToast('Please complete the profile fields.'); return; }
+        try {
+            var res = await fetch('/Account/UpdateProfile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ fullName: name, location: location })
+            });
+            if (!res.ok) { showToast('Could not update profile. Please try again.'); return; }
+        } catch (e) { showToast('Network error. Please try again.'); return; }
         document.getElementById('profileName').innerText = name;
         document.getElementById('profileLocation').innerText = location;
         closeProfileModals();
-        showToast('Profile updated');
+        showToast('Profile updated!');
     }
 
     async function changePassword() {
         var current = document.getElementById('currentPassword').value.trim();
         var next = document.getElementById('newPassword').value.trim();
-        if (!current || next.length < 6) { showToast('New password must be at least 6 characters'); return; }
-        await fetch('/Account/ChangePassword', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ currentPassword: current, newPassword: next })
-        });
+        if (!current) { showToast('Please enter your current password.'); return; }
+        if (next.length < 6) { showToast('New password must be at least 6 characters.'); return; }
+        try {
+            var res = await fetch('/Account/ChangePassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ currentPassword: current, newPassword: next })
+            });
+            if (!res.ok) { showToast('Current password is incorrect.'); return; }
+        } catch (e) { showToast('Network error. Please try again.'); return; }
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
         closeProfileModals();
-        showToast('Password changed');
+        showToast('Password changed successfully!');
+    }
+
+    async function uploadAvatar(input) {
+        var file = input.files[0];
+        if (!file) return;
+        var form = new FormData();
+        form.append('avatar', file);
+        showToast('Uploading...');
+        try {
+            var res = await fetch('/Account/UploadAvatar', { method: 'POST', body: form });
+            var data = await res.json();
+            if (!res.ok) { showToast(data.message || 'Upload failed.'); return; }
+            // bust cache so the new image loads immediately
+            document.getElementById('profileAvatarImg').src = data.url + '?t=' + Date.now();
+            // update navbar avatar too
+            var navAvatar = document.getElementById('navAvatarImg');
+            if (navAvatar) navAvatar.src = data.url + '?t=' + Date.now();
+            showToast('Profile photo updated!');
+        } catch (e) { showToast('Upload failed. Please try again.'); }
+        input.value = '';
     }
 
     function showToast(message) {

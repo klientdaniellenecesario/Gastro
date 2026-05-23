@@ -26,6 +26,9 @@ public class ApiController(SqliteDataStore store) : ControllerBase
         if (request.Rating is < 1 or > 5 || string.IsNullOrWhiteSpace(request.Text))
             return BadRequest(new { message = "Rating and review text are required." });
 
+        if (store.HasReviewed(UserId, request.TargetType, request.TargetId))
+            return BadRequest(new { message = "You have already reviewed this." });
+
         store.AddReview(UserId, request.TargetType, request.TargetId, request.Rating, request.Text.Trim());
         return Ok(new { message = "Review submitted." });
     }
@@ -77,6 +80,14 @@ public class ApiController(SqliteDataStore store) : ControllerBase
             .Select(u => new { u.FullName, u.Email })
             .ToList();
         return Ok(registrants);
+    }
+
+    [HttpPost("dishes/{dishId:int}/tried")]
+    public IActionResult LogTriedDish(int dishId)
+    {
+        var found = store.LogTriedDish(UserId, dishId);
+        if (!found) return NotFound(new { message = "Dish not found." });
+        return Ok(new { message = "Dish marked as tried!" });
     }
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

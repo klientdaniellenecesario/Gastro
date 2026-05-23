@@ -19,7 +19,8 @@ public class AppUser
     public string Email { get; set; } = "";
     public string PasswordHash { get; set; } = "";
     public string Role { get; set; } = "User";
-    public string Location { get; set; } = "Cebu City, Philippines";
+    public string Location { get; set; } = "";
+    public string AvatarUrl { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -32,6 +33,7 @@ public class RestaurantListing
     public string PhotoUrl { get; set; } = "";
     public string Description { get; set; } = "";
     public decimal Rating { get; set; }
+    public string Vibe { get; set; } = "all";   // all | chill | romantic | fun | solo | family
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -88,6 +90,14 @@ public class EventRegistration
     public int EventId { get; set; }
     public string EventTitle { get; set; } = "";
     public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
+}
+
+public class TriedDish
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public int DishId { get; set; }
+    public DateTime TriedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class ActivityEntry

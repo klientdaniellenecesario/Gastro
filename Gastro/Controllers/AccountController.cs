@@ -10,10 +10,12 @@ namespace GastroCebu.Controllers;
 public class AccountController : Controller
 {
     private readonly SqliteDataStore _store;
+    private readonly IWebHostEnvironment _env;
 
-    public AccountController(SqliteDataStore store)
+    public AccountController(SqliteDataStore store, IWebHostEnvironment env)
     {
         _store = store;
+        _env = env;
     }
 
     [HttpGet]
@@ -74,10 +76,13 @@ public class AccountController : Controller
         ViewData["ProfileUser"] = _store.FindUserById(userId);
         ViewData["RestaurantBookmarks"] = _store.GetBookmarks(userId, "restaurant");
         ViewData["DishBookmarks"] = _store.GetBookmarks(userId, "dish");
-        ViewData["Registrations"] = _store.GetRegistrations(userId);
+        var registrations = _store.GetRegistrations(userId);
+        ViewData["Registrations"] = registrations;
+        ViewData["RegisteredEvents"] = _store.GetEventsByIds(registrations.Select(r => r.EventId).ToList());
         ViewData["Reviews"] = reviews;
         ViewData["ReviewNames"] = _store.ResolveReviewNames(reviews);
         ViewData["Activities"] = _store.GetActivities(userId);
+        ViewData["TriedDishes"] = _store.GetTriedDishes(userId);
         return View();
     }
 
@@ -117,6 +122,34 @@ public class AccountController : Controller
         _store.ChangePassword(user.Id, newPassword);
         TempData["Success"] = "Password changed.";
         return RedirectToAction("Profile");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+    {
+        if (avatar is null || avatar.Length == 0)
+            return BadRequest(new { message = "No file uploaded." });
+
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var ext = Path.GetExtension(avatar.FileName).ToLowerInvariant();
+        if (!allowed.Contains(ext))
+            return BadRequest(new { message = "Only JPG, PNG, WEBP, or GIF files are allowed." });
+
+        if (avatar.Length > 5 * 1024 * 1024)
+            return BadRequest(new { message = "File size must be under 5 MB." });
+
+        var uploadsPath = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+        Directory.CreateDirectory(uploadsPath);
+
+        var fileName = $"{GetUserId()}{ext}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+        using (var stream = new FileStream(filePath, FileMode.Create))
+            await avatar.CopyToAsync(stream);
+
+        var avatarUrl = $"/uploads/avatars/{fileName}";
+        _store.UpdateAvatar(GetUserId(), avatarUrl);
+        return Ok(new { url = avatarUrl });
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

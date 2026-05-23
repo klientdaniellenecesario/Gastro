@@ -6,13 +6,14 @@
     var trendingDishes = Model.TrendingDishes;
     var newDishes = Model.NewDishes;
     var upcomingEvents = Model.UpcomingEvents;
+    var isAuth = User.Identity?.IsAuthenticated == true;
 }
 
 @* HERO SECTION *@
 <section class="hero">
     <div class="hero-content" data-aos="fade-up">
         <div class="hero-badge">
-            <i class="fas fa-utensil-spoon"></i> SUGBA • SIKAT • SAB    OR
+            <i class="fas fa-utensil-spoon"></i> SUGBA • SIKAT • SABOR
         </div>
         <h1>Discover Cebu's<br><span class="hero-highlight">Boldest Bites</span></h1>
         <p>From legendary lechon to hidden cafes — your gastro journey starts here</p>
@@ -43,22 +44,12 @@
     </div>
 </div>
 
-@* WHAT'S YOUR VIBE *@
+@* FEATURED RESTAURANTS *@
 <section class="section">
     <div class="section-header" data-aos="fade-up">
-        <h2>What's Your Vibe Today? ✨</h2>
-        <p>Find restaurants that match your mood</p>
+        <h2>Featured Restaurants 🍽️</h2>
+        <p>Cebu's most loved spots, handpicked for you</p>
     </div>
-
-    <div class="vibe-selector" data-aos="fade-up" data-aos-delay="100">
-        <button class="vibe-btn active" onclick="filterByVibe('all')"><i class="fas fa-heart"></i> All</button>
-        <button class="vibe-btn" onclick="filterByVibe('chill')"><i class="fas fa-coffee"></i> Chill</button>
-        <button class="vibe-btn" onclick="filterByVibe('romantic')"><i class="fas fa-heart"></i> Romantic</button>
-        <button class="vibe-btn" onclick="filterByVibe('fun')"><i class="fas fa-music"></i> Loud & Fun</button>
-        <button class="vibe-btn" onclick="filterByVibe('solo')"><i class="fas fa-user"></i> Solo Friendly</button>
-        <button class="vibe-btn" onclick="filterByVibe('family')"><i class="fas fa-users"></i> Family</button>
-    </div>
-
     @if (!featuredRestaurants.Any())
     {
         <div class="home-empty-state" data-aos="fade-up">
@@ -74,9 +65,13 @@
     else
     {
         <div class="card-grid" id="restaurantGrid">
+            @{
+                var restaurantReviewMap = ViewData["RestaurantReviewStats"] as Dictionary<int, (decimal Avg, int Count)>;
+            }
             @foreach (var r in featuredRestaurants)
             {
-                <div class="restaurant-card" data-vibe="all" data-aos="fade-up">
+                var rStat = restaurantReviewMap != null && restaurantReviewMap.ContainsKey(r.Id) ? restaurantReviewMap[r.Id] : (Avg: 0m, Count: 0);
+                <div class="restaurant-card" data-aos="fade-up">
                     <div class="card-image">
                         <img src="@r.PhotoUrl" alt="@r.Name" onerror="this.src='https://placehold.co/400x260/1a1a2e/888?text=No+Photo'">
                         <span class="card-badge">@r.Category.ToUpperInvariant()</span>
@@ -85,15 +80,34 @@
                     <div class="card-content">
                         <h3>@r.Name</h3>
                         <p class="card-location"><i class="fas fa-map-marker-alt"></i> @r.Address</p>
-                        <div class="rating">
-                            <i class="fas fa-star"></i>
-                            <span>@r.Rating.ToString("0.0")</span>
-                        </div>
+                        @if (rStat.Count > 0)
+                        {
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>@rStat.Avg.ToString("0.1") <small style="color:var(--text-secondary);">(@rStat.Count @(rStat.Count == 1 ? "review" : "reviews"))</small></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="rating rating--none">
+                                <i class="far fa-star"></i>
+                                <span style="color:var(--text-secondary);font-size:0.8rem;">No reviews yet</span>
+                            </div>
+                        }
                         <p>@r.Description</p>
                         <div class="card-actions">
-                            <button class="btn-crave" onclick="addToCravings('@r.Name', @r.Id, 'restaurant')">
-                                <i class="fas fa-heart"></i> Crave
-                            </button>
+                            @if (isAuth)
+                            {
+                                <button class="btn-crave" onclick="addToCravings('@r.Name', @r.Id, 'restaurant')">
+                                    <i class="fas fa-heart"></i> Crave
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-crave btn-crave--guest" onclick="showGuestModal('/Restaurants/Detail/@r.Id')">
+                                    <i class="fas fa-heart"></i> Crave
+                                </button>
+                            }
                             <a href="/Restaurants/Detail/@r.Id" class="btn-view">View →</a>
                         </div>
                     </div>
@@ -134,12 +148,36 @@
                     <div class="card-content">
                         <h3>@dish.Name</h3>
                         <p class="dish-price">PHP @dish.Price.ToString("0.##")</p>
-                        <div class="rating">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <button class="btn-tried" onclick="event.stopPropagation(); triedDish('@dish.Name', @dish.Id)">
-                            <i class="fas fa-check-circle"></i> I Tried This
-                        </button>
+                        @{
+                            var dishReviewMap = ViewData["DishReviewStats"] as Dictionary<int, (decimal Avg, int Count)>;
+                            var dStat = dishReviewMap != null && dishReviewMap.ContainsKey(dish.Id) ? dishReviewMap[dish.Id] : (Avg: 0m, Count: 0);
+                        }
+                        @if (dStat.Count > 0)
+                        {
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>@dStat.Avg.ToString("0.1") <small style="color:var(--text-secondary);">(@dStat.Count @(dStat.Count == 1 ? "review" : "reviews"))</small></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="rating rating--none">
+                                <i class="far fa-star"></i>
+                                <span style="color:var(--text-secondary);font-size:0.8rem;">No reviews yet</span>
+                            </div>
+                        }
+                        @if (isAuth)
+                        {
+                            <button class="btn-tried" onclick="event.stopPropagation(); window.TasteCebu.triedDish('@dish.Name', @dish.Id)">
+                                <i class="fas fa-check-circle"></i> I Tried This
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-tried btn-tried--guest" onclick="event.stopPropagation(); showGuestModal('/Dishes/Detail/@dish.Id')">
+                                <i class="fas fa-lock"></i> Sign in to Track
+                            </button>
+                        }
                     </div>
                 </div>
             }
@@ -181,9 +219,18 @@
                                 <span class="tag">@tag.Trim()</span>
                             }
                         </div>
-                        <button class="btn-tried" onclick="triedDish('@dish.Name', @dish.Id)">
-                            <i class="fas fa-check-circle"></i> I Tried This
-                        </button>
+                        @if (isAuth)
+                        {
+                            <button class="btn-tried" onclick="window.TasteCebu.triedDish('@dish.Name', @dish.Id)">
+                                <i class="fas fa-check-circle"></i> I Tried This
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn-tried btn-tried--guest" onclick="showGuestModal('/Dishes/Detail/@dish.Id')">
+                                <i class="fas fa-lock"></i> Sign in to Track
+                            </button>
+                        }
                     </div>
                 </div>
             }
@@ -262,7 +309,7 @@
     <div class="card-grid">
         <div class="story-card" data-aos="fade-up">
             <div class="card-image">
-                <img src="/images/stories/lechon.jpg" alt="Lechon History">
+                <img src="https://images.unsplash.com/photo-1569694119452-2b7eae2e4cbc?w=600&amp;q=80" onerror="this.src='https://placehold.co/600x400/1a1a1a/888?text=Cebu+Lechon'" alt="Lechon History">
             </div>
             <div class="card-content">
                 <h3>Why Cebu Lechon is the Best in the World</h3>
@@ -349,6 +396,14 @@
             color: white;
         }
 
+    .btn-crave--guest {
+        opacity: 0.85;
+    }
+
+        .btn-crave--guest:hover {
+            opacity: 1;
+        }
+
     .btn-view {
         background: var(--gradient-warm);
         color: white;
@@ -375,6 +430,14 @@
         .btn-tried:hover {
             background: var(--burnt-orange);
             color: white;
+        }
+
+    .btn-tried--guest {
+        opacity: 0.85;
+    }
+
+        .btn-tried--guest:hover {
+            opacity: 1;
         }
 
     .dish-price {
@@ -463,29 +526,19 @@
 </style>
 
 <script>
-    function filterByVibe(vibe) {
-        var cards = document.querySelectorAll('.restaurant-card');
-        var buttons = document.querySelectorAll('.vibe-btn');
-        buttons.forEach(b => b.classList.remove('active'));
-        event.target.closest('.vibe-btn').classList.add('active');
-        cards.forEach(card => {
-            card.style.display = (vibe === 'all' || card.dataset.vibe === vibe) ? 'block' : 'none';
-        });
-    }
+    );
+        }
 
-    function triedDish(name, id) {
-        showToast('You tried ' + name + '! 🍽️');
-    }
+        function triedDish(name, id) {
+            // Delegated to window.TasteCebu.triedDish in site.js (handles auth + API call)
+            window.TasteCebu.triedDish(name, id);
+        }
 
-    function addToCravings(name, id, type) {
-        showToast(name + ' added to your Cravings List! ❤️');
-    }
-
-    function showToast(message) {
-        var toast = document.createElement('div');
-        toast.className = 'toast-notification';
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-        setTimeout(function () { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-    }
+        function showToast(message) {
+            var toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(function () { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
 </script>

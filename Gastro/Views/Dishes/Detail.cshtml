@@ -32,50 +32,85 @@
     </nav>
 
     <div class="detail-hero-card">
-        <img src="@dish.PhotoUrl" alt="@dish.Name">
-        <div class="detail-hero-copy">
+        <div class="dish-img-wrap">
+            <img src="@dish.PhotoUrl" alt="@dish.Name">
             @if (dish.IsTrending)
             {
-                <span class="detail-kicker">🔥 Trending</span>
+                <span class="img-badge trending">🔥 Trending</span>
             }
             else if (dish.IsNewThisMonth)
             {
-
-                <span class="detail-kicker">✨ New This Month</span>
+                <span class="img-badge new-badge">✨ New</span>
             }
-            else
-            {
-
-                <span class="detail-kicker">Cebu Specialty</span>
-            }
-            <h1>@dish.Name</h1>
-            <p>@dish.Description</p>
-            <div class="detail-meta">
-                <span><i class="fas fa-tag"></i> PHP @dish.Price.ToString("N0")</span>
-                @if (reviews.Count > 0)
+        </div>
+        <div class="detail-hero-copy">
+            <span class="detail-kicker">
+                @if (dish.IsTrending)
                 {
-                    <span><i class="fas fa-star" style="color:var(--golden-yellow)"></i> @avgRating.ToString("F1") (@reviews.Count @(reviews.Count == 1 ? "review" : "reviews"))</span>
+                    <text>🔥 Trending Dish</text>
+                }
+                else if (dish.IsNewThisMonth)
+                {
+
+                    <text>✨ New This Month</text>
                 }
                 else
                 {
-                    <span><i class="fas fa-star"></i> No reviews yet</span>
+
+                    <text>Cebu Specialty</text>
+                }
+            </span>
+            <h1>@dish.Name</h1>
+            <p class="dish-desc">@dish.Description</p>
+
+            <div class="detail-meta">
+                <div class="meta-pill price-pill">
+                    <i class="fas fa-tag"></i>
+                    <span>PHP @dish.Price.ToString("N0")</span>
+                </div>
+                @if (reviews.Count > 0)
+                {
+                    <div class="meta-pill rating-pill">
+                        <i class="fas fa-star"></i>
+                        <span>@avgRating.ToString("F1") <span class="review-pill-count">(@reviews.Count @(reviews.Count == 1 ? "review" : "reviews"))</span></span>
+                    </div>
+                }
+                else
+                {
+                    <div class="meta-pill rating-pill muted">
+                        <i class="far fa-star"></i>
+                        <span>No reviews yet</span>
+                    </div>
                 }
             </div>
-            @if (isAuth)
-            {
-                <div class="detail-actions">
+
+            <div class="detail-actions">
+                @if (isAuth)
+                {
                     <button class="btn-primary" onclick="addToCravings('@dish.Name', @dish.Id, 'dish')">
                         <i class="fas fa-heart"></i> Save Dish
                     </button>
-                </div>
-            }
+                    <button class="btn-tried-detail" onclick="triedDish('@dish.Name', @dish.Id)">
+                        <i class="fas fa-check-circle"></i> I Tried This
+                    </button>
+                }
+                else
+                {
+                    <button class="btn-primary btn-guest-action" onclick="showGuestModal('/Dishes/Detail/@dish.Id')">
+                        <i class="fas fa-heart"></i> Save Dish
+                    </button>
+                    <button class="btn-tried-detail btn-guest-action" onclick="showGuestModal('/Dishes/Detail/@dish.Id')">
+                        <i class="fas fa-check-circle"></i> I Tried This
+                    </button>
+                }
+            </div>
         </div>
     </div>
 
     <div class="detail-grid">
         <!-- TAGS -->
         <div class="detail-panel">
-            <h2>Food Tags</h2>
+            <h2><i class="fas fa-hashtag"></i> Food Tags</h2>
             <div class="vibe-tags">
                 @foreach (var tag in tagList)
                 {
@@ -89,8 +124,8 @@
         </div>
 
         <!-- REVIEW FORM -->
-        <div class="detail-panel">
-            <h2>Review This Dish</h2>
+        <div class="detail-panel review-form-panel">
+            <h2><i class="fas fa-pencil-alt"></i> Review This Dish</h2>
             @if (isAuth)
             {
                 <div class="star-rating-selector" id="dishStars">
@@ -100,12 +135,17 @@
                     <i class="far fa-star" onclick="dishSetRating(4)"></i>
                     <i class="far fa-star" onclick="dishSetRating(5)"></i>
                 </div>
-                <textarea id="dishReviewText" rows="4" placeholder="What did you think?"></textarea>
-                <button class="btn-primary" onclick="submitDishReview()">Submit Dish Review</button>
+                <textarea id="dishReviewText" rows="4" placeholder="What did you think of this dish?"></textarea>
+                <button class="btn-primary" onclick="submitDishReview()">
+                    <i class="fas fa-paper-plane"></i> Submit Review
+                </button>
             }
             else
             {
-                <p><a href="/Account/Login?returnUrl=/Dishes/Detail/@dish.Id">Sign in</a> to leave a review.</p>
+                <div class="login-nudge">
+                    <i class="fas fa-user-circle"></i>
+                    <p><a href="/Account/Login?returnUrl=/Dishes/Detail/@dish.Id">Sign in</a> to leave a review.</p>
+                </div>
             }
         </div>
     </div>
@@ -113,8 +153,15 @@
     <!-- REVIEWS LIST -->
     @if (reviews.Any())
     {
-        <div class="reviews-section" style="margin-top:2rem;">
-            <h2>@reviews.Count @(reviews.Count == 1 ? "Review" : "Reviews")</h2>
+        <div class="reviews-section">
+            <h2 class="reviews-heading">
+                <i class="fas fa-comments"></i>
+                @reviews.Count @(reviews.Count == 1 ? "Review" : "Reviews")
+                @if (avgRating > 0)
+                {
+                    <span class="avg-badge">⭐ @avgRating.ToString("F1")</span>
+                }
+            </h2>
             @foreach (var review in reviews)
             {
                 var canEdit = myIds.Contains(review.Id);
@@ -122,7 +169,7 @@
                 <div class="review-card" id="review-@review.Id">
                     <div class="reviewer-info">
                         <div class="reviewer-avatar">@names[review.Id][0]</div>
-                        <div>
+                        <div class="reviewer-text">
                             <h4>@names[review.Id]</h4>
                             <div class="review-stars">@Html.Raw(RatingStars(review.Rating))</div>
                             <p class="review-date">@review.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")</p>
@@ -145,6 +192,13 @@
                     <p class="review-text">@review.Text</p>
                 </div>
             }
+        </div>
+    }
+    else
+    {
+        <div class="no-reviews-state">
+            <i class="fas fa-comment-slash"></i>
+            <p>No reviews yet — be the first to share your thoughts!</p>
         </div>
     }
 </section>
@@ -181,6 +235,7 @@
         flex-wrap: wrap;
         color: var(--text-secondary);
         margin-bottom: 1rem;
+        font-size: 0.9rem;
     }
 
         .breadcrumb-trail a {
@@ -192,46 +247,137 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
-        align-items: center;
+        align-items: start;
         background: var(--bg-card);
         border-radius: 20px;
         padding: 1.5rem;
     }
 
-        .detail-hero-card img {
+    .dish-img-wrap {
+        position: relative;
+    }
+
+        .dish-img-wrap img {
             width: 100%;
             aspect-ratio: 4/3;
             object-fit: cover;
             border-radius: 16px;
+            display: block;
+        }
+
+    .img-badge {
+        position: absolute;
+        top: 0.8rem;
+        left: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+        .img-badge.trending {
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+        }
+
+        .img-badge.new-badge {
+            background: rgba(39, 174, 96, 0.9);
+            color: white;
         }
 
     .detail-kicker {
         color: var(--burnt-orange);
         font-weight: 700;
         text-transform: uppercase;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
     }
 
     .detail-hero-copy h1 {
         font-size: 2.8rem;
-        margin: 0.5rem 0;
+        margin: 0.4rem 0 0.7rem;
+        line-height: 1.1;
+    }
+
+    .dish-desc {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 1.2rem;
     }
 
     .detail-meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin-top: 1.2rem;
+        gap: 0.6rem;
+        margin-bottom: 1.4rem;
     }
 
-        .detail-meta span {
+    .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .price-pill {
+        background: rgba(var(--burnt-orange-rgb, 204, 85, 0), 0.12);
+        color: var(--burnt-orange);
+        border: 1px solid rgba(var(--burnt-orange-rgb, 204, 85, 0), 0.25);
+    }
+
+    .rating-pill {
+        background: rgba(255, 193, 7, 0.12);
+        color: var(--golden-yellow, #f1c40f);
+        border: 1px solid rgba(255, 193, 7, 0.25);
+    }
+
+        .rating-pill.muted {
+            background: var(--bg-elevated);
             color: var(--text-secondary);
+            border-color: var(--border-color);
+            font-weight: 400;
         }
 
-    .detail-actions {
-        margin-top: 1.2rem;
+    .review-pill-count {
+        font-weight: 400;
+        opacity: 0.8;
     }
 
+    .detail-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .btn-tried-detail {
+        background: none;
+        border: 1.5px solid var(--burnt-orange);
+        color: var(--burnt-orange);
+        padding: 0.6rem 1.2rem;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+    }
+
+        .btn-tried-detail:hover {
+            background: var(--burnt-orange);
+            color: white;
+        }
+
+    .btn-guest-action::after {
+        content: '🔒';
+        font-size: 0.7rem;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+
+    /* Detail grid */
     .detail-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -246,24 +392,18 @@
     }
 
         .detail-panel h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-
-        .detail-panel textarea {
-            width: 100%;
-            margin: 1rem 0;
-            background: var(--bg-elevated);
+            font-size: 1.1rem;
             color: var(--text-primary);
-            border: 1px solid var(--text-muted);
-            border-radius: 12px;
-            padding: 0.8rem;
-            resize: vertical;
         }
 
-        .detail-panel a {
-            color: var(--burnt-orange);
-        }
+            .detail-panel h2 i {
+                color: var(--burnt-orange);
+                font-size: 0.95rem;
+            }
 
     .vibe-tags {
         display: flex;
@@ -273,25 +413,103 @@
 
     .vibe-tag {
         background: var(--bg-elevated);
-        padding: 0.3rem 1rem;
+        padding: 0.35rem 1rem;
         border-radius: 30px;
         font-size: 0.85rem;
+        color: var(--text-secondary);
+        transition: var(--transition);
     }
 
-    .star-rating-selector i {
-        color: var(--golden-yellow);
-        cursor: pointer;
-        font-size: 1.4rem;
-        margin-right: 0.2rem;
-    }
-
-        .star-rating-selector i.active {
-            color: var(--golden-yellow);
+        .vibe-tag:hover {
+            background: var(--burnt-orange);
+            color: white;
         }
-    /* Reviews */
-    .reviews-section h2 {
+
+    /* Review form */
+    .star-rating-selector {
+        margin-bottom: 0.8rem;
+    }
+
+        .star-rating-selector i {
+            color: var(--golden-yellow, #f1c40f);
+            cursor: pointer;
+            font-size: 1.6rem;
+            margin-right: 0.2rem;
+            transition: transform 0.1s;
+        }
+
+            .star-rating-selector i:hover {
+                transform: scale(1.15);
+            }
+
+            .star-rating-selector i.active {
+                color: var(--golden-yellow, #f1c40f);
+            }
+
+    .detail-panel textarea {
+        width: 100%;
+        margin: 0.8rem 0;
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color, var(--text-muted));
+        border-radius: 12px;
+        padding: 0.8rem;
+        resize: vertical;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        transition: border-color 0.2s;
+    }
+
+        .detail-panel textarea:focus {
+            outline: none;
+            border-color: var(--burnt-orange);
+        }
+
+    .login-nudge {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem;
+        background: var(--bg-elevated);
+        border-radius: 12px;
+        color: var(--text-secondary);
+    }
+
+        .login-nudge i {
+            font-size: 1.8rem;
+            color: var(--burnt-orange);
+            opacity: 0.7;
+        }
+
+        .login-nudge a {
+            color: var(--burnt-orange);
+            font-weight: 600;
+        }
+
+    /* Reviews list */
+    .reviews-section {
+        margin-top: 2.5rem;
+    }
+
+    .reviews-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
         font-size: 1.4rem;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
+    }
+
+        .reviews-heading i {
+            color: var(--burnt-orange);
+        }
+
+    .avg-badge {
+        background: var(--bg-elevated);
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.2rem 0.7rem;
+        border-radius: 30px;
+        color: var(--text-secondary);
     }
 
     .review-card {
@@ -299,7 +517,13 @@
         padding: 1.5rem;
         border-radius: 16px;
         margin-bottom: 1rem;
+        border-left: 3px solid transparent;
+        transition: border-color 0.2s;
     }
+
+        .review-card:hover {
+            border-left-color: var(--burnt-orange);
+        }
 
     .reviewer-info {
         display: flex;
@@ -319,26 +543,29 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        font-size: 1.1rem;
     }
 
-    .reviewer-info h4 {
+    .reviewer-text h4 {
         margin: 0 0 0.2rem;
+        font-size: 0.95rem;
     }
 
     .review-stars i {
-        color: var(--golden-yellow);
+        color: var(--golden-yellow, #f1c40f);
         font-size: 0.8rem;
     }
 
     .review-date {
         font-size: 0.75rem;
         color: var(--text-secondary);
-        margin: 0;
+        margin: 0.2rem 0 0;
     }
 
     .review-text {
         margin: 0;
         line-height: 1.6;
+        color: var(--text-secondary);
     }
 
     .review-actions {
@@ -349,10 +576,10 @@
 
     .review-action-btn {
         background: none;
-        border: 1px solid var(--text-muted);
+        border: 1px solid var(--border-color, var(--text-muted));
         color: var(--text-secondary);
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 8px;
         cursor: pointer;
         font-size: 0.75rem;
@@ -371,6 +598,23 @@
             border-color: #e74c3c;
             color: #e74c3c;
         }
+
+    .no-reviews-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+        background: var(--bg-card);
+        border-radius: 16px;
+        margin-top: 2rem;
+    }
+
+        .no-reviews-state i {
+            font-size: 2.5rem;
+            opacity: 0.3;
+            display: block;
+            margin-bottom: 0.8rem;
+        }
+
     /* Modal */
     .modal-backdrop {
         position: fixed;
@@ -397,7 +641,7 @@
         .modal-box textarea {
             width: 100%;
             background: var(--bg-elevated);
-            border: 1px solid var(--text-muted);
+            border: 1px solid var(--border-color, var(--text-muted));
             color: var(--text-primary);
             padding: 0.8rem;
             border-radius: 12px;
@@ -450,7 +694,6 @@
         }
     }
 
-    // Edit modal
     var editingReviewId = 0, editRating = 0;
     function openEditModal(id, rating, text) {
         editingReviewId = id; editRating = rating;

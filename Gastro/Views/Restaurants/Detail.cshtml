@@ -9,6 +9,9 @@
     var isAdmin = User.IsInRole("Admin");
     ViewData["Title"] = restaurant.Name + " - TasteCebu";
 
+    // Compute live avg from actual reviews — never use the stale DB field
+    decimal avgRating = reviews.Count > 0 ? Math.Round((decimal)reviews.Average(r => r.Rating), 1) : 0m;
+
     // star helpers
     string RatingStars(decimal r)
     {
@@ -35,6 +38,12 @@
                 @if (isAuth)
                 {
                     <button class="action-btn" onclick="addToCravings('@restaurant.Name', @restaurant.Id, 'restaurant')">
+                        <i class="fas fa-heart"></i> Crave
+                    </button>
+                }
+                else
+                {
+                    <button class="action-btn action-btn--guest" onclick="showGuestModal('/Restaurants/Detail/@restaurant.Id')">
                         <i class="fas fa-heart"></i> Crave
                     </button>
                 }
@@ -75,9 +84,9 @@
         <div class="restaurant-stats">
             <div class="stats-card">
                 <div class="rating-large">
-                    <span class="rating-number">@(restaurant.Rating > 0 ? restaurant.Rating.ToString("F1") : "—")</span>
+                    <span class="rating-number">@(avgRating > 0 ? avgRating.ToString("F1") : "—")</span>
                     <div class="rating-stars">
-                        @Html.Raw(RatingStars(restaurant.Rating))
+                        @Html.Raw(RatingStars(avgRating))
                     </div>
                     <span class="review-count">@reviews.Count @(reviews.Count == 1 ? "review" : "reviews")</span>
                 </div>
@@ -87,7 +96,7 @@
                         <div class="stat-label">Total Reviews</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">@(restaurant.Rating > 0 ? restaurant.Rating.ToString("F1") : "N/A")</div>
+                        <div class="stat-value">@(avgRating > 0 ? avgRating.ToString("F1") : "N/A")</div>
                         <div class="stat-label">Avg Rating</div>
                     </div>
                 </div>
@@ -104,7 +113,10 @@
         <div class="reviews-list" id="reviewsList">
             @if (!reviews.Any())
             {
-                <p class="no-reviews-msg">No reviews yet. Be the first to share your experience!</p>
+                <div class="no-reviews-state">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>No reviews yet. Be the first to share your experience!</p>
+                </div>
             }
             @foreach (var review in reviews)
             {
@@ -243,6 +255,15 @@
             background: var(--burnt-orange);
         }
 
+    .action-btn--guest {
+        opacity: 0.85;
+    }
+
+        .action-btn--guest:hover {
+            background: var(--burnt-orange);
+            opacity: 1;
+        }
+
     .restaurant-detail-grid {
         display: grid;
         grid-template-columns: 1fr 300px;
@@ -282,6 +303,17 @@
         border-radius: 30px;
         margin-top: 1rem;
         cursor: pointer;
+    }
+
+    /* Info card headings */
+    .info-card h3 i {
+        color: var(--burnt-orange);
+        margin-right: 0.4rem;
+    }
+
+    .info-card p {
+        color: var(--text-secondary);
+        line-height: 1.7;
     }
 
     .stats-card {
@@ -345,12 +377,34 @@
         margin-bottom: 1rem;
     }
 
+    .no-reviews-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: var(--text-secondary);
+        background: var(--bg-elevated);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+        .no-reviews-state i {
+            font-size: 2rem;
+            opacity: 0.3;
+            display: block;
+            margin-bottom: 0.6rem;
+        }
+
     .review-card {
         background: var(--bg-card);
         padding: 1.5rem;
         border-radius: 16px;
         margin-bottom: 1rem;
+        border-left: 3px solid transparent;
+        transition: border-color 0.2s;
     }
+
+        .review-card:hover {
+            border-left-color: var(--burnt-orange);
+        }
 
     .reviewer-info {
         display: flex;
@@ -422,6 +476,7 @@
     .review-text {
         margin: 0;
         line-height: 1.6;
+        color: var(--text-secondary);
     }
 
     .leave-review {
@@ -438,12 +493,20 @@
     .star-rating-selector i {
         font-size: 1.5rem;
         cursor: pointer;
-        color: var(--text-muted);
+        color: var(--golden-yellow, #f1c40f);
         margin-right: 0.3rem;
+        transition: transform 0.1s;
     }
 
+        .star-rating-selector i:not(.active) {
+            opacity: 0.35;
+        }
+
+        .star-rating-selector i:hover,
         .star-rating-selector i.active {
-            color: var(--golden-yellow);
+            opacity: 1;
+            color: var(--golden-yellow, #f1c40f);
+            transform: scale(1.15);
         }
 
     .leave-review textarea {

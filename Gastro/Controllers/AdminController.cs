@@ -30,7 +30,7 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
     public async Task<IActionResult> AddItem(string type, string name, IFormFile? photo, string? imageUrl, string description,
         string? address, string? category,
         decimal price = 0, string? tags = null, bool isNew = false, bool isTrending = false,
-        string? location = null, int availableSlots = 20, string? eventDate = null)
+        string? location = null, int availableSlots = 20, string? eventDate = null, string? vibe = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -42,7 +42,7 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         description ??= "";
 
         if (type == "restaurant")
-            store.AddRestaurant(name, resolvedUrl, description, address ?? "Cebu", category ?? "Restaurant");
+            store.AddRestaurant(name, resolvedUrl, description, address ?? "Cebu", category ?? "Restaurant", vibe ?? "all");
         else if (type == "dish")
         {
             var rid = Request.Form.TryGetValue("restaurantId", out var rv) && int.TryParse(rv, out var rId) ? (int?)rId : null;
@@ -62,7 +62,7 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
     public async Task<IActionResult> EditItem(string type, int id, string name, IFormFile? photo, string? imageUrl, string description,
         string? address, string? category,
         decimal price = 0, string? tags = null, bool isNew = false, bool isTrending = false,
-        string? location = null, int availableSlots = 0, string? eventDate = null)
+        string? location = null, int availableSlots = 0, string? eventDate = null, string? vibe = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -73,7 +73,7 @@ public class AdminController(SqliteDataStore store, IWebHostEnvironment env) : C
         var resolvedUrl = await SavePhotoAsync(photo, imageUrl);
 
         if (type == "restaurant")
-            store.UpdateRestaurant(id, name, address ?? "Cebu", category ?? "Restaurant", resolvedUrl ?? "", description ?? "");
+            store.UpdateRestaurant(id, name, address ?? "Cebu", category ?? "Restaurant", resolvedUrl ?? "", description ?? "", vibe ?? "all");
         else if (type == "dish")
         {
             var rid = Request.Form.TryGetValue("restaurantId", out var rv) && int.TryParse(rv, out var rId) ? (int?)rId : null;

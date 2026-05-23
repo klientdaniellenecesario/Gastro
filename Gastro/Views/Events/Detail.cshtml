@@ -1,34 +1,134 @@
+@using GastroCebu.Models
 @{
-    ViewData["Title"] = "Event Details - TasteCebu";
+    var ev = (FoodEvent)ViewData["Event"]!;
+    var registrants = (List<AppUser>)ViewData["Registrants"]!;
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin");
+    ViewData["Title"] = ev.Title + " - TasteCebu";
+
+    var spotsLeft = ev.AvailableSlots;
+    var totalSlots = ev.TotalSlots > 0 ? ev.TotalSlots : spotsLeft;
+    var fillPct = totalSlots > 0 ? (int)(((double)(totalSlots - spotsLeft) / totalSlots) * 100) : 0;
+    var isRegistered = ViewData["IsRegistered"] is true;
 }
 
 <section class="detail-shell">
     <nav class="breadcrumb-trail">
-        <a href="/">Home</a><span>/</span><a href="/Events">Events</a><span>/</span><strong id="eventCrumb">Event</strong>
+        <a href="/">Home</a><span>/</span><a href="/Events">Events</a><span>/</span><strong>@ev.Title</strong>
     </nav>
 
     <div class="detail-hero-card">
-        <img id="eventImage" src="/images/stories/lechon2.jpg" alt="Event">
+        @if (!string.IsNullOrWhiteSpace(ev.PhotoUrl))
+        {
+            <img src="@ev.PhotoUrl" alt="@ev.Title">
+        }
+        else
+        {
+            <div class="event-img-placeholder"><i class="fas fa-calendar-star"></i></div>
+        }
         <div class="detail-hero-copy">
-            <span class="detail-kicker">Upcoming Event</span>
-            <h1 id="eventTitle">Lechon Masterclass at Carbon</h1>
-            <p id="eventDescription">Learn Cebu lechon prep, roasting, carving, and pairing from local cooks.</p>
+            <span class="detail-kicker">
+                @if (ev.Date > DateTime.UtcNow)
+                {
+                    <text>🗓️ Upcoming Event</text>
+                }
+                else
+                {
+                    <text>📅 Past Event</text>
+                }
+            </span>
+            <h1>@ev.Title</h1>
+            <p>@ev.Description</p>
             <div class="detail-meta">
-                <span><i class="far fa-calendar"></i> <span id="eventDate">June 15, 2026</span></span>
-                <span><i class="fas fa-map-marker-alt"></i> <span id="eventLocation">Carbon Market</span></span>
-                <span><i class="fas fa-chair"></i> <span id="eventSeats">15 seats left</span></span>
+                <span><i class="far fa-calendar"></i> @ev.Date.ToLocalTime().ToString("MMMM d, yyyy · h:mm tt")</span>
+                <span><i class="fas fa-map-marker-alt"></i> @ev.Location</span>
+                @if (ev.Date > DateTime.UtcNow)
+                {
+                    <span class="@(spotsLeft <= 5 ? "seats-low" : "")">
+                        <i class="fas fa-chair"></i> @spotsLeft @(spotsLeft == 1 ? "seat" : "seats") left
+                    </span>
+                }
             </div>
-            <div class="countdown-timer" id="detailCountdown" data-target=""></div>
-            <button class="btn-primary" onclick="registerForDetailEvent()"><i class="fas fa-ticket-alt"></i> Register for Event</button>
+
+            @if (ev.Date > DateTime.UtcNow && totalSlots > 0)
+            {
+                <div class="slots-bar">
+                    <div class="slots-bar-fill" style="width:@fillPct%"></div>
+                </div>
+                <p class="slots-label">@(totalSlots - spotsLeft) / @totalSlots registered</p>
+            }
+
+            @if (ev.Date > DateTime.UtcNow)
+            {
+                <div class="countdown-timer" id="detailCountdown" data-target="@ev.Date.ToUniversalTime().ToString("o")"></div>
+                @if (isAuth)
+                {
+                    if (isRegistered)
+                    {
+                        <div class="registered-state">
+                            <p class="registered-badge"><i class="fas fa-check-circle"></i> You are registered for this event!</p>
+                            <button class="btn-cancel-reg" id="registerBtn" onclick="cancelRegistration(@ev.Id)">
+                                <i class="fas fa-times-circle"></i> Cancel Registration
+                            </button>
+                        </div>
+                    }
+                    else if (ev.AvailableSlots == 0)
+                    {
+                        <button class="btn-primary" disabled style="opacity:0.5;cursor:not-allowed">
+                            <i class="fas fa-ban"></i> Fully Booked
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn-primary" id="registerBtn" onclick="registerForEvent(@ev.Id)">
+                            <i class="fas fa-ticket-alt"></i> Register for Event
+                        </button>
+                    }
+                }
+                else
+                {
+                    <div class="guest-register-prompt">
+                        <i class="fas fa-lock"></i>
+                        <span>You need an account to register for this event.</span>
+                        <a href="/Account/Login?returnUrl=/Events/Detail/@ev.Id" class="btn-primary" style="display:inline-block; margin-top:0.6rem;">
+                            Sign in to Register
+                        </a>
+                        <a href="/Account/Register" class="btn-outline-sm" style="display:inline-block; margin-top:0.4rem;">
+                            Create a free account
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="event-ended-note"><i class="fas fa-info-circle"></i> This event has already taken place.</p>
+            }
         </div>
     </div>
 
+    <!-- REGISTRANTS PANEL -->
     <div class="detail-panel event-registrants">
-        <h2>Registered Users</h2>
-        <p class="muted-text">Frontend demo list for admin presentation.</p>
-        <div class="registrant-list">
-            <span>Maria Santos</span><span>Juan Dela Cruz</span><span>Ana Lim</span><span>Carlos Tan</span>
-        </div>
+        <h2>
+            <i class="fas fa-users"></i>
+            Registered Attendees
+            <span class="registrant-count">@registrants.Count</span>
+        </h2>
+        @if (registrants.Any())
+        {
+            <div class="registrant-list">
+                @foreach (var user in registrants)
+                {
+                    <div class="registrant-chip">
+                        <div class="registrant-avatar">@user.FullName[0]</div>
+                        <span>@user.FullName</span>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="no-registrants">No one has registered yet. Be the first!</p>
+        }
     </div>
 </section>
 
@@ -56,7 +156,7 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
-        align-items: center;
+        align-items: start;
         background: var(--bg-card);
         border-radius: 20px;
         padding: 1.5rem;
@@ -64,31 +164,145 @@
 
         .detail-hero-card img {
             width: 100%;
-            aspect-ratio: 4 / 3;
+            aspect-ratio: 4/3;
             object-fit: cover;
             border-radius: 16px;
         }
+
+    .event-img-placeholder {
+        width: 100%;
+        aspect-ratio: 4/3;
+        background: var(--bg-elevated);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: var(--text-muted);
+    }
 
     .detail-kicker {
         color: var(--burnt-orange);
         font-weight: 700;
         text-transform: uppercase;
         font-size: 0.8rem;
+        letter-spacing: 0.04em;
     }
 
     .detail-hero-copy h1 {
-        font-size: 2.6rem;
-        margin: 0.5rem 0;
+        font-size: 2.5rem;
+        margin: 0.5rem 0 0.8rem;
+        line-height: 1.2;
+    }
+
+    .detail-hero-copy p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 1rem;
     }
 
     .detail-meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin: 1.2rem 0;
-        color: var(--text-secondary);
+        gap: 0.75rem 1.4rem;
+        margin-bottom: 1.2rem;
     }
 
+        .detail-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+
+            .detail-meta span i {
+                color: var(--burnt-orange);
+            }
+
+        .detail-meta .seats-low {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+            .detail-meta .seats-low i {
+                color: #e74c3c;
+            }
+
+    /* Capacity bar */
+    .slots-bar {
+        background: var(--bg-elevated);
+        border-radius: 99px;
+        height: 8px;
+        margin-bottom: 0.4rem;
+        overflow: hidden;
+    }
+
+    .slots-bar-fill {
+        height: 100%;
+        background: var(--gradient-warm);
+        border-radius: 99px;
+        transition: width 0.4s ease;
+    }
+
+    .slots-label {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+    }
+
+    /* Countdown */
+    .countdown-timer {
+        margin: 1rem 0;
+    }
+
+    /* Guest prompt */
+    .guest-register-prompt {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1.1rem 1.4rem;
+        margin-top: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+        .guest-register-prompt i {
+            color: var(--burnt-orange);
+            margin-right: 0.4rem;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1.5px solid var(--burnt-orange);
+        color: var(--burnt-orange);
+        padding: 0.45rem 1.1rem;
+        border-radius: 30px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+        .btn-outline-sm:hover {
+            background: var(--burnt-orange);
+            color: white;
+        }
+
+    .event-ended-note {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* Registrants panel */
     .detail-panel {
         background: var(--bg-card);
         border-radius: 16px;
@@ -96,22 +310,82 @@
         margin-top: 1.5rem;
     }
 
-    .muted-text {
-        color: var(--text-secondary);
+        .detail-panel h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.2rem;
+            margin-bottom: 1.2rem;
+        }
+
+    .registrant-count {
+        background: var(--burnt-orange);
+        color: white;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.15rem 0.6rem;
+        border-radius: 99px;
     }
 
     .registrant-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.8rem;
-        margin-top: 1rem;
+        gap: 0.7rem;
     }
 
-        .registrant-list span {
-            background: var(--bg-elevated);
-            border-radius: 30px;
-            padding: 0.5rem 1rem;
+    .registrant-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg-elevated);
+        border-radius: 30px;
+        padding: 0.4rem 1rem 0.4rem 0.4rem;
+        font-size: 0.88rem;
+    }
+
+    .registrant-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--gradient-warm);
+        color: white;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .registered-badge {
+        color: #27ae60;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .btn-cancel-reg {
+        background: transparent;
+        border: 2px solid #e74c3c;
+        color: #e74c3c;
+        padding: 0.7rem 1.4rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+        .btn-cancel-reg:hover {
+            background: #e74c3c;
+            color: white;
         }
+
+    .no-registrants {
+        color: var(--text-secondary);
+        font-style: italic;
+    }
 
     @@media (max-width: 768px) {
         .detail-hero-card {
@@ -119,42 +393,66 @@
         }
 
         .detail-hero-copy h1 {
-            font-size: 2rem;
+            font-size: 1.9rem;
         }
     }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var events = [
-            { title: 'Lechon Masterclass at Carbon', date: 'June 15, 2026', iso: '2026-06-15T09:00:00', location: 'Carbon Market, Cebu City', seats: '15 seats left', description: 'Learn Cebu lechon prep, roasting, carving, and pairing from local cooks.', image: '/images/events/lechon2.jpg' },
-            { title: 'Cebu Street Food Crawl', date: 'June 22, 2026', iso: '2026-06-22T18:00:00', location: 'Colon Street and Carbon', seats: '32 spots left', description: 'Explore Cebu street food with guided tastings and vendor stories.', image: 'https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=1000&h=650&fit=crop' },
-            { title: 'Coffee Cupping and Latte Art Workshop', date: 'June 30, 2026', iso: '2026-06-30T14:00:00', location: 'Current Coffee Roasters, Mandaue', seats: '20 spots left', description: 'Practice espresso tasting, milk texturing, and basic latte art.', image: 'https://images.unsplash.com/photo-1534087298023-017580581d8d?w=1000&h=650&fit=crop' }
-        ];
-
-        var eventIndex = Math.max(0, Math.min(events.length - 1, (@ViewData["ItemId"] ?? 1) - 1));
-        var detailEvent = events[eventIndex];
-
-        document.getElementById('eventTitle').innerText = detailEvent.title;
-        document.getElementById('eventCrumb').innerText = detailEvent.title;
-        document.getElementById('eventDate').innerText = detailEvent.date;
-        document.getElementById('eventLocation').innerText = detailEvent.location;
-        document.getElementById('eventSeats').innerText = detailEvent.seats;
-        document.getElementById('eventDescription').innerText = detailEvent.description;
-        document.getElementById('eventImage').src = detailEvent.image;
-
-        // Set data-target and start countdown
         var countdownEl = document.getElementById('detailCountdown');
-        var targetMs = new Date(detailEvent.iso).getTime();
-        countdownEl.setAttribute('data-target', detailEvent.iso);
-
-        if (window.TasteCebu && window.TasteCebu.startCountdown) {
-            window.TasteCebu.startCountdown(targetMs, 'detailCountdown');
+        if (countdownEl) {
+            var iso = countdownEl.getAttribute('data-target');
+            var targetMs = new Date(iso).getTime();
+            if (window.TasteCebu && window.TasteCebu.startCountdown) {
+                window.TasteCebu.startCountdown(targetMs, 'detailCountdown');
+            }
         }
-    }); 
+    });
 
-    function registerForDetailEvent() {
-        var eventIndex = Math.max(0, Math.min(2, (@ViewData["ItemId"] ?? 1) - 1));
-        if (window.registerForEvent) { window.registerForEvent(eventIndex + 1); }
+    async function registerForEvent(eventId) {
+        var btn = document.getElementById('registerBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...'; }
+        try {
+            var res = await fetch('/api/events/' + eventId + '/register', { method: 'POST' });
+            var data = await res.json().catch(function() { return {}; });
+            if (res.ok) {
+                showToast(data.message || 'Registered successfully!');
+                setTimeout(function () { location.reload(); }, 1000);
+            } else {
+                showToast(data.message || 'Could not register.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Register for Event'; }
+            }
+        } catch (e) {
+            showToast('Network error. Please try again.');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-ticket-alt"></i> Register for Event'; }
+        }
+    }
+
+    async function cancelRegistration(eventId) {
+        var btn = document.getElementById('registerBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...'; }
+        try {
+            var res = await fetch('/api/events/' + eventId + '/register', { method: 'DELETE' });
+            var data = await res.json().catch(function() { return {}; });
+            if (res.ok) {
+                showToast('Registration cancelled.');
+                setTimeout(function () { location.reload(); }, 1000);
+            } else {
+                showToast(data.message || 'Could not cancel.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle"></i> Cancel Registration'; }
+            }
+        } catch (e) {
+            showToast('Network error. Please try again.');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle"></i> Cancel Registration'; }
+        }
+    }
+
+    function showToast(message) {
+        var t = document.createElement('div');
+        t.className = 'toast-notification';
+        t.textContent = message;
+        document.body.appendChild(t);
+        setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, 3000);
     }
 </script>

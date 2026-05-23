@@ -13,7 +13,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     public void Initialize()
     {
         using var db = _factory.CreateDbContext();
-        db.Database.EnsureCreated();
+        db.Database.Migrate(); // applies any pending migrations automatically
         Seed(db);
     }
 
@@ -44,7 +44,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             Email = email,
             PasswordHash = HashPassword(password),
             Role = role,
-            Location = "Cebu City, Philippines",
+            Location = "",
             CreatedAt = DateTime.UtcNow
         };
         db.Users.Add(user);
@@ -62,6 +62,16 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         user.Location = location;
         db.SaveChanges();
         AddActivity(userId, "Updated profile");
+    }
+
+    public void UpdateAvatar(int userId, string avatarUrl)
+    {
+        using var db = _factory.CreateDbContext();
+        var user = db.Users.Find(userId);
+        if (user is null) return;
+        user.AvatarUrl = avatarUrl;
+        db.SaveChanges();
+        AddActivity(userId, "Updated profile photo");
     }
 
     public void ChangePassword(int userId, string password)
@@ -113,13 +123,38 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             .OrderByDescending(r => r.CreatedAt)];
     }
 
+    // Returns avg rating + count for each dish id in one query
+    public Dictionary<int, (decimal Avg, int Count)> GetDishReviewStats(IEnumerable<int> dishIds)
+    {
+        using var db = _factory.CreateDbContext();
+        var ids = dishIds.ToList();
+        return db.Reviews
+            .Where(r => r.TargetType == "dish" && ids.Contains(r.TargetId))
+            .GroupBy(r => r.TargetId)
+            .Select(g => new { Id = g.Key, Avg = (decimal)g.Average(r => r.Rating), Count = g.Count() })
+            .AsEnumerable()
+            .ToDictionary(x => x.Id, x => (Math.Round(x.Avg, 1), x.Count));
+    }
+
+    public Dictionary<int, (decimal Avg, int Count)> GetRestaurantReviewStats(IEnumerable<int> restaurantIds)
+    {
+        using var db = _factory.CreateDbContext();
+        var ids = restaurantIds.ToList();
+        return db.Reviews
+            .Where(r => r.TargetType == "restaurant" && ids.Contains(r.TargetId))
+            .GroupBy(r => r.TargetId)
+            .Select(g => new { Id = g.Key, Avg = (decimal)g.Average(r => r.Rating), Count = g.Count() })
+            .AsEnumerable()
+            .ToDictionary(x => x.Id, x => (Math.Round(x.Avg, 1), x.Count));
+    }
+
     public List<RestaurantListing> GetRestaurants()
     {
         using var db = _factory.CreateDbContext();
         return [.. db.Restaurants.OrderByDescending(r => r.CreatedAt)];
     }
 
-    public void AddRestaurant(string name, string photoUrl, string description, string address = "Cebu", string category = "Restaurant")
+    public void AddRestaurant(string name, string photoUrl, string description, string address = "Cebu", string category = "Restaurant", string vibe = "all")
     {
         using var db = _factory.CreateDbContext();
         db.Restaurants.Add(new RestaurantListing
@@ -129,6 +164,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
             Category = category,
             PhotoUrl = photoUrl,
             Description = description,
+            Vibe = vibe,
             Rating = 0,
             CreatedAt = DateTime.UtcNow
         });
@@ -254,6 +290,12 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
+    public List<FoodEvent> GetEventsByIds(List<int> ids)
+    {
+        using var db = _factory.CreateDbContext();
+        return [.. db.Events.Where(e => ids.Contains(e.Id))];
+    }
+
     public List<FoodEvent> GetEvents()
     {
         using var db = _factory.CreateDbContext();
@@ -301,6 +343,12 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     : $"{r.TargetType} #{r.TargetId}";
         }
         return result;
+    }
+
+    public bool HasReviewed(int userId, string targetType, int targetId)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.Reviews.Any(r => r.UserId == userId && r.TargetType == targetType && r.TargetId == targetId);
     }
 
     public void AddReview(int userId, string targetType, int targetId, int rating, string text)
@@ -393,6 +441,21 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         AddActivity(userId, $"Saved {itemName}");
     }
 
+    public bool IsUserRegistered(int userId, int eventId)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.EventRegistrations.Any(r => r.UserId == userId && r.EventId == eventId);
+    }
+
+    public HashSet<int> GetRegisteredEventIds(int userId)
+    {
+        using var db = _factory.CreateDbContext();
+        return db.EventRegistrations
+            .Where(r => r.UserId == userId)
+            .Select(r => r.EventId)
+            .ToHashSet();
+    }
+
     public List<EventRegistration> GetRegistrations(int userId)
     {
         using var db = _factory.CreateDbContext();
@@ -481,7 +544,33 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         db.SaveChanges();
     }
 
-    public void UpdateRestaurant(int id, string name, string address, string category, string photoUrl, string description)
+    public bool LogTriedDish(int userId, int dishId)
+    {
+        using var db = _factory.CreateDbContext();
+        var dish = db.Dishes.Find(dishId);
+        if (dish is null) return false;
+        var alreadyLogged = db.TriedDishes.Any(t => t.UserId == userId && t.DishId == dishId);
+        if (!alreadyLogged)
+        {
+            db.TriedDishes.Add(new TriedDish { UserId = userId, DishId = dishId });
+            db.SaveChanges();
+            AddActivity(userId, $"Tried {dish.Name}");
+        }
+        return true;
+    }
+
+    public List<DishListing> GetTriedDishes(int userId)
+    {
+        using var db = _factory.CreateDbContext();
+        var dishIds = db.TriedDishes
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.TriedAt)
+            .Select(t => t.DishId)
+            .ToList();
+        return [.. db.Dishes.Where(d => dishIds.Contains(d.Id))];
+    }
+
+    public void UpdateRestaurant(int id, string name, string address, string category, string photoUrl, string description, string vibe = "all")
     {
         using var db = _factory.CreateDbContext();
         var r = db.Restaurants.Find(id);
@@ -491,6 +580,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
         r.Category = category;
         if (!string.IsNullOrWhiteSpace(photoUrl)) r.PhotoUrl = photoUrl;
         r.Description = description;
+        r.Vibe = vibe;
         db.SaveChanges();
     }
 
@@ -596,24 +686,26 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
 
         if (!db.Restaurants.Any())
         {
-                var restaurants = new List<RestaurantListing>
-                {
-                    new() {
-                        Name = "House of Lechon",
-                        Address = "Capitol Site, Cebu City",
-                        Category = "Restaurant",
-                        PhotoUrl =  "/images/restaurants/resto1.jpg",
-                        Description = "Authentic Cebu lechon with crispy skin and signature herbs. The go-to spot for the best lechon in the country.",
-                        Rating = 4.9m,
-                        CreatedAt = DateTime.UtcNow.AddDays(-30)
-                    },
-                    new() {
+            var restaurants = new List<RestaurantListing>
+            {
+                new() {
+                    Name = "House of Lechon",
+                    Address = "Capitol Site, Cebu City",
+                    Category = "Restaurant",
+                    PhotoUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
+                    Description = "Authentic Cebu lechon with crispy skin and signature herbs. The go-to spot for the best lechon in the country.",
+                    Rating = 0m,
+                    Vibe = "family",
+                    CreatedAt = DateTime.UtcNow.AddDays(-30)
+                },
+                new() {
                     Name = "Pig and Palm",
                     Address = "Nivel Hills, Lahug, Cebu City",
                     Category = "Restaurant",
-                    PhotoUrl = "/images/restaurants/resto2.jpg",
+                    PhotoUrl = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop",
                     Description = "Modern European cuisine with Cebuano soul. Craft cocktails, stunning sunset views, and an unforgettable dining experience.",
-                    Rating = 4.9m,
+                    Rating = 0m,
+                    Vibe = "romantic",
                     CreatedAt = DateTime.UtcNow.AddDays(-25)
                 },
                 new() {
@@ -622,7 +714,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Cafe",
                     PhotoUrl = "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&h=400&fit=crop",
                     Description = "Single-origin brews, minimalist industrial vibe, and award-winning pastries. Cebu's favorite specialty coffee shop.",
-                    Rating = 4.8m,
+                    Rating = 0m,
+                    Vibe = "chill",
                     CreatedAt = DateTime.UtcNow.AddDays(-20)
                 },
                 new() {
@@ -631,7 +724,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Restaurant",
                     PhotoUrl = "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?w=600&h=400&fit=crop",
                     Description = "Floating cottages over the sea, fresh seafood, and spectacular sunset views. A truly unique Cebu dining experience.",
-                    Rating = 4.7m,
+                    Rating = 0m,
+                    Vibe = "romantic",
                     CreatedAt = DateTime.UtcNow.AddDays(-15)
                 },
                 new() {
@@ -640,7 +734,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Street Food",
                     PhotoUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
                     Description = "Famous for their grilled chicken inasal and puso. A must-visit at the iconic Sugbo Mercado night market.",
-                    Rating = 4.6m,
+                    Rating = 0m,
+                    Vibe = "fun",
                     CreatedAt = DateTime.UtcNow.AddDays(-10)
                 },
                 new() {
@@ -649,7 +744,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Cafe",
                     PhotoUrl = "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop",
                     Description = "Heritage cafe inside a 19th-century Spanish colonial house. Known for their tsokolate and traditional Cebuano snacks.",
-                    Rating = 4.7m,
+                    Rating = 0m,
+                    Vibe = "chill",
                     CreatedAt = DateTime.UtcNow.AddDays(-5)
                 },
                 new() {
@@ -658,7 +754,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Restaurant",
                     PhotoUrl = "https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=600&h=400&fit=crop",
                     Description = "Beachfront fine dining with Asian-Mediterranean fusion cuisine. One of the top restaurants in the Philippines.",
-                    Rating = 4.8m,
+                    Rating = 0m,
+                    Vibe = "romantic",
                     CreatedAt = DateTime.UtcNow.AddDays(-3)
                 },
                 new() {
@@ -667,7 +764,8 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Category = "Restaurant",
                     PhotoUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop",
                     Description = "Traditional Filipino comfort food with generous servings of kare-kare, sinigang, and lechon kawali.",
-                    Rating = 4.5m,
+                    Rating = 0m,
+                    Vibe = "family",
                     CreatedAt = DateTime.UtcNow.AddDays(-2)
                 },
             };
@@ -758,7 +856,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Location = "Carbon Market, Cebu City",
                     TotalSlots = 15,
                     AvailableSlots = 15,
-                    PhotoUrl = "/images/events/lechon2.jpg",
+                    PhotoUrl = "https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop",
                     Description = "Learn the secrets of Cebu's world-famous lechon from master roasters. Includes hands-on pig preparation and roasting."
                 },
                 new() {

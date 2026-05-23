@@ -1,4 +1,4 @@
-﻿// TASTECEBU - Main JavaScript
+// TASTECEBU - Main JavaScript
 
 // ===== AOS ANIMATION =====
 if (window.AOS) {
@@ -56,7 +56,7 @@ function updateThemeIcon(theme) {
     if (!themeToggle) return;
     const icon = themeToggle.querySelector('i');
     if (!icon) return;
-    icon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
 }
 
 // Sync icon with whatever theme the pre-paint script already applied
@@ -104,27 +104,51 @@ window.filterByVibe = function (vibe, btn) {
 };
 
 // ===== I TRIED THIS BUTTON =====
-window.triedDish = function (dishName, dishId) {
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Yum!',
-            text: `You tried ${dishName}! Added to your food journey.`,
-            icon: 'success',
-            background: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
-            color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
-            confirmButtonColor: '#E76F51',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    } else {
-        showToast(`You tried ${dishName}!`);
-    }
-    let triedDishes = JSON.parse(localStorage.getItem('triedDishes') || '[]');
-    if (!triedDishes.includes(dishId)) {
-        triedDishes.push(dishId);
-        localStorage.setItem('triedDishes', JSON.stringify(triedDishes));
+window.triedDish = async function (dishName, dishId) {
+    try {
+        const response = await fetch(`/api/dishes/${dishId}/tried`, { method: 'POST' });
+        if (response.status === 401) {
+            showGuestModal();
+            return;
+        }
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Yum!',
+                text: `${dishName} added to your food journey!`,
+                icon: 'success',
+                background: getComputedStyle(document.documentElement).getPropertyValue('--bg-card'),
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                confirmButtonColor: '#E76F51',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            showToast(`${dishName} added to your food journey!`);
+        }
+    } catch {
+        showToast('Could not save. Please try again.');
     }
 };
+
+// ===== GUEST SAVE MODAL =====
+function showGuestModal(returnUrl) {
+    const modal = document.getElementById('guestSaveModal');
+    if (!modal) return;
+    const base = returnUrl || window.location.pathname;
+    document.getElementById('guestModalJoin').href = '/Account/Register?returnUrl=' + encodeURIComponent(base);
+    document.getElementById('guestModalSignIn').href = '/Account/Login?returnUrl=' + encodeURIComponent(base);
+    modal.style.display = 'flex';
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeGuestModal();
+    }, { once: true });
+}
+window.closeGuestModal = function () {
+    const modal = document.getElementById('guestSaveModal');
+    if (modal) modal.style.display = 'none';
+};
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeGuestModal();
+});
 
 // ===== ADD TO CRAVINGS / BOOKMARKS =====
 window.addToCravings = async function (itemName, itemId, type) {
@@ -136,13 +160,13 @@ window.addToCravings = async function (itemName, itemId, type) {
             body: JSON.stringify({ itemType: type, itemId: numericId, itemName })
         });
         if (response.status === 401) {
-            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            showGuestModal();
             return;
         }
         const result = await response.json();
         showToast(result.message || `${itemName} bookmark updated.`);
     } catch {
-        showToast('Could not update bookmark.');
+        showToast('Could not update bookmark. Please try again.');
     }
 };
 
@@ -172,13 +196,13 @@ window.registerForEvent = async function (eventId) {
     try {
         const response = await fetch(`/api/events/${eventId}/register`, { method: 'POST' });
         if (response.status === 401) {
-            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            showGuestModal();
             return;
         }
         const result = await response.json();
         showToast(result.message || 'Registered for event.');
     } catch {
-        showToast('Could not register for event.');
+        showToast('Could not register for event. Please try again.');
     }
 };
 
