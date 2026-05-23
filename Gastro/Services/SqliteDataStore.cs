@@ -596,22 +596,22 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
 
         if (!db.Restaurants.Any())
         {
-            var restaurants = new List<RestaurantListing>
-            {
-                new() {
-                    Name = "House of Lechon",
-                    Address = "Capitol Site, Cebu City",
-                    Category = "Restaurant",
-                    PhotoUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop",
-                    Description = "Authentic Cebu lechon with crispy skin and signature herbs. The go-to spot for the best lechon in the country.",
-                    Rating = 4.9m,
-                    CreatedAt = DateTime.UtcNow.AddDays(-30)
-                },
-                new() {
+                var restaurants = new List<RestaurantListing>
+                {
+                    new() {
+                        Name = "House of Lechon",
+                        Address = "Capitol Site, Cebu City",
+                        Category = "Restaurant",
+                        PhotoUrl =  "/images/restaurants/resto1.jpg",
+                        Description = "Authentic Cebu lechon with crispy skin and signature herbs. The go-to spot for the best lechon in the country.",
+                        Rating = 4.9m,
+                        CreatedAt = DateTime.UtcNow.AddDays(-30)
+                    },
+                    new() {
                     Name = "Pig and Palm",
                     Address = "Nivel Hills, Lahug, Cebu City",
                     Category = "Restaurant",
-                    PhotoUrl = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop",
+                    PhotoUrl = "/images/restaurants/resto2.jpg",
                     Description = "Modern European cuisine with Cebuano soul. Craft cocktails, stunning sunset views, and an unforgettable dining experience.",
                     Rating = 4.9m,
                     CreatedAt = DateTime.UtcNow.AddDays(-25)
@@ -758,7 +758,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
                     Location = "Carbon Market, Cebu City",
                     TotalSlots = 15,
                     AvailableSlots = 15,
-                    PhotoUrl = "https://images.unsplash.com/photo-1556910104-525b138803e9?w=600&h=400&fit=crop",
+                    PhotoUrl = "/images/events/lechon2.jpg",
                     Description = "Learn the secrets of Cebu's world-famous lechon from master roasters. Includes hands-on pig preparation and roasting."
                 },
                 new() {

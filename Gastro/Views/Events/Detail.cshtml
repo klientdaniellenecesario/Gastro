@@ -8,7 +8,7 @@
     </nav>
 
     <div class="detail-hero-card">
-        <img id="eventImage" src="https://images.unsplash.com/photo-1556910104-525b138803e9?w=1000&h=650&fit=crop" alt="Event">
+        <img id="eventImage" src="/images/stories/lechon2.jpg" alt="Event">
         <div class="detail-hero-copy">
             <span class="detail-kicker">Upcoming Event</span>
             <h1 id="eventTitle">Lechon Masterclass at Carbon</h1>
@@ -127,7 +127,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var events = [
-            { title: 'Lechon Masterclass at Carbon', date: 'June 15, 2026', iso: '2026-06-15T09:00:00', location: 'Carbon Market, Cebu City', seats: '15 seats left', description: 'Learn Cebu lechon prep, roasting, carving, and pairing from local cooks.', image: 'https://images.unsplash.com/photo-1556910104-525b138803e9?w=1000&h=650&fit=crop' },
+            { title: 'Lechon Masterclass at Carbon', date: 'June 15, 2026', iso: '2026-06-15T09:00:00', location: 'Carbon Market, Cebu City', seats: '15 seats left', description: 'Learn Cebu lechon prep, roasting, carving, and pairing from local cooks.', image: '/images/events/lechon2.jpg' },
             { title: 'Cebu Street Food Crawl', date: 'June 22, 2026', iso: '2026-06-22T18:00:00', location: 'Colon Street and Carbon', seats: '32 spots left', description: 'Explore Cebu street food with guided tastings and vendor stories.', image: 'https://images.unsplash.com/photo-1590577976322-3d2d6e2130d5?w=1000&h=650&fit=crop' },
             { title: 'Coffee Cupping and Latte Art Workshop', date: 'June 30, 2026', iso: '2026-06-30T14:00:00', location: 'Current Coffee Roasters, Mandaue', seats: '20 spots left', description: 'Practice espresso tasting, milk texturing, and basic latte art.', image: 'https://images.unsplash.com/photo-1534087298023-017580581d8d?w=1000&h=650&fit=crop' }
         ];
@@ -151,7 +151,7 @@
         if (window.TasteCebu && window.TasteCebu.startCountdown) {
             window.TasteCebu.startCountdown(targetMs, 'detailCountdown');
         }
-    });
+    }); 
 
     function registerForDetailEvent() {
         var eventIndex = Math.max(0, Math.min(2, (@ViewData["ItemId"] ?? 1) - 1));

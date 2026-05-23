@@ -15,4 +15,14 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\images\dishes\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="wwwroot\images\stories\lechon.jpg">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 </Project>
