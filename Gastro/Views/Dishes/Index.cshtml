@@ -58,7 +58,7 @@
                 <input type="text" placeholder="Search dishes..." id="dishSearch" name="query" value="@(ViewData["SearchQuery"] ?? "")">
             </div>
 
-            <select name="tags" class="filter-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+            <select name="tags" class="filter-select">
                 <option value="">All Tags</option>
                 <option value="trending" @IsSelected("trending", selectedTags)>Trending</option>
                 <option value="new" @IsSelected("new", selectedTags)>New This Month</option>
@@ -67,7 +67,7 @@
                 <option value="vegetarian" @IsSelected("vegetarian", selectedTags)>Vegetarian</option>
             </select>
 
-            <select name="sortBy" class="sort-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+            <select name="sortBy" class="filter-select">
                 <option value="newest" @IsSelected("newest", selectedSort2)>Newest</option>
                 <option value="trending" @IsSelected("trending", selectedSort2)>Trending</option>
                 <option value="new" @IsSelected("new", selectedSort2)>New This Month</option>
@@ -316,6 +316,16 @@
         color: var(--text-secondary);
     }
 
+    .filter-select {
+        background: var(--bg-elevated);
+        border: 1px solid var(--text-muted);
+        color: var(--text-primary);
+        padding: 0.75rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
     .btn-tried, .btn-crave {
         background: none;
         border: 1px solid var(--burnt-orange);
@@ -381,10 +391,17 @@
             var filter = this.value.toLowerCase();
             document.querySelectorAll('.dish-card').forEach(card => {
                 var name = card.querySelector('h3')?.innerText.toLowerCase() ?? '';
-                card.style.display = name.includes(filter) ? 'block' : 'none';
+                card.style.display = name.includes(filter) ? '' : 'none';
             });
         });
     }
+
+    // Broken image fallback for all dish photos
+    document.querySelectorAll('.card-image img, .dish-of-day-image img').forEach(function (img) {
+        img.addEventListener('error', function () {
+            this.src = 'https://placehold.co/400x300/1a1a1a/888?text=No+Photo';
+        });
+    });
 
     function triedDish(dishName, dishId) {
         showToast('You tried ' + dishName + '! Added to your food journey.');

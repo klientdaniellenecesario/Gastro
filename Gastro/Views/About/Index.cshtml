@@ -35,19 +35,44 @@
         <h2>Meet the Team</h2>
         <div class="team-grid">
             <div class="team-member">
-                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Maria">
-                <h4>Maria Santos</h4>
-                <p>Founder and Food Writer</p>
+                <div class="team-avatar" style="background: linear-gradient(135deg, #E76F51, #F4A261);">
+                    <img src="/images/team/klient.jpg" alt="Klient" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="avatar-initials" style="display:none;">KD</span>
+                </div>
+                <h4>Klient Danielle Necesario</h4>
+                <p>Frontend Developer</p>
             </div>
             <div class="team-member">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Miguel">
-                <h4>Miguel Reyes</h4>
-                <p>Chef and Culinary Director</p>
+                <div class="team-avatar" style="background: linear-gradient(135deg, #2A9D8F, #52B788);">
+                    <img src="/images/team/jazelle.jpg" alt="Jazelle" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="avatar-initials" style="display:none;">JT</span>
+                </div>
+                <h4>Jazelle Tamayo</h4>
+                <p>Programmer</p>
             </div>
             <div class="team-member">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Anna">
-                <h4>Anna Cruz</h4>
-                <p>Photographer and Editor</p>
+                <div class="team-avatar" style="background: linear-gradient(135deg, #E9C46A, #F4A261);">
+                    <img src="/images/team/ejhie.jpg" alt="Ejhie" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="avatar-initials" style="display:none;">EP</span>
+                </div>
+                <h4>Ejhie Pacquiao</h4>
+                <p>Programmer</p>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar" style="background: linear-gradient(135deg, #457B9D, #1D3557);">
+                    <img src="/images/team/cj.jpg" alt="CJ" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="avatar-initials" style="display:none;">CC</span>
+                </div>
+                <h4>CJ Charles</h4>
+                <p>Project Manager</p>
+            </div>
+            <div class="team-member">
+                <div class="team-avatar" style="background: linear-gradient(135deg, #9B5DE5, #F15BB5);">
+                    <img src="/images/team/jhyn.jpg" alt="Jhyn" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="avatar-initials" style="display:none;">JC</span>
+                </div>
+                <h4>Jhyn Carampatana</h4>
+                <p>QA Tester</p>
             </div>
         </div>
     </div>
@@ -159,12 +184,46 @@
         margin-top: 2rem;
     }
 
-    .team-member img {
+    .team-section h2 {
+        margin-bottom: 0.5rem;
+    }
+
+    .team-avatar {
         width: 150px;
         height: 150px;
         border-radius: 50%;
-        object-fit: cover;
-        margin-bottom: 1rem;
+        overflow: hidden;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+
+        .team-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+    .avatar-initials {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .team-member h4 {
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .team-member p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
 
     .culture-grid {

@@ -144,39 +144,42 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     public List<RestaurantListing> SearchRestaurants(string query = "", string category = "", decimal minRating = 0, string sortBy = "newest")
     {
         using var db = _factory.CreateDbContext();
-        var results = db.Restaurants.AsQueryable();
+
+        // Pull into memory first — SQLite can't translate ToLower/ToLowerInvariant
+        var all = db.Restaurants.ToList();
 
         if (!string.IsNullOrWhiteSpace(query))
         {
             var q = query.ToLowerInvariant();
-            results = results.Where(r =>
-                r.Name.ToLower().Contains(q) ||
-                r.Address.ToLower().Contains(q) ||
-                r.Description.ToLower().Contains(q) ||
-                r.Category.ToLower().Contains(q));
+            all = all.Where(r =>
+                r.Name.ToLowerInvariant().Contains(q) ||
+                r.Address.ToLowerInvariant().Contains(q) ||
+                r.Description.ToLowerInvariant().Contains(q) ||
+                r.Category.ToLowerInvariant().Contains(q)).ToList();
         }
 
         if (!string.IsNullOrWhiteSpace(category) && category.ToLowerInvariant() != "all")
-            results = results.Where(r => r.Category.ToLowerInvariant() == category.ToLowerInvariant());
+            all = all.Where(r => r.Category.ToLowerInvariant() == category.ToLowerInvariant()).ToList();
 
         if (minRating > 0)
-            results = results.Where(r => r.Rating >= minRating);
+            all = all.Where(r => r.Rating >= minRating).ToList();
 
-        results = sortBy?.ToLowerInvariant() switch
+        all = sortBy?.ToLowerInvariant() switch
         {
-            "rating" => results.OrderByDescending(r => r.Rating),
-            "name" => results.OrderBy(r => r.Name),
-            "newest" or _ => results.OrderByDescending(r => r.CreatedAt)
+            "rating" => all.OrderByDescending(r => r.Rating).ToList(),
+            "name" => all.OrderBy(r => r.Name).ToList(),
+            _ => all.OrderByDescending(r => r.CreatedAt).ToList()
         };
 
-        return [.. results];
+        return all;
     }
 
     public List<RestaurantListing> GetRestaurantsByCategory(string category)
     {
         using var db = _factory.CreateDbContext();
-        return [.. db.Restaurants
-            .Where(r => r.Category.ToLower() == category.ToLower())
+        var cat = category.ToLowerInvariant();
+        return [.. db.Restaurants.ToList()
+            .Where(r => r.Category.ToLowerInvariant() == cat)
             .OrderByDescending(r => r.Rating)];
     }
 

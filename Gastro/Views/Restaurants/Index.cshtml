@@ -25,7 +25,7 @@
                 <input type="text" placeholder="Search restaurants..." id="searchInput" name="query" value="@(ViewData["SearchQuery"] ?? "")">
             </div>
 
-            <select name="category" class="filter-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+            <select name="category" class="filter-select">
                 <option value="">All Categories</option>
                 <option value="restaurant" @IsSelected("restaurant", selectedCategory)>Restaurant</option>
                 <option value="cafe" @IsSelected("cafe", selectedCategory)>Cafe</option>
@@ -33,7 +33,7 @@
                 <option value="street food" @IsSelected("street food", selectedCategory)>Street Food</option>
             </select>
 
-            <select name="sortBy" class="sort-select" style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer;">
+            <select name="sortBy" class="filter-select">
                 <option value="newest" @IsSelected("newest", selectedSort)>Newest First</option>
                 <option value="rating" @IsSelected("rating", selectedSort)>Highest Rated</option>
                 <option value="name" @IsSelected("name", selectedSort)>Name A-Z</option>
@@ -192,13 +192,14 @@
             transform: translateX(3px);
         }
 
-    .sort-select {
+    .filter-select, .sort-select {
         background: var(--bg-elevated);
         border: 1px solid var(--text-muted);
         color: var(--text-primary);
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         border-radius: 30px;
         cursor: pointer;
+        font-size: 0.9rem;
     }
 
     .map-container {
@@ -208,44 +209,23 @@
 </style>
 
 <script>
-    function searchRestaurants() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const cards = document.querySelectorAll('.restaurant-card');
-
-        cards.forEach(card => {
-            const name = card.querySelector('h3').innerText.toLowerCase();
-            const location = card.querySelector('.card-location').innerText.toLowerCase();
-            card.style.display = (name.includes(filter) || location.includes(filter)) ? 'block' : 'none';
+    // Live search — filters cards client-side as you type
+    var searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+            var filter = this.value.toLowerCase().trim();
+            document.querySelectorAll('.restaurant-card').forEach(function (card) {
+                var name = (card.dataset.name || '').toLowerCase();
+                var loc  = (card.querySelector('.card-location')?.innerText || '').toLowerCase();
+                card.style.display = (!filter || name.includes(filter) || loc.includes(filter)) ? '' : 'none';
+            });
         });
     }
 
-    function filterByCategory(category) {
-        const cards = document.querySelectorAll('.restaurant-card');
-        const buttons = document.querySelectorAll('.filter-tab');
-
-        buttons.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-
-        cards.forEach(card => {
-            card.style.display = (category === 'all' || card.dataset.category === category) ? 'block' : 'none';
+    // Broken image fallback
+    document.querySelectorAll('.card-image img').forEach(function (img) {
+        img.addEventListener('error', function () {
+            this.src = 'https://placehold.co/400x260/1a1a1a/888?text=No+Photo';
         });
-    }
-
-    function sortRestaurants() {
-        const sortBy = document.getElementById('sortSelect').value;
-        const grid = document.getElementById('restaurantsGrid');
-        if (!grid) return;
-        const cards = Array.from(document.querySelectorAll('.restaurant-card'));
-
-        cards.sort((a, b) => {
-            if (sortBy === 'name') return a.dataset.name.localeCompare(b.dataset.name);
-            if (sortBy === 'rating') return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
-            if (sortBy === 'newest') return new Date(b.dataset.date) - new Date(a.dataset.date);
-            return 0;
-        });
-
-        cards.forEach(card => grid.appendChild(card));
-        showToast('Sorted! 🍽️');
-    }
+    });
 </script>
