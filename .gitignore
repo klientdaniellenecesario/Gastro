@@ -432,3 +432,8 @@ FodyWeavers.xsd
 *.db
 *.db-shm
 *.db-wal
+
+# Allow TasteCebu database to be tracked
+!Gastro/App_Data/tastecebu.db
+!Gastro/App_Data/tastecebu.db-shm
+!Gastro/App_Data/tastecebu.db-wal
