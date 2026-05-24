@@ -152,6 +152,47 @@ public class AccountController : Controller
         return Ok(new { url = avatarUrl });
     }
 
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult CheckEmail(string email)
+    {
+        var user = _store.FindUserByEmail(email.Trim());
+        if (user is null)
+        {
+            TempData["ForgotError"] = "No account found with that email.";
+            return RedirectToAction("ForgotPassword");
+        }
+        TempData["ResetEmail"] = email.Trim();
+        return RedirectToAction("ForgotPassword");
+    }
+
+    [HttpPost]
+    public IActionResult ResetPassword(string email, string newPassword, string confirmPassword)
+    {
+        if (newPassword != confirmPassword || newPassword.Length < 6)
+        {
+            TempData["ForgotError"] = "Passwords must match and be at least 6 characters.";
+            TempData["ResetEmail"] = email;
+            return RedirectToAction("ForgotPassword");
+        }
+
+        var user = _store.FindUserByEmail(email.Trim());
+        if (user is null)
+        {
+            TempData["ForgotError"] = "Something went wrong. Please try again.";
+            return RedirectToAction("ForgotPassword");
+        }
+
+        _store.ChangePassword(user.Id, newPassword);
+        TempData["Success"] = "Password reset successfully! You can now sign in.";
+        return RedirectToAction("Login");
+    }
+
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     private async Task SignInUser(int id, string fullName, string email, string role, bool rememberMe)
