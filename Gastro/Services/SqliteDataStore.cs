@@ -13,7 +13,7 @@ public class SqliteDataStore(IDbContextFactory<TasteCebuDbContext> factory, ICon
     public void Initialize()
     {
         using var db = _factory.CreateDbContext();
-        db.Database.Migrate(); // applies any pending migrations automatically
+        db.Database.EnsureCreated();        // applies any pending migrations automatically
         Seed(db);
     }
 

@@ -305,7 +305,7 @@ h1, h2, h3, h4, .logo, .hero-title {
     justify-content: center;
     text-align: center;
     position: relative;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/cebu.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/home.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
