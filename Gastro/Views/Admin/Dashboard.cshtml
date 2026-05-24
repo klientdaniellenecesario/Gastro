@@ -45,19 +45,19 @@
     <!-- ADMIN SIDEBAR + CONTENT -->
     <div class="admin-layout">
         <div class="admin-sidebar">
-            <button class="admin-nav-btn active" onclick="showAdminPanel('restaurants')">
+            <button class="admin-nav-btn active" onclick="showAdminPanel('restaurants', this)">
                 <i class="fas fa-utensils"></i> Restaurants
             </button>
-            <button class="admin-nav-btn" onclick="showAdminPanel('dishes')">
+            <button class="admin-nav-btn" onclick="showAdminPanel('dishes', this)">
                 <i class="fas fa-drumstick-bite"></i> Dishes
             </button>
-            <button class="admin-nav-btn" onclick="showAdminPanel('events')">
+            <button class="admin-nav-btn" onclick="showAdminPanel('events', this)">
                 <i class="fas fa-calendar-alt"></i> Events
             </button>
-            <button class="admin-nav-btn" onclick="showAdminPanel('users')">
+            <button class="admin-nav-btn" onclick="showAdminPanel('users', this)">
                 <i class="fas fa-users"></i> Users
             </button>
-            <button class="admin-nav-btn" onclick="showAdminPanel('reviews')">
+            <button class="admin-nav-btn" onclick="showAdminPanel('reviews', this)">
                 <i class="fas fa-star"></i> Reviews
             </button>
         </div>
@@ -88,7 +88,7 @@
                                 <td>@restaurant.Rating.ToString("0.0")</td>
                                 <td>
                                     <button class="btn-edit" onclick="openEditModal('restaurant',@restaurant.Id,'@rName','@rPhoto','@rDesc','@rAddr','@restaurant.Category','0','','false','false','0','')">Edit</button>
-                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form" onsubmit="return confirm('Delete this restaurant?')">
                                         <input type="hidden" name="type" value="restaurant">
                                         <input type="hidden" name="id" value="@restaurant.Id">
                                         <button class="btn-delete">Delete</button>
@@ -127,8 +127,8 @@
                                 <td>PHP @dish.Price.ToString("0.##")</td>
                                 <td>@linkedRName</td>
                                 <td>
-                                    <button class="btn-edit" onclick="openEditModal('dish',@dish.Id,'@dName','@dPhoto','@dTags','','','@dish.Price','@dTags','@dIsNew','@dTrending','0','')">Edit</button>
-                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                    <button class="btn-edit" onclick="openEditModal('dish',@dish.Id,'@dName','@dPhoto','','','',@dish.Price,'@dTags','@dIsNew','@dTrending','0','')">Edit</button>
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form" onsubmit="return confirm('Delete this dish?')">
                                         <input type="hidden" name="type" value="dish">
                                         <input type="hidden" name="id" value="@dish.Id">
                                         <button class="btn-delete">Delete</button>
@@ -166,7 +166,7 @@
                                 <td>
                                     <button class="btn-registrants" onclick="openRegistrantsModal(@foodEvent.Id, '@eTitle')">Registrants</button>
                                     <button class="btn-edit" onclick="openEditModal('event',@foodEvent.Id,'@eTitle','@ePhoto','@eDesc','@eLoc','','0','','false','false','@foodEvent.AvailableSlots','@eDate')">Edit</button>
-                                    <form method="post" action="/Admin/DeleteItem" class="inline-form">
+                                    <form method="post" action="/Admin/DeleteItem" class="inline-form" onsubmit="return confirm('Delete this event?')">
                                         <input type="hidden" name="type" value="event">
                                         <input type="hidden" name="id" value="@foodEvent.Id">
                                         <button class="btn-delete">Delete</button>
@@ -210,11 +210,9 @@
                                         }
                                         else
                                         {
-                                            <!-- Edit button triggers inline edit row -->
                                             <button class="btn-edit" onclick="toggleUserEdit(@appUser.Id)">
                                                 <i class="fas fa-pen"></i> Edit
                                             </button>
-                                            <!-- Delete -->
                                             <form method="post" action="/Admin/DeleteUser" class="inline-form" style="display:contents"
                                                   onsubmit="return confirm('Delete @appUser.FullName? This cannot be undone.')">
                                                 <input type="hidden" name="id" value="@appUser.Id">
@@ -236,7 +234,6 @@
                             </tr>
                             @if (!isSeededAdmin)
                             {
-                                <!-- Inline edit row, hidden by default -->
                                 <tr id="userEditRow-@appUser.Id" style="display:none;background:var(--bg-elevated);">
                                     <td colspan="5" style="padding:1rem;">
                                         <form method="post" action="/Admin/EditUser" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
@@ -248,7 +245,7 @@
                                                    placeholder="Email" required
                                                    style="padding:0.5rem;border-radius:8px;border:1px solid var(--navbar-border);background:var(--bg-card);color:var(--text-primary);flex:1;min-width:200px;">
                                             <button type="submit" class="btn-edit"><i class="fas fa-save"></i> Save</button>
-                                            <button type="button" class="btn-secondary" onclick="toggleUserEdit(@appUser.Id)"
+                                            <button type="button" onclick="toggleUserEdit(@appUser.Id)"
                                                     style="padding:0.4rem 0.9rem;border-radius:8px;border:1px solid var(--navbar-border);background:none;color:var(--text-secondary);cursor:pointer;">
                                                 Cancel
                                             </button>
@@ -345,30 +342,49 @@
 <!-- ADD MODAL -->
 <div id="addModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">Add New</h2>
+        <div class="modal-header-styled">
+            <div class="modal-title-row">
+                <div class="modal-icon" id="addModalIcon"><i class="fas fa-plus-circle"></i></div>
+                <h2 id="modalTitle">Add New</h2>
+            </div>
             <button class="close-modal" onclick="closeModal('addModal')">&times;</button>
         </div>
         <form id="addForm" method="post" action="/Admin/AddItem" enctype="multipart/form-data">
             <div class="modal-body">
                 <input type="hidden" name="type" id="adminItemType" value="restaurant">
+
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" name="name" required>
+                    <input type="text" name="name" required placeholder="Enter name...">
                 </div>
-                <div class="form-group">
-                    <label>Photo Upload</label>
-                    <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'addPreview')">
-                    <img id="addPreview" class="photo-preview" style="display:none">
+
+                <!-- Photo section -->
+                <div class="photo-upload-section">
+                    <div class="photo-upload-preview" id="addPhotoPreviewBox">
+                        <img id="addPreview" src="" alt="" style="display:none">
+                        <div class="photo-placeholder" id="addPhotoPlaceholder">
+                            <i class="fas fa-image"></i>
+                            <span>No photo selected</span>
+                        </div>
+                    </div>
+                    <div class="photo-upload-controls">
+                        <div class="form-group">
+                            <label><i class="fas fa-upload"></i> Upload Photo</label>
+                            <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'addPreview','addPhotoPlaceholder')">
+                        </div>
+                        <div class="photo-divider"><span>or</span></div>
+                        <div class="form-group">
+                            <label><i class="fas fa-link"></i> Image URL</label>
+                            <input type="url" name="imageUrl" placeholder="https://..." oninput="previewUrl(this.value,'addPreview','addPhotoPlaceholder')">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>— or — Image URL</label>
-                    <input type="url" name="imageUrl" placeholder="https://...">
-                </div>
+
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea rows="3" name="description"></textarea>
+                    <textarea rows="3" name="description" placeholder="Write a short description..."></textarea>
                 </div>
+
                 <!-- Restaurant-only fields -->
                 <div id="addRestaurantFields">
                     <div class="form-group">
@@ -385,6 +401,7 @@
                         </select>
                     </div>
                 </div>
+
                 <!-- Dish-only fields -->
                 <div id="addDishFields" style="display:none">
                     <div class="form-group">
@@ -397,42 +414,49 @@
                             }
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Price (PHP)</label>
-                        <input type="number" name="price" step="0.01" min="0" value="0">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Price (PHP)</label>
+                            <input type="number" name="price" step="0.01" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Tags (comma-separated)</label>
+                            <input type="text" name="tags" placeholder="e.g. Seafood, Spicy">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Tags (comma-separated)</label>
-                        <input type="text" name="tags" placeholder="e.g. Seafood, Spicy, Grilled">
-                    </div>
-                    <div class="form-group" style="display:flex; gap:1rem;">
-                        <label style="display:flex; align-items:center; gap:0.4rem;">
-                            <input type="checkbox" name="isNew" value="true"> New This Month
+                    <div class="checkbox-group">
+                        <label class="checkbox-pill">
+                            <input type="checkbox" name="isNew" value="true">
+                            <span><i class="fas fa-sparkles"></i> New This Month</span>
                         </label>
-                        <label style="display:flex; align-items:center; gap:0.4rem;">
-                            <input type="checkbox" name="isTrending" value="true"> Trending
+                        <label class="checkbox-pill">
+                            <input type="checkbox" name="isTrending" value="true">
+                            <span><i class="fas fa-fire"></i> Trending</span>
                         </label>
                     </div>
                 </div>
+
                 <!-- Event-only fields -->
                 <div id="addEventFields" style="display:none">
-                    <div class="form-group">
-                        <label>Event Date & Time</label>
-                        <input type="datetime-local" name="eventDate">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Event Date & Time</label>
+                            <input type="datetime-local" name="eventDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Slots</label>
+                            <input type="number" name="availableSlots" min="1" value="20">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Location</label>
                         <input type="text" name="location" placeholder="e.g. Carbon Market, Cebu City">
                     </div>
-                    <div class="form-group">
-                        <label>Available Slots</label>
-                        <input type="number" name="availableSlots" min="1" value="20">
-                    </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">Cancel</button>
-                <button type="submit" class="btn-submit">Save</button>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save</button>
             </div>
         </form>
     </div>
@@ -441,31 +465,53 @@
 <!-- EDIT MODAL -->
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="editModalTitle">Edit</h2>
+        <div class="modal-header-styled">
+            <div class="modal-title-row">
+                <div class="modal-icon" id="editModalIcon"><i class="fas fa-pen"></i></div>
+                <h2 id="editModalTitle">Edit</h2>
+            </div>
             <button class="close-modal" onclick="closeModal('editModal')">&times;</button>
         </div>
         <form id="editForm" method="post" action="/Admin/EditItem" enctype="multipart/form-data">
             <div class="modal-body">
                 <input type="hidden" name="type" id="editItemType">
                 <input type="hidden" name="id" id="editItemId">
+                <!-- KEY FIX: keeps existing photo if no new one is uploaded -->
+                <input type="hidden" name="currentPhoto" id="editCurrentPhoto">
+
                 <div class="form-group">
                     <label>Name</label>
                     <input type="text" name="name" id="editName" required>
                 </div>
-                <div class="form-group">
-                    <label>Photo Upload</label>
-                    <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'editPreview')">
-                    <img id="editPreview" class="photo-preview" style="display:none">
+
+                <!-- Photo section with current photo preview -->
+                <div class="photo-upload-section">
+                    <div class="photo-upload-preview" id="editPhotoPreviewBox">
+                        <img id="editPreview" src="" alt="" style="display:none">
+                        <div class="photo-placeholder" id="editPhotoPlaceholder">
+                            <i class="fas fa-image"></i>
+                            <span>No photo</span>
+                        </div>
+                    </div>
+                    <div class="photo-upload-controls">
+                        <p class="photo-keep-note"><i class="fas fa-info-circle"></i> Leave blank to keep the current photo</p>
+                        <div class="form-group">
+                            <label><i class="fas fa-upload"></i> Upload New Photo</label>
+                            <input type="file" name="photo" accept="image/*" onchange="previewPhoto(this,'editPreview','editPhotoPlaceholder')">
+                        </div>
+                        <div class="photo-divider"><span>or</span></div>
+                        <div class="form-group">
+                            <label><i class="fas fa-link"></i> New Image URL</label>
+                            <input type="url" name="imageUrl" id="editImageUrl" placeholder="https://..." oninput="previewUrl(this.value,'editPreview','editPhotoPlaceholder')">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>— or — Image URL</label>
-                    <input type="url" name="imageUrl" id="editImageUrl" placeholder="https://...">
-                </div>
+
                 <div class="form-group">
                     <label>Description</label>
                     <textarea rows="3" name="description" id="editDescription"></textarea>
                 </div>
+
                 <!-- Restaurant-only fields -->
                 <div id="editRestaurantFields" style="display:none">
                     <div class="form-group">
@@ -482,6 +528,7 @@
                         </select>
                     </div>
                 </div>
+
                 <!-- Dish-only fields -->
                 <div id="editDishFields" style="display:none">
                     <div class="form-group">
@@ -494,38 +541,49 @@
                             }
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Price (PHP)</label>
-                        <input type="number" name="price" id="editPrice" step="0.01" min="0">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Price (PHP)</label>
+                            <input type="number" name="price" id="editPrice" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Tags (comma-separated)</label>
+                            <input type="text" name="tags" id="editTags">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Tags (comma-separated)</label>
-                        <input type="text" name="tags" id="editTags">
-                    </div>
-                    <div class="form-group" style="display:flex;gap:1rem">
-                        <label><input type="checkbox" name="isNew" id="editIsNew" value="true"> New This Month</label>
-                        <label><input type="checkbox" name="isTrending" id="editIsTrending" value="true"> Trending</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-pill">
+                            <input type="checkbox" name="isNew" id="editIsNew" value="true">
+                            <span><i class="fas fa-sparkles"></i> New This Month</span>
+                        </label>
+                        <label class="checkbox-pill">
+                            <input type="checkbox" name="isTrending" id="editIsTrending" value="true">
+                            <span><i class="fas fa-fire"></i> Trending</span>
+                        </label>
                     </div>
                 </div>
+
                 <!-- Event-only fields -->
                 <div id="editEventFields" style="display:none">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date & Time</label>
+                            <input type="datetime-local" name="eventDate" id="editEventDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Slots</label>
+                            <input type="number" name="availableSlots" id="editAvailableSlots" min="0">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Location</label>
                         <input type="text" name="location" id="editLocation">
-                    </div>
-                    <div class="form-group">
-                        <label>Date &amp; Time</label>
-                        <input type="datetime-local" name="eventDate" id="editEventDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Available Slots</label>
-                        <input type="number" name="availableSlots" id="editAvailableSlots" min="0">
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">Cancel</button>
-                <button type="submit" class="btn-submit">Update</button>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Update</button>
             </div>
         </form>
     </div>
@@ -582,6 +640,9 @@
         background: var(--bg-card);
         border-radius: 20px;
         padding: 1rem;
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
     }
 
     .admin-nav-btn {
@@ -597,10 +658,11 @@
         cursor: pointer;
         transition: var(--transition);
         margin-bottom: 0.5rem;
+        font-size: 0.95rem;
     }
 
         .admin-nav-btn:hover, .admin-nav-btn.active {
-            background: var(--burnt-orange);
+            background: var(--gradient-warm);
             color: white;
         }
 
@@ -623,10 +685,17 @@
         background: var(--gradient-warm);
         color: white;
         border: none;
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 1.2rem;
         border-radius: 30px;
         cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
     }
+
+        .btn-add:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
 
     .admin-table {
         width: 100%;
@@ -645,6 +714,10 @@
         .admin-table th {
             background: var(--bg-elevated);
             font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
         }
 
     .btn-edit, .btn-delete {
@@ -652,7 +725,9 @@
         border-radius: 20px;
         border: none;
         cursor: pointer;
-        margin-right: 0.5rem;
+        margin-right: 0.4rem;
+        font-size: 0.82rem;
+        font-weight: 500;
     }
 
     .btn-edit {
@@ -672,22 +747,21 @@
         border-radius: 20px;
         border: none;
         cursor: pointer;
-        margin-right: 0.5rem;
+        margin-right: 0.4rem;
+        font-size: 0.82rem;
     }
 
     .inline-form {
         display: inline;
     }
 
+    /* ── MODAL ── */
     .modal {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         background: rgba(0,0,0,0.75);
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(6px);
         z-index: 2000;
         justify-content: center;
         align-items: center;
@@ -698,17 +772,17 @@
         background: var(--bg-card);
         border-radius: 24px;
         width: 100%;
-        max-width: 520px;
-        max-height: 90vh;
+        max-width: 580px;
+        max-height: 92vh;
         overflow-y: auto;
-        box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.5);
         animation: modalSlideIn 0.25s ease;
     }
 
     @@keyframes modalSlideIn {
         from {
             opacity: 0;
-            transform: translateY(20px) scale(0.97);
+            transform: translateY(24px) scale(0.97);
         }
 
         to {
@@ -717,69 +791,168 @@
         }
     }
 
-    .modal-header {
+    /* Styled header with gradient strip */
+    .modal-header-styled {
+        background: var(--gradient-warm);
+        border-radius: 24px 24px 0 0;
+        padding: 1.25rem 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1.5rem 1.5rem 0;
-        margin-bottom: 1.25rem;
+        color: white;
     }
 
-        .modal-header h2 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin: 0;
-        }
+    .modal-title-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .modal-icon {
+        width: 38px;
+        height: 38px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .modal-header-styled h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+    }
 
     .close-modal {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: var(--bg-elevated);
+        background: rgba(255,255,255,0.2);
         border: none;
-        color: var(--text-secondary);
+        color: white;
         font-size: 1.1rem;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: var(--transition);
+        transition: background 0.2s;
         line-height: 1;
     }
 
         .close-modal:hover {
-            background: var(--burnt-orange);
-            color: white;
+            background: rgba(255,255,255,0.35);
         }
 
     .modal-body {
-        padding: 0 1.5rem;
+        padding: 1.25rem 1.5rem 0;
     }
 
-    .form-group {
+    /* Photo upload section */
+    .photo-upload-section {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 1rem;
         margin-bottom: 1rem;
+        background: var(--bg-elevated);
+        border-radius: 16px;
+        padding: 1rem;
+    }
+
+    .photo-upload-preview {
+        width: 130px;
+        height: 130px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border: 2px dashed var(--navbar-border);
+    }
+
+        .photo-upload-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+    .photo-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+        .photo-placeholder i {
+            font-size: 1.8rem;
+            opacity: 0.4;
+        }
+
+    .photo-upload-controls {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .photo-keep-note {
+        font-size: 0.75rem;
+        color: var(--burnt-orange);
+        margin: 0 0 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .photo-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+        .photo-divider::before, .photo-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--navbar-border);
+        }
+
+    /* Form styles */
+    .form-group {
+        margin-bottom: 0.85rem;
     }
 
         .form-group label {
             display: block;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text-secondary);
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.35rem;
         }
 
         .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 1rem;
             background: var(--bg-elevated);
             border: 1.5px solid transparent;
             border-radius: 12px;
             color: var(--text-primary);
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             transition: border-color 0.2s;
             outline: none;
         }
@@ -790,13 +963,49 @@
                 border-color: var(--burnt-orange);
             }
 
-    .photo-preview {
-        width: 100%;
-        max-height: 140px;
-        object-fit: cover;
-        border-radius: 12px;
-        margin-top: 0.5rem;
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
     }
+
+    /* Checkbox pills */
+    .checkbox-group {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 0.85rem;
+        flex-wrap: wrap;
+    }
+
+    .checkbox-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+        .checkbox-pill input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkbox-pill span {
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            border: 1.5px solid var(--navbar-border);
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .checkbox-pill input:checked + span {
+            background: var(--gradient-warm);
+            color: white;
+            border-color: transparent;
+        }
 
     .modal-footer {
         display: flex;
@@ -816,6 +1025,10 @@
         font-weight: 600;
         cursor: pointer;
         transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
         .btn-submit:hover {
@@ -877,6 +1090,19 @@
         .stat-number {
             font-size: 1.5rem;
         }
+
+        .photo-upload-section {
+            grid-template-columns: 1fr;
+        }
+
+        .photo-upload-preview {
+            width: 100%;
+            height: 160px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -886,28 +1112,25 @@
         if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
     }
 
-    function showAdminPanel(panel) {
-        var panels = ['restaurants', 'dishes', 'events', 'users', 'reviews'];
-        var buttons = document.querySelectorAll('.admin-nav-btn');
-        for (var i = 0; i < panels.length; i++) {
-            var el = document.getElementById(panels[i] + 'Panel');
-            if (el) el.classList.remove('active');
-        }
-        var active = document.getElementById(panel + 'Panel');
-        if (active) active.classList.add('active');
-        for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
-        if (event && event.target) {
-            var btn = event.target.closest('.admin-nav-btn');
-            if (btn) btn.classList.add('active');
-        }
+    function showAdminPanel(panel, btn) {
+        document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+        var el = document.getElementById(panel + 'Panel');
+        if (el) el.classList.add('active');
+        if (btn) btn.classList.add('active');
     }
 
     function openAddModal(type) {
-        document.getElementById('modalTitle').textContent = 'Add New ' + type.charAt(0).toUpperCase() + type.slice(1);
+        var labels = { restaurant: 'Restaurant', dish: 'Dish', event: 'Event' };
+        document.getElementById('modalTitle').textContent = 'Add New ' + (labels[type] || type);
         document.getElementById('adminItemType').value = type;
         document.getElementById('addRestaurantFields').style.display = type === 'restaurant' ? 'block' : 'none';
         document.getElementById('addDishFields').style.display = type === 'dish' ? 'block' : 'none';
         document.getElementById('addEventFields').style.display = type === 'event' ? 'block' : 'none';
+        // reset preview
+        document.getElementById('addPreview').style.display = 'none';
+        document.getElementById('addPhotoPlaceholder').style.display = 'flex';
+        document.getElementById('addForm').reset();
         document.getElementById('addModal').style.display = 'flex';
     }
 
@@ -915,16 +1138,30 @@
         document.getElementById('editItemType').value = type;
         document.getElementById('editItemId').value = id;
         document.getElementById('editName').value = name || '';
-        document.getElementById('editImageUrl').value = photoUrl || '';
         document.getElementById('editDescription').value = description || '';
 
+        // Store current photo so server keeps it if no new one uploaded
+        document.getElementById('editCurrentPhoto').value = photoUrl || '';
+        document.getElementById('editImageUrl').value = '';
+
+        // Show current photo preview
         var preview = document.getElementById('editPreview');
-        if (photoUrl) { preview.src = photoUrl; preview.style.display = 'block'; }
-        else preview.style.display = 'none';
+        var placeholder = document.getElementById('editPhotoPlaceholder');
+        if (photoUrl) {
+            preview.src = photoUrl;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+        }
 
         document.getElementById('editRestaurantFields').style.display = 'none';
         document.getElementById('editDishFields').style.display = 'none';
         document.getElementById('editEventFields').style.display = 'none';
+
+        var labels = { restaurant: 'Restaurant', dish: 'Dish', event: 'Event' };
+        document.getElementById('editModalTitle').textContent = 'Edit ' + (labels[type] || type);
 
         if (type === 'restaurant') {
             document.getElementById('editRestaurantFields').style.display = 'block';
@@ -943,7 +1180,6 @@
             document.getElementById('editEventDate').value = eventDate || '';
         }
 
-        document.getElementById('editModalTitle').textContent = 'Edit ' + type.charAt(0).toUpperCase() + type.slice(1);
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -952,12 +1188,30 @@
         if (modal) modal.style.display = 'none';
     }
 
-    function previewPhoto(input, previewId) {
+    function previewPhoto(input, previewId, placeholderId) {
         var preview = document.getElementById(previewId);
+        var placeholder = document.getElementById(placeholderId);
         if (input.files && input.files[0]) {
             var reader = new FileReader();
-            reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            };
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewUrl(url, previewId, placeholderId) {
+        var preview = document.getElementById(previewId);
+        var placeholder = document.getElementById(placeholderId);
+        if (url) {
+            preview.src = url;
+            preview.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
         }
     }
 
@@ -982,11 +1236,9 @@
     }
 
     window.onclick = function(e) {
-        var addModal = document.getElementById('addModal');
-        var editModal = document.getElementById('editModal');
-        if (e.target == addModal) addModal.style.display = 'none';
-        if (e.target == editModal) editModal.style.display = 'none';
-        var regModal = document.getElementById('registrantsModal');
-        if (e.target == regModal) regModal.style.display = 'none';
+        ['addModal','editModal','registrantsModal'].forEach(function(id) {
+            var m = document.getElementById(id);
+            if (e.target == m) m.style.display = 'none';
+        });
     }
 </script>

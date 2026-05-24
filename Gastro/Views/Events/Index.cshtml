@@ -107,7 +107,7 @@
                         @if (isAuth)
                         {
                             <button class="btn-register @(foodEvent.AvailableSlots == 0 ? "btn-register--full" : "")"
-                                    onclick="event.stopPropagation(); registerEvent(@foodEvent.Id)"
+                                    onclick="event.stopPropagation(); registerEvent(@foodEvent.Id, this)"
                                 @(foodEvent.AvailableSlots == 0 ? "disabled" : "")>
                                 @(foodEvent.AvailableSlots == 0 ? "Fully Booked" : "Register Now →")
                             </button>

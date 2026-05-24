@@ -138,7 +138,7 @@
                             <div class="dish-card" data-category="trending" data-name="@dish.Name">
                                 <div class="card-image">
                                     <img src="@dish.PhotoUrl" alt="@dish.Name">
-                                    <span class="card-badge">TRENDING</span>
+                                    <div class="card-badges"><span class="card-badge trending-badge">TRENDING</span></div>
                                 </div>
                                 <div class="card-content">
                                     <h3>@dish.Name</h3>
@@ -184,7 +184,7 @@
                             <div class="dish-card" data-category="new" data-name="@dish.Name">
                                 <div class="card-image">
                                     <img src="@dish.PhotoUrl" alt="@dish.Name">
-                                    <span class="card-badge new-badge">NEW</span>
+                                    <div class="card-badges"><span class="card-badge new-badge">NEW</span></div>
                                 </div>
                                 <div class="card-content">
                                     <h3>@dish.Name</h3>
@@ -234,7 +234,7 @@
                             <div class="dish-card" data-category="@firstTag" data-name="@dish.Name">
                                 <div class="card-image">
                                     <img src="@dish.PhotoUrl" alt="@dish.Name">
-                                    <span class="card-badge">@(dish.Tags?.Split(',').FirstOrDefault()?.Trim().ToUpperInvariant() ?? "DISH")</span>
+                                    <div class="card-badges"><span class="card-badge">@(dish.Tags?.Split(',').FirstOrDefault()?.Trim().ToUpperInvariant() ?? "DISH")</span></div>
                                 </div>
                                 <div class="card-content">
                                     <h3>@dish.Name</h3>

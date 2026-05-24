@@ -207,7 +207,7 @@
     </div>
 </div>
 
-<!-- ACTIVITY FEED TAB -->
+<!-- DISHES I TRIED TAB -->
 <div id="triedTab" class="profile-tab-content">
     @if (!triedDishes.Any())
     {
@@ -228,14 +228,16 @@
                         {
                             <div style="height:220px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;color:var(--text-muted)">No Photo</div>
                         }
-                        @if (dish.IsTrending)
-                        {
-                            <span class="card-badge">TRENDING</span>
-                        }
-                        @if (dish.IsNewThisMonth)
-                        {
-                            <span class="card-badge new-badge">NEW</span>
-                        }
+                        <div class="card-badges">
+                            @if (dish.IsTrending)
+                            {
+                                <span class="card-badge trending-badge">TRENDING</span>
+                            }
+                            @if (dish.IsNewThisMonth)
+                            {
+                                <span class="card-badge new-badge">NEW</span>
+                            }
+                        </div>
                     </div>
                     <div class="card-content">
                         <h3>@dish.Name</h3>
@@ -257,6 +259,7 @@
     }
 </div>
 
+<!-- ACTIVITY FEED TAB -->
 <div id="activityTab" class="profile-tab-content">
     <div class="activity-feed">
         @if (!activities.Any())
@@ -659,6 +662,39 @@
         font-size: 1.5rem;
         cursor: pointer;
     }
+
+    /* --- Badge fix: stack TRENDING and NEW vertically, never overlap --- */
+    .card-image {
+        position: relative;
+    }
+
+    .card-badges {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .card-badge {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .trending-badge {
+        background: var(--burnt-orange);
+        color: white;
+    }
+
+    .new-badge {
+        background: #222;
+        color: white;
+    }
 </style>
 
 <style>
@@ -854,9 +890,7 @@
             var res = await fetch('/Account/UploadAvatar', { method: 'POST', body: form });
             var data = await res.json();
             if (!res.ok) { showToast(data.message || 'Upload failed.'); return; }
-            // bust cache so the new image loads immediately
             document.getElementById('profileAvatarImg').src = data.url + '?t=' + Date.now();
-            // update navbar avatar too
             var navAvatar = document.getElementById('navAvatarImg');
             if (navAvatar) navAvatar.src = data.url + '?t=' + Date.now();
             showToast('Profile photo updated!');

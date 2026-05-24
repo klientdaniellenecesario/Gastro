@@ -500,10 +500,18 @@ h1, h2, h3, h4, .logo, .hero-title {
     transform: scale(1.1);
 }
 
-.card-badge {
+.card-badges {
     position: absolute;
     top: 1rem;
     left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    z-index: 2;
+}
+
+.card-badge {
+    display: inline-block;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(4px);
     padding: 0.3rem 0.8rem;
@@ -513,8 +521,14 @@ h1, h2, h3, h4, .logo, .hero-title {
     color: white;
 }
 
+.trending-badge {
+    background: var(--burnt-orange);
+    color: white;
+}
+
 .new-badge {
     background: var(--terracotta);
+    color: white;
 }
 
 .card-vibe {
